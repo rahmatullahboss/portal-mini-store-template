@@ -1,25 +1,31 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
 
-export default function RegisterPage() {
+function ResetPasswordForm() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
     password: '',
     confirmPassword: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+
+  useEffect(() => {
+    if (!token) {
+      setError('Invalid or missing reset token. Please request a new password reset.')
+    }
+  }, [token])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -34,9 +40,8 @@ export default function RegisterPage() {
     setIsSubmitting(true)
     setError('')
 
-    // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      setError('All fields are required')
+    if (!formData.password || !formData.confirmPassword) {
+      setError('Both password fields are required')
       setIsSubmitting(false)
       return
     }
@@ -53,61 +58,83 @@ export default function RegisterPage() {
       return
     }
 
+    if (!token) {
+      setError('Invalid or missing reset token')
+      setIsSubmitting(false)
+      return
+    }
+
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch('/api/users/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
+          token,
           password: formData.password,
-          role: 'user',
         }),
       })
 
       if (response.ok) {
-        // Registration successful, redirect to login
-        router.push('/login?message=Registration successful! Please log in.')
+        setSuccess(true)
       } else {
         const errorData = await response.json()
-        console.error('Registration error:', response.status, errorData)
-        setError(
-          errorData.message ||
-            errorData.errors?.[0]?.message ||
-            'Registration failed. Please try again.',
-        )
+        setError(errorData.message || 'Failed to reset password. Please try again.')
       }
     } catch (err) {
-      console.error('Registration fetch error:', err)
-      setError('Registration failed. Please try again.')
+      setError('Failed to reset password. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full space-y-8">
+          <SiteHeader title="Password reset successful" />
+
+          {/* Success Message */}
+          <Card>
+            <CardHeader>
+              <CardTitle>All set!</CardTitle>
+              <CardDescription>Your password has been successfully reset.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertDescription>You can now sign in with your new password.</AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Link href="/login">
+                  <Button className="w-full">Sign in</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Back to Home */}
+          <div className="text-center">
+            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
+              ← Back to home
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full space-y-8">
-        <SiteHeader
-          title="Create your account"
-          subtitle={
-            <>
-              Already have an account?{' '}
-              <Link href="/login" className="font-medium text-red-600 hover:text-red-500">
-                Sign in
-              </Link>
-            </>
-          }
-        />
+        <SiteHeader title="Reset your password" subtitle="Enter your new password below" />
 
-        {/* Registration Form */}
+        {/* Reset Password Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Sign up</CardTitle>
-            <CardDescription>Enter your information to create an account</CardDescription>
+            <CardTitle>New password</CardTitle>
+            <CardDescription>Choose a strong password for your account</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,55 +144,9 @@ export default function RegisterPage() {
                 </Alert>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                    First Name
-                  </label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    placeholder="John"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                    Last Name
-                  </label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email address
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="john@example.com"
-                />
-              </div>
-
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
+                  New Password
                 </label>
                 <Input
                   id="password"
@@ -175,12 +156,13 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="••••••••"
+                  minLength={8}
                 />
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  Confirm Password
+                  Confirm New Password
                 </label>
                 <Input
                   id="confirmPassword"
@@ -190,11 +172,12 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   placeholder="••••••••"
+                  minLength={8}
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating account...' : 'Create account'}
+              <Button type="submit" className="w-full" disabled={isSubmitting || !token}>
+                {isSubmitting ? 'Resetting...' : 'Reset password'}
               </Button>
             </form>
           </CardContent>
@@ -208,5 +191,17 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   )
 }

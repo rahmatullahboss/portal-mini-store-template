@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { SiteHeader } from '@/components/site-header'
 
 function LoginForm() {
   const [formData, setFormData] = useState({
@@ -75,19 +76,17 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <Link href="/" className="text-2xl font-bold text-red-600">
-            🍿 Dyad Snacks
-          </Link>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="font-medium text-red-600 hover:text-red-500">
-              Sign up
-            </Link>
-          </p>
-        </div>
+        <SiteHeader
+          title="Sign in to your account"
+          subtitle={
+            <>
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="font-medium text-red-600 hover:text-red-500">
+                Sign up
+              </Link>
+            </>
+          }
+        />
 
         {/* Login Form */}
         <Card>
@@ -125,9 +124,17 @@ function LoginForm() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm font-medium text-red-600 hover:text-red-500"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <Input
                   id="password"
                   name="password"
