@@ -2,7 +2,6 @@
 import nodemailer from 'nodemailer'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
-import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -56,10 +55,6 @@ export default buildConfig({
     push: process.env.DYAD_DISABLE_DB_PUSH === 'true' ? false : undefined,
   }),
   sharp,
-  plugins: [
-    payloadCloudPlugin(),
-    // storage-adapter-placeholder
-  ],
   email: nodemailerAdapter({
     defaultFromAddress: process.env.GMAIL_USER || '',
     defaultFromName: process.env.EMAIL_DEFAULT_FROM_NAME || 'Dyad app',
