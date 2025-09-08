@@ -17,13 +17,18 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export const getServerSideURL = () => {
-  const url = process.env.NEXT_PUBLIC_SERVER_URL
+  // Prefer explicitly provided public URL
+  const explicit = process.env.NEXT_PUBLIC_SERVER_URL
 
-  if (!url && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  }
+  // In Vercel, VERCEL_URL is set per-deployment (includes preview domains)
+  const vercelURL = process.env.VERCEL_URL
+  const vercelProdURL = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
-  return url
+  if (explicit) return explicit
+  if (vercelURL) return `https://${vercelURL}`
+  if (vercelProdURL) return `https://${vercelProdURL}`
+
+  return undefined as unknown as string
 }
 
 export default buildConfig({
@@ -39,7 +44,9 @@ export default buildConfig({
     },
   },
   serverURL: getServerSideURL(),
-  cors: [getServerSideURL()].filter(Boolean) as string[],
+  // Allow current deployment URL and localhost for dev
+  cors: [getServerSideURL(), 'http://localhost:3000'].
+    filter(Boolean) as string[],
   collections: [Users, Media, Snacks, Orders],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
