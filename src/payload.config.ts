@@ -48,7 +48,8 @@ export default buildConfig({
   },
   db: vercelPostgresAdapter({
     pool: {
-      connectionString: process.env.POSTGRES_URL || '',
+      // Prefer POSTGRES_URL, fallback to DATABASE_URL for hosts that provide that
+      connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || '',
     },
     // When set to undefined or true, Payload will automatically push DB
     // changes in dev environment.
