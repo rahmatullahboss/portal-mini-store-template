@@ -13,13 +13,23 @@ import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface CheckoutFormProps {
-  user: any
+  user?: any
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
   const { state, clearCart, getTotalPrice } = useCart()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [customerNumber, setCustomerNumber] = useState<string>('')
+  const [firstName, setFirstName] = useState<string>(user?.firstName || '')
+  const [lastName, setLastName] = useState<string>(user?.lastName || '')
+  const [email, setEmail] = useState<string>(user?.email || '')
+  const [address_line1, setAddressLine1] = useState<string>(user?.address?.line1 || '')
+  const [address_line2, setAddressLine2] = useState<string>(user?.address?.line2 || '')
+  const [address_city, setAddressCity] = useState<string>(user?.address?.city || '')
+  const [address_state, setAddressState] = useState<string>(user?.address?.state || '')
+  const [address_postalCode, setAddressPostalCode] = useState<string>(user?.address?.postalCode || '')
+  const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,6 +55,35 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
             quantity: item.quantity,
           })),
           totalAmount: getTotalPrice(),
+          customerNumber,
+          ...(user
+            ? {
+                // Use provided shipping if filled, otherwise API will fall back to user profile
+                shippingAddress:
+                  address_line1 || address_city || address_postalCode || address_country
+                    ? {
+                        line1: address_line1,
+                        line2: address_line2 || undefined,
+                        city: address_city,
+                        state: address_state || undefined,
+                        postalCode: address_postalCode,
+                        country: address_country,
+                      }
+                    : undefined,
+              }
+            : {
+                // Guest checkout requires full details
+                customerName: `${firstName} ${lastName}`.trim(),
+                customerEmail: email,
+                shippingAddress: {
+                  line1: address_line1,
+                  line2: address_line2 || undefined,
+                  city: address_city,
+                  state: address_state || undefined,
+                  postalCode: address_postalCode,
+                  country: address_country,
+                },
+              }),
         }),
       })
 
@@ -119,12 +158,141 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
         <span className="text-green-600">${getTotalPrice().toFixed(2)}</span>
       </div>
 
+      {/* Customer Details (for guests) */}
+      {!user ? (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Your details</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label htmlFor="firstName" className="text-sm font-medium">First name</label>
+              <input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="lastName" className="text-sm font-medium">Last name</label>
+              <input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="email" className="text-sm font-medium">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {/* Shipping Address */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Shipping address</h3>
+        <div className="space-y-1">
+          <label htmlFor="address_line1" className="text-sm font-medium">Address line 1</label>
+          <input
+            id="address_line1"
+            value={address_line1}
+            onChange={(e) => setAddressLine1(e.target.value)}
+            required={!user}
+            placeholder="House, street, area"
+            className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+          />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="address_line2" className="text-sm font-medium">Address line 2 (optional)</label>
+          <input
+            id="address_line2"
+            value={address_line2}
+            onChange={(e) => setAddressLine2(e.target.value)}
+            placeholder="Apartment, suite, etc."
+            className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label htmlFor="address_city" className="text-sm font-medium">City</label>
+            <input
+              id="address_city"
+              value={address_city}
+              onChange={(e) => setAddressCity(e.target.value)}
+              required={!user}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="address_state" className="text-sm font-medium">State / Region</label>
+            <input
+              id="address_state"
+              value={address_state}
+              onChange={(e) => setAddressState(e.target.value)}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label htmlFor="address_postalCode" className="text-sm font-medium">Postal code</label>
+            <input
+              id="address_postalCode"
+              value={address_postalCode}
+              onChange={(e) => setAddressPostalCode(e.target.value)}
+              required={!user}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="address_country" className="text-sm font-medium">Country</label>
+            <input
+              id="address_country"
+              value={address_country}
+              onChange={(e) => setAddressCountry(e.target.value)}
+              required={!user}
+              className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Error Message */}
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* Customer Number */}
+      <div className="space-y-2">
+        <label htmlFor="customerNumber" className="text-sm font-medium text-gray-700">
+          Customer number
+        </label>
+        <input
+          id="customerNumber"
+          name="customerNumber"
+          type="tel"
+          required
+          value={customerNumber}
+          onChange={(e) => setCustomerNumber(e.target.value)}
+          placeholder="e.g. +1 555 123 4567"
+          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+        />
+        <p className="text-xs text-gray-500">We will use this to contact you about your order.</p>
+      </div>
 
       {/* Submit Button */}
       <div className="pt-4">
@@ -133,12 +301,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
         </Button>
       </div>
 
-      <div className="text-sm text-gray-500 text-center">
-        <p>
-          Order will be placed for: {user.firstName} {user.lastName}
-        </p>
-        <p>Email: {user.email}</p>
-      </div>
+      {user ? (
+        <div className="text-sm text-gray-500 text-center">
+          <p>
+            Order will be placed for: {user.firstName} {user.lastName}
+          </p>
+          <p>Email: {user.email}</p>
+        </div>
+      ) : null}
     </form>
   )
 }

@@ -5,11 +5,21 @@ export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
     useAsTitle: 'id',
-    defaultColumns: ['id', 'user', 'status', 'orderDate', 'shippingAddress.city', 'shippingAddress.line1'],
+    defaultColumns: [
+      'id',
+      'user',
+      'customerName',
+      'customerEmail',
+      'status',
+      'orderDate',
+      'customerNumber',
+      'shippingAddress.city',
+      'shippingAddress.line1',
+    ],
   },
   access: {
     read: adminsOrOwner('user'), // Admins can read all orders, users can only read their own
-    create: authenticated, // Any authenticated user can create orders
+    create: ({ req }) => true, // Allow guest checkout via API route
     update: admins, // Only admins can update orders
     delete: admins, // Only admins can delete orders
     admin: adminsOnly,
@@ -19,7 +29,31 @@ export const Orders: CollectionConfig = {
       name: 'user',
       type: 'relationship',
       relationTo: 'users',
+      required: false,
+    },
+    {
+      name: 'customerName',
+      type: 'text',
+      label: 'Customer name',
       required: true,
+      admin: {
+        description: 'Name captured at time of order',
+      },
+    },
+    {
+      name: 'customerEmail',
+      type: 'email',
+      label: 'Customer email',
+      required: true,
+    },
+    {
+      name: 'customerNumber',
+      type: 'text',
+      label: 'Customer number',
+      required: true,
+      admin: {
+        description: 'Customer contact number captured at time of order',
+      },
     },
     {
       name: 'items',

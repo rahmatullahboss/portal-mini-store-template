@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { getPayload } from 'payload'
 import React from 'react'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+// guest checkout enabled; no redirect import
 
 import config from '@/payload.config'
 import OrderForm from './order-form'
@@ -22,10 +22,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
 
-  // Redirect to login if not authenticated
-  if (!user) {
-    redirect('/login')
-  }
+  // Guest checkout allowed; no redirect
 
   // Fetch the specific snack
   const snack = await payload.findByID({
@@ -92,7 +89,18 @@ export default async function OrderPage({ params }: OrderPageProps) {
               <CardTitle>Place Your Order</CardTitle>
             </CardHeader>
             <CardContent>
-              <OrderForm snack={snack} user={user} />
+              {!user ? (
+                <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                  <p className="font-medium">Guest checkout</p>
+                  <p className="mt-1">
+                    You can order this item without an account. We’ll ask for your contact and shipping details.
+                    Want to save your details?{' '}
+                    <Link className="underline font-medium" href="/register">Create an account</Link>{' '}
+                    or <Link className="underline font-medium" href="/login">sign in</Link>.
+                  </p>
+                </div>
+              ) : null}
+              <OrderForm snack={snack} user={user as any} />
             </CardContent>
           </Card>
         </div>

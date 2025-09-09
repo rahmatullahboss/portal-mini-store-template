@@ -105,9 +105,20 @@ export default async function AdminDashboardPage() {
                           Order #{String(order.id).slice(-8)}
                         </CardTitle>
                         <CardDescription className="mt-1">
-                          Customer: {order.user?.firstName} {order.user?.lastName} (
-                          {order.user?.email})
+                          Customer:{' '}
+                          {order.user ? (
+                            <>
+                              {order.user?.firstName} {order.user?.lastName} ({order.user?.email})
+                            </>
+                          ) : (
+                            <>
+                              {order.customerName} ({order.customerEmail})
+                            </>
+                          )}
                         </CardDescription>
+                        {order.customerNumber ? (
+                          <p className="text-sm text-gray-600 mt-1">Customer number: {order.customerNumber}</p>
+                        ) : null}
                         <p className="text-sm text-gray-500 mt-1">
                           Ordered:{' '}
                           {new Date(order.orderDate).toLocaleDateString('en-US', {

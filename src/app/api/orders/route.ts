@@ -7,15 +7,11 @@ export async function POST(request: NextRequest) {
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
 
-    // Get user from the request
+    // Get user from the request (optional for guest checkout)
     const { user } = await payload.auth({ headers: request.headers })
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { items, totalAmount } = body
+    const { items, totalAmount, customerNumber, customerName, customerEmail } = body
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
@@ -25,9 +21,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid total amount' }, { status: 400 })
     }
 
-    // Determine shipping address: prefer explicit shippingAddress from body, otherwise use user's saved address
+    // Require customer number
+    if (typeof customerNumber !== 'string' || customerNumber.trim().length === 0) {
+      return NextResponse.json({ error: 'Customer number is required' }, { status: 400 })
+    }
+
+    // Determine shipping address
     let shippingAddress = (body as any).shippingAddress
-    if (!shippingAddress) {
+    if (!shippingAddress && user) {
       const fullUser = await payload.findByID({ collection: 'users', id: (user as any).id })
       shippingAddress = (fullUser as any)?.address
     }
@@ -39,9 +40,16 @@ export async function POST(request: NextRequest) {
 
     if (!hasAddress) {
       return NextResponse.json(
-        { error: 'Shipping address is required. Please add your address to your profile or include shippingAddress.' },
+        { error: 'Shipping address is required. Please provide shippingAddress fields.' },
         { status: 400 },
       )
+    }
+
+    // For guest checkout, require name and email
+    const computedCustomerName = user ? `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() : customerName
+    const computedCustomerEmail = user ? (user as any).email : customerEmail
+    if (!computedCustomerName || !computedCustomerEmail) {
+      return NextResponse.json({ error: 'Customer name and email are required' }, { status: 400 })
     }
 
     // Validate items exist and are available
@@ -60,7 +68,10 @@ export async function POST(request: NextRequest) {
     const order = await payload.create({
       collection: 'orders',
       data: {
-        user: user.id,
+        ...(user ? { user: user.id } : {}),
+        customerName: computedCustomerName,
+        customerEmail: String(computedCustomerEmail).trim(),
+        customerNumber: String(customerNumber).trim(),
         items,
         totalAmount,
         status: 'pending',
@@ -73,7 +84,7 @@ export async function POST(request: NextRequest) {
           postalCode: shippingAddress.postalCode,
           country: shippingAddress.country,
         },
-      },
+      } as any,
     })
 
     return NextResponse.json({ success: true, doc: order })

@@ -72,9 +72,12 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
                   <OrderNowButton snack={snack} />
                 </>
               ) : (
-                <Button asChild>
-                  <Link href="/login">Login to Order</Link>
-                </Button>
+                <>
+                  <AddToCartButton snack={snack} />
+                  <Button asChild>
+                    <Link href="/checkout">Checkout as Guest</Link>
+                  </Button>
+                </>
               )}
             </div>
             <div className="mt-4">
