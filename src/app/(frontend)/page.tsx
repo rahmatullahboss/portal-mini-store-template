@@ -120,85 +120,21 @@ export default async function HomePage() {
             ) : (
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {snacks.docs.map((snack: any, index: number) => (
-                  <Dialog key={snack.id}>
-                    <DialogTrigger asChild>
-                      <Card
-                        className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white/95 backdrop-blur-xl shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 cursor-pointer transform-gpu p-0"
-                        style={{
-                          animationDelay: `${index * 100}ms`,
-                        }}
-                      >
-                        {/* Enhanced Card Glow Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-amber-100/30 via-rose-100/20 to-blue-100/30 opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+                  <Card
+                    key={snack.id}
+                    className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white/95 backdrop-blur-xl shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-gpu p-0"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {/* Enhanced Card Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-100/30 via-rose-100/20 to-blue-100/30 opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
 
-                        {/* Shimmer Effect */}
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+                    {/* Shimmer Effect */}
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
 
-                        <div className="relative z-10 h-full flex flex-col">
-                          {((snack.image && typeof snack.image === 'object') || snack.imageUrl) && (
-                            <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
-                              <Image
-                                src={
-                                  snack.image && typeof snack.image === 'object'
-                                    ? snack.image.url
-                                    : snack.imageUrl
-                                }
-                                alt={
-                                  (snack.image && typeof snack.image === 'object'
-                                    ? snack.image.alt
-                                    : undefined) || snack.name
-                                }
-                                fill
-                                className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
-                              />
-                              {/* Image Overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                              {/* Floating Badge */}
-                              <div className="absolute top-4 right-4 transform group-hover:scale-110 transition-transform duration-300">
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-white/90 text-gray-700 border border-gray-200/60 backdrop-blur-sm shadow-lg font-medium px-3 py-1"
-                                >
-                                  {snack.category}
-                                </Badge>
-                              </div>
-                            </div>
-                          )}
-
-                          <CardHeader className="space-y-3 p-4">
-                            <div className="space-y-1">
-                              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight">
-                                {snack.name}
-                              </CardTitle>
-                              <div className="h-0.5 w-12 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                            </div>
-                            <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                              {snack.description}
-                            </CardDescription>
-                          </CardHeader>
-
-                          <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm p-4 rounded-b-3xl">
-                            <div className="space-y-1">
-                              <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                                ${snack.price.toFixed(2)}
-                              </span>
-                              <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                              <span className="text-sm text-gray-600 font-medium">Available</span>
-                            </div>
-                          </CardFooter>
-                        </div>
-                      </Card>
-                    </DialogTrigger>
-
-                    <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white/95 backdrop-blur-xl">
-                      <div className="relative">
-                        {/* Dialog Image */}
+                    <div className="relative z-10 h-full flex flex-col">
+                      <Link href={`/snack/${snack.id}`} className="block">
                         {((snack.image && typeof snack.image === 'object') || snack.imageUrl) && (
-                          <div className="relative aspect-[16/9] overflow-hidden">
+                          <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
                             <Image
                               src={
                                 snack.image && typeof snack.image === 'object'
@@ -211,15 +147,16 @@ export default async function HomePage() {
                                   : undefined) || snack.name
                               }
                               fill
-                              className="object-cover"
+                              className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                            {/* Image Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                            {/* Floating Badge in Dialog */}
-                            <div className="absolute top-6 right-6">
+                            {/* Floating Badge */}
+                            <div className="absolute top-4 right-4 transform group-hover:scale-110 transition-transform duration-300">
                               <Badge
                                 variant="secondary"
-                                className="bg-white/90 text-gray-700 border border-gray-200/60 backdrop-blur-sm shadow-lg font-medium px-4 py-2 text-sm"
+                                className="bg-white/90 text-gray-700 border border-gray-200/60 backdrop-blur-sm shadow-lg font-medium px-3 py-1"
                               >
                                 {snack.category}
                               </Badge>
@@ -227,51 +164,32 @@ export default async function HomePage() {
                           </div>
                         )}
 
-                        <DialogHeader className="p-8 space-y-6">
-                          <div className="space-y-3">
-                            <DialogTitle className="text-4xl font-bold text-gray-800 leading-tight">
+                        <CardHeader className="space-y-3 p-4">
+                          <div className="space-y-1">
+                            <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight">
                               {snack.name}
-                            </DialogTitle>
-                            <div className="h-1 w-20 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full"></div>
+                            </CardTitle>
+                            <div className="h-0.5 w-12 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                           </div>
-
-                          <DialogDescription className="text-lg text-gray-600 leading-relaxed">
+                          <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-2">
                             {snack.description}
-                          </DialogDescription>
+                          </CardDescription>
+                        </CardHeader>
+                      </Link>
 
-                          <div className="flex items-center justify-between pt-4">
-                            <div className="space-y-2">
-                              <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                                ${snack.price.toFixed(2)}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                <span className="text-sm text-gray-600 font-medium">
-                                  In Stock & Ready to Ship
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                              {user ? (
-                                <>
-                                  <AddToCartButton snack={snack} />
-                                  <OrderNowButton snack={snack} />
-                                </>
-                              ) : (
-                                <Button
-                                  asChild
-                                  className="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105"
-                                >
-                                  <Link href="/login">Login to Order</Link>
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </DialogHeader>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                      <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm p-4 rounded-b-3xl">
+                        <div className="space-y-1">
+                          <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                            ${snack.price.toFixed(2)}
+                          </span>
+                          <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <OrderNowButton snack={snack} className="px-4 py-2 text-sm" />
+                        </div>
+                      </CardFooter>
+                    </div>
+                  </Card>
                 ))}
               </div>
             )}

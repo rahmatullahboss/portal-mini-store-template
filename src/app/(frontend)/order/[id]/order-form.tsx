@@ -16,7 +16,7 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
   const [quantity, setQuantity] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [customerNumber, setCustomerNumber] = useState('')
+  const [customerNumber, setCustomerNumber] = useState<string>(user?.customerNumber || '')
   const [firstName, setFirstName] = useState<string>(user?.firstName || '')
   const [lastName, setLastName] = useState<string>(user?.lastName || '')
   const [email, setEmail] = useState<string>(user?.email || '')

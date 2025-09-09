@@ -12,49 +12,13 @@ type Snack = {
 
 export function OrderNowButton({ snack, className = '' }: { snack: Snack; className?: string }) {
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   const handleOrder = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      setError(null)
-
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: [
-            {
-              snack: snack.id,
-              quantity: 1,
-            },
-          ],
-          totalAmount: Number(snack.price.toFixed(2)),
-        }),
-      })
-
-      if (res.status === 401) {
-        // Not authenticated — send to login
-        router.push('/login')
-        return
-      }
-
-      if (!res.ok) {
-        let msg = 'Failed to place order'
-        try {
-          const data = await res.json()
-          msg = data?.error || data?.message || msg
-        } catch {}
-        throw new Error(msg)
-      }
-
-      // Order placed — go to orders page
-      router.push('/my-orders?success=true')
-    } catch (e: any) {
-      setError(e?.message || 'Failed to place order')
+      // Navigate to the single-item order page to confirm details (guest or user)
+      router.push(`/order/${snack.id}`)
     } finally {
       setLoading(false)
     }
@@ -70,12 +34,7 @@ export function OrderNowButton({ snack, className = '' }: { snack: Snack; classN
       >
         {loading ? 'Ordering…' : 'Order Now'}
       </Button>
-      {error ? (
-        <span className="text-sm text-red-600" role="alert">
-          {error}
-        </span>
-      ) : null}
+      {/* Errors are handled on the order page; no local error display */}
     </div>
   )
 }
-

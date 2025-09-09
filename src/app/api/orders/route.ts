@@ -21,15 +21,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid total amount' }, { status: 400 })
     }
 
-    // Require customer number
-    if (typeof customerNumber !== 'string' || customerNumber.trim().length === 0) {
+    // Fetch full user doc if logged in (for fallbacks)
+    let fullUser: any = null
+    if (user) {
+      try {
+        fullUser = await payload.findByID({ collection: 'users', id: (user as any).id })
+      } catch {}
+    }
+
+    // Compute customer number: prefer payload, else user profile
+    const computedCustomerNumber =
+      typeof customerNumber === 'string' && customerNumber.trim().length > 0
+        ? customerNumber.trim()
+        : (fullUser as any)?.customerNumber?.trim?.()
+
+    if (!computedCustomerNumber) {
       return NextResponse.json({ error: 'Customer number is required' }, { status: 400 })
     }
 
     // Determine shipping address
     let shippingAddress = (body as any).shippingAddress
-    if (!shippingAddress && user) {
-      const fullUser = await payload.findByID({ collection: 'users', id: (user as any).id })
+    if (!shippingAddress && fullUser) {
       shippingAddress = (fullUser as any)?.address
     }
 
@@ -46,8 +58,12 @@ export async function POST(request: NextRequest) {
     }
 
     // For guest checkout, require name and email
-    const computedCustomerName = user ? `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() : customerName
-    const computedCustomerEmail = user ? (user as any).email : customerEmail
+    const computedCustomerName = user
+      ? `${(fullUser as any)?.firstName || (user as any).firstName || ''} ${
+          (fullUser as any)?.lastName || (user as any).lastName || ''
+        }`.trim()
+      : customerName
+    const computedCustomerEmail = user ? (fullUser as any)?.email || (user as any).email : customerEmail
     if (!computedCustomerName || !computedCustomerEmail) {
       return NextResponse.json({ error: 'Customer name and email are required' }, { status: 400 })
     }
@@ -71,7 +87,7 @@ export async function POST(request: NextRequest) {
         ...(user ? { user: user.id } : {}),
         customerName: computedCustomerName,
         customerEmail: String(computedCustomerEmail).trim(),
-        customerNumber: String(customerNumber).trim(),
+        customerNumber: String(computedCustomerNumber).trim(),
         items,
         totalAmount,
         status: 'pending',

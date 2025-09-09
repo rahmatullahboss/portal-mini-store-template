@@ -3,6 +3,14 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { CartButton } from '@/components/cart-button'
 import { LogoutButton } from '@/components/logout-button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Menu as MenuIcon } from 'lucide-react'
 
 export interface SiteHeaderProps {
   variant?: 'full' | 'simple'
@@ -57,18 +65,65 @@ export function SiteHeader({
                     </Button>
                   )}
                 </div>
+                {/* Mobile menu */}
+                <div className="sm:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" aria-label="Open menu">
+                        <MenuIcon className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/my-orders">My Orders</Link>
+                      </DropdownMenuItem>
+                      {user.role === 'admin' && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin-dashboard">Admin</Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/checkout">Checkout</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 <CartButton />
                 <LogoutButton />
               </>
             ) : (
-              <div className="flex items-center gap-2">
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/login">Sign In</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/register">Sign Up</Link>
-                </Button>
-              </div>
+              <>
+                <div className="hidden sm:flex items-center gap-2">
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/login">Sign In</Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href="/register">Sign Up</Link>
+                  </Button>
+                </div>
+                {/* Mobile menu for guests */}
+                <div className="sm:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" aria-label="Open menu">
+                        <MenuIcon className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link href="/login">Sign In</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/register">Sign Up</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
             )}
           </div>
         </div>

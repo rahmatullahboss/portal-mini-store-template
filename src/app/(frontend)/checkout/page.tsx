@@ -13,6 +13,9 @@ export default async function CheckoutPage() {
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
+  const fullUser = user
+    ? await payload.findByID({ collection: 'users', id: (user as any).id }).catch(() => null)
+    : null
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,7 +41,7 @@ export default async function CheckoutPage() {
               <CardTitle>Checkout</CardTitle>
             </CardHeader>
             <CardContent>
-              <CheckoutForm user={user as any} />
+              <CheckoutForm user={(fullUser as any) || (user as any)} />
             </CardContent>
           </Card>
         </div>

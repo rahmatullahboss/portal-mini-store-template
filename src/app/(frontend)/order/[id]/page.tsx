@@ -21,6 +21,9 @@ export default async function OrderPage({ params }: OrderPageProps) {
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
+  const fullUser = user
+    ? await payload.findByID({ collection: 'users', id: (user as any).id }).catch(() => null)
+    : null
 
   // Guest checkout allowed; no redirect
 
@@ -100,7 +103,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
                   </p>
                 </div>
               ) : null}
-              <OrderForm snack={snack} user={user as any} />
+              <OrderForm snack={snack} user={(fullUser as any) || (user as any)} />
             </CardContent>
           </Card>
         </div>
