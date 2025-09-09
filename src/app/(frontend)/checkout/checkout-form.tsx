@@ -20,7 +20,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
   const { state, clearCart, getTotalPrice } = useCart()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [customerNumber, setCustomerNumber] = useState<string>('')
+  const [customerNumber, setCustomerNumber] = useState<string>(user?.customerNumber || '')
   const [firstName, setFirstName] = useState<string>(user?.firstName || '')
   const [lastName, setLastName] = useState<string>(user?.lastName || '')
   const [email, setEmail] = useState<string>(user?.email || '')

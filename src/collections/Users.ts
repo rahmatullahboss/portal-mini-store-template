@@ -31,6 +31,15 @@ export const Users: CollectionConfig = {
   },
   fields: [
     {
+      name: 'customerNumber',
+      type: 'text',
+      label: 'Customer number',
+      required: false,
+      admin: {
+        description: 'Primary contact number for orders and updates',
+      },
+    },
+    {
       name: 'role',
       type: 'select',
       options: [

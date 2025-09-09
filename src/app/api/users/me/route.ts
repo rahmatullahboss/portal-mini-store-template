@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     email: (user as any).email,
     firstName: (user as any).firstName,
     lastName: (user as any).lastName,
+    customerNumber: (user as any).customerNumber || null,
     address: (user as any).address || null,
   })
 }
@@ -28,6 +29,7 @@ export async function PATCH(request: NextRequest) {
     if (typeof body.firstName === 'string') data.firstName = body.firstName
     if (typeof body.lastName === 'string') data.lastName = body.lastName
     if (typeof body.email === 'string') data.email = body.email
+    if (typeof body.customerNumber === 'string') data.customerNumber = body.customerNumber
     if (body.address && typeof body.address === 'object') {
       const a = body.address
       data.address = {
@@ -47,4 +49,3 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 }
-

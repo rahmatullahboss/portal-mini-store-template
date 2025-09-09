@@ -10,6 +10,7 @@ type User = {
   email: string
   firstName: string
   lastName: string
+  customerNumber?: string | null
   address?: {
     line1?: string | null
     line2?: string | null
@@ -25,6 +26,7 @@ export default function ProfileForm({ user }: { user: User }) {
     firstName: user.firstName || '',
     lastName: user.lastName || '',
     email: user.email || '',
+    customerNumber: user.customerNumber || '',
     address_line1: user.address?.line1 || '',
     address_line2: user.address?.line2 || '',
     address_city: user.address?.city || '',
@@ -55,6 +57,7 @@ export default function ProfileForm({ user }: { user: User }) {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
+          customerNumber: formData.customerNumber,
           address: {
             line1: formData.address_line1,
             line2: formData.address_line2 || undefined,
@@ -116,6 +119,19 @@ export default function ProfileForm({ user }: { user: User }) {
           Email
         </label>
         <Input id="email" name="email" type="email" value={formData.email} onChange={onChange} />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="customerNumber" className="text-sm font-medium text-gray-700">
+          Customer number
+        </label>
+        <Input
+          id="customerNumber"
+          name="customerNumber"
+          value={formData.customerNumber}
+          onChange={onChange}
+          placeholder="e.g. +1 555 123 4567"
+        />
       </div>
 
       <div className="space-y-3">
@@ -187,4 +203,3 @@ export default function ProfileForm({ user }: { user: User }) {
     </form>
   )
 }
-

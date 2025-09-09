@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import { SiteHeader } from '@/components/site-header'
 
 export default async function MyOrdersPage({
   searchParams,
@@ -42,6 +43,7 @@ export default async function MyOrdersPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" user={user} />
       <div className="container mx-auto px-4 py-8">
         <Button asChild variant="ghost" className="mb-6">
           <Link href="/">← Back to Home</Link>
