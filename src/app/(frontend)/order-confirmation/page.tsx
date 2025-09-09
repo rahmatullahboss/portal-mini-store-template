@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { ConfirmationClient } from './ConfirmationClient'
 
-export default function OrderConfirmationPage({
+export default async function OrderConfirmationPage({
   searchParams,
 }: {
-  searchParams: { orderId?: string }
+  searchParams: Promise<{ orderId?: string }>
 }) {
-  const orderId = searchParams?.orderId
+  const { orderId } = await searchParams
 
   return (
     <div className="min-h-screen bg-gray-50">
