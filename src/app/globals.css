@@ -164,3 +164,15 @@
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+/* Brand styling: golden gradient */
+.brand-text {
+  background-image: linear-gradient(90deg, #b8860b, #daa520, #ffd700);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-glow {
+  background-image: radial-gradient(closest-side, rgba(255, 215, 0, 0.5), rgba(255, 215, 0, 0));
+}

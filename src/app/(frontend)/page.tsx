@@ -72,8 +72,8 @@ export default async function HomePage() {
             <div className="space-y-8 animate-fade-in">
               <div className="space-y-4">
                 <h2 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter">
-                  <span className="bg-gradient-to-r from-amber-600 via-rose-500 to-amber-600 bg-clip-text text-transparent animate-gradient-x">
-                    Snacks
+                  <span className="brand-text animate-gradient-x">
+                    Online Bazar
                   </span>
                   <br />
                   <span className="text-gray-800">Reimagined</span>
@@ -96,10 +96,10 @@ export default async function HomePage() {
         </section>
 
         <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
-          {/* Snacks Grid */}
+          {/* Online Bazar Grid */}
           <section className="space-y-12">
             <div className="text-center space-y-4">
-              <h3 className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-rose-500 bg-clip-text text-transparent">
+              <h3 className="text-5xl font-bold brand-text">
                 Our Collection
               </h3>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -279,7 +279,7 @@ export default async function HomePage() {
       <footer className="relative mt-24 border-t border-gray-200/60 bg-gray-50/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-gray-600">&copy; 2024 Dyad Snacks. Crafted with passion.</p>
+            <p className="text-gray-600">&copy; 2024 Dyad Online Bazar. Crafted with passion.</p>
             <Button
               asChild
               variant="link"
@@ -294,3 +294,9 @@ export default async function HomePage() {
     </div>
   )
 }
+
+
+
+
+
+

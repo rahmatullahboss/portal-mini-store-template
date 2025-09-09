@@ -1,11 +1,11 @@
-# 🍿 Dyad Snacks
+# 🛍️ Online Bazar
 
 This template comes configured with the bare minimum to get started on anything you need.
 
 ## Features
 
 ### 🌟 Public Features (No Authentication Required)
-- **Browse Snacks**: View all available snack items with images, descriptions, prices, and categories
+- **Browse Products**: View available items with images, descriptions, prices, and categories
 - **Responsive Design**: Fully responsive interface that works on desktop, tablet, and mobile devices
 
 ### 👤 Authenticated User Features
@@ -111,7 +111,7 @@ This template comes configured with the bare minimum to get started on anything 
 ### First Time Setup
 
 1. **Create Admin User**: Visit `/admin` to create your first admin user
-2. **Add Snacks**: Use the admin panel to add snack items with images
+2. **Add Products**: Use the admin panel to add items with images
 3. **Test Ordering**: Create a regular user account to test the ordering flow
 
 ## API Endpoints

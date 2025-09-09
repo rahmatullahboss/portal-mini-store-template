@@ -30,10 +30,10 @@ export function SiteHeader({
               <span className="text-3xl group-hover:scale-110 transition-transform duration-300">
                 🍿
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-300 to-rose-300 rounded-full blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 rounded-full blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300 brand-glow"></div>
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-600 via-rose-500 to-amber-600 bg-clip-text text-transparent tracking-tight">
-              Dyad Snacks
+            <h1 className="text-2xl font-bold brand-text tracking-tight">
+              Online Bazar
             </h1>
           </Link>
 
@@ -76,11 +76,16 @@ export function SiteHeader({
   // Simple variant (for auth pages, etc.)
   return (
     <div className={`text-center ${className}`}>
-      <Link href="/" className="text-2xl font-bold text-red-600">
-        🍿 Dyad Snacks
+      <Link href="/" className="text-2xl font-bold brand-text">
+        🍿 Online Bazar
       </Link>
       {title && <h2 className="mt-6 text-3xl font-bold text-gray-900">{title}</h2>}
       {subtitle && <div className="mt-2 text-sm text-gray-600">{subtitle}</div>}
     </div>
   )
 }
+
+
+
+
+

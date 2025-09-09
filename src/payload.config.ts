@@ -65,7 +65,7 @@ export default buildConfig({
   sharp,
   email: nodemailerAdapter({
     defaultFromAddress: process.env.GMAIL_USER || '',
-    defaultFromName: process.env.EMAIL_DEFAULT_FROM_NAME || 'Dyad app',
+    defaultFromName: process.env.EMAIL_DEFAULT_FROM_NAME || 'Online Bazar',
     transport: await nodemailer.createTransport({
       service: 'gmail',
       auth: {
