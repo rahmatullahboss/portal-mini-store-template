@@ -172,6 +172,31 @@ export default async function AdminDashboardPage() {
 
                     <Separator className="my-4" />
 
+                    {/* Shipping Address */}
+                    {order.shippingAddress ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-1">Shipping Address</h4>
+                          <p className="text-sm text-gray-700">
+                            {order.shippingAddress.line1}
+                            {order.shippingAddress.line2 ? (
+                              <>
+                                <br />
+                                {order.shippingAddress.line2}
+                              </>
+                            ) : null}
+                            <br />
+                            {order.shippingAddress.city}
+                            {order.shippingAddress.state ? `, ${order.shippingAddress.state}` : ''}
+                            <br />
+                            {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <Separator className="my-4" />
+
                     <div className="text-right">
                       <span className="text-lg font-bold">
                         Total: ${order.totalAmount.toFixed(2)}

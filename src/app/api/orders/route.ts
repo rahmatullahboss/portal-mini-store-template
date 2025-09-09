@@ -25,6 +25,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid total amount' }, { status: 400 })
     }
 
+    // Determine shipping address: prefer explicit shippingAddress from body, otherwise use user's saved address
+    let shippingAddress = (body as any).shippingAddress
+    if (!shippingAddress) {
+      const fullUser = await payload.findByID({ collection: 'users', id: (user as any).id })
+      shippingAddress = (fullUser as any)?.address
+    }
+
+    const requiredAddressFields = ['line1', 'city', 'postalCode', 'country']
+    const hasAddress =
+      shippingAddress &&
+      requiredAddressFields.every((f) => typeof shippingAddress[f] === 'string' && shippingAddress[f].trim().length > 0)
+
+    if (!hasAddress) {
+      return NextResponse.json(
+        { error: 'Shipping address is required. Please add your address to your profile or include shippingAddress.' },
+        { status: 400 },
+      )
+    }
+
     // Validate items exist and are available
     for (const item of items) {
       const snack = await payload.findByID({
@@ -46,6 +65,14 @@ export async function POST(request: NextRequest) {
         totalAmount,
         status: 'pending',
         orderDate: new Date().toISOString(),
+        shippingAddress: {
+          line1: shippingAddress.line1,
+          line2: shippingAddress.line2 || undefined,
+          city: shippingAddress.city,
+          state: shippingAddress.state || undefined,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country,
+        },
       },
     })
 

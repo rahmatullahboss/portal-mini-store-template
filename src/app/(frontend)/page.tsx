@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { CartButton } from '@/components/cart-button'
 import { AddToCartButton } from '@/components/add-to-cart-button'
+import { OrderNowButton } from '@/components/order-now-button'
 import { LogoutButton } from '@/components/logout-button'
 import { SiteHeader } from '@/components/site-header'
 import {
@@ -253,7 +254,10 @@ export default async function HomePage() {
 
                             <div className="flex gap-3">
                               {user ? (
-                                <AddToCartButton snack={snack} />
+                                <>
+                                  <AddToCartButton snack={snack} />
+                                  <OrderNowButton snack={snack} />
+                                </>
                               ) : (
                                 <Button
                                   asChild

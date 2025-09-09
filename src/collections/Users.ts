@@ -58,5 +58,47 @@ export const Users: CollectionConfig = {
     },
     // Email added by default
     // Add more fields as needed
+    {
+      name: 'address',
+      type: 'group',
+      admin: {
+        description: 'Shipping address used for orders',
+      },
+      fields: [
+        {
+          name: 'line1',
+          type: 'text',
+          label: 'Address line 1',
+          required: false,
+        },
+        {
+          name: 'line2',
+          type: 'text',
+          label: 'Address line 2',
+          required: false,
+        },
+        {
+          name: 'city',
+          type: 'text',
+          required: false,
+        },
+        {
+          name: 'state',
+          type: 'text',
+          required: false,
+        },
+        {
+          name: 'postalCode',
+          type: 'text',
+          label: 'Postal code',
+          required: false,
+        },
+        {
+          name: 'country',
+          type: 'text',
+          required: false,
+        },
+      ],
+    },
   ],
 }

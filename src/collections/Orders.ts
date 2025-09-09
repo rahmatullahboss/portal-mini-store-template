@@ -5,6 +5,7 @@ export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
     useAsTitle: 'id',
+    defaultColumns: ['id', 'user', 'status', 'orderDate', 'shippingAddress.city', 'shippingAddress.line1'],
   },
   access: {
     read: adminsOrOwner('user'), // Admins can read all orders, users can only read their own
@@ -62,6 +63,46 @@ export const Orders: CollectionConfig = {
       type: 'date',
       defaultValue: () => new Date(),
       required: true,
+    },
+    {
+      name: 'shippingAddress',
+      type: 'group',
+      admin: {
+        description: 'Shipping address captured at time of order',
+      },
+      fields: [
+        {
+          name: 'line1',
+          type: 'text',
+          label: 'Address line 1',
+          required: true,
+        },
+        {
+          name: 'line2',
+          type: 'text',
+          label: 'Address line 2',
+        },
+        {
+          name: 'city',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'state',
+          type: 'text',
+        },
+        {
+          name: 'postalCode',
+          type: 'text',
+          label: 'Postal code',
+          required: true,
+        },
+        {
+          name: 'country',
+          type: 'text',
+          required: true,
+        },
+      ],
     },
   ],
 }

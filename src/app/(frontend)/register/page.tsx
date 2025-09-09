@@ -16,6 +16,12 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    address_line1: '',
+    address_line2: '',
+    address_city: '',
+    address_state: '',
+    address_postalCode: '',
+    address_country: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -37,6 +43,13 @@ export default function RegisterPage() {
     // Basic validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       setError('All fields are required')
+      setIsSubmitting(false)
+      return
+    }
+
+    // Optional: basic address validation (require at least line1, city, postalCode, country)
+    if (!formData.address_line1 || !formData.address_city || !formData.address_postalCode || !formData.address_country) {
+      setError('Please provide your shipping address (line 1, city, postal code, country)')
       setIsSubmitting(false)
       return
     }
@@ -65,6 +78,14 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           role: 'user',
+          address: {
+            line1: formData.address_line1,
+            line2: formData.address_line2 || undefined,
+            city: formData.address_city,
+            state: formData.address_state || undefined,
+            postalCode: formData.address_postalCode,
+            country: formData.address_country,
+          },
         }),
       })
 
@@ -161,6 +182,97 @@ export default function RegisterPage() {
                   onChange={handleInputChange}
                   placeholder="john@example.com"
                 />
+              </div>
+
+              {/* Address */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-800">Shipping address</h4>
+                <div className="space-y-2">
+                  <label htmlFor="address_line1" className="text-sm font-medium text-gray-700">
+                    Address line 1
+                  </label>
+                  <Input
+                    id="address_line1"
+                    name="address_line1"
+                    type="text"
+                    required
+                    value={formData.address_line1}
+                    onChange={handleInputChange}
+                    placeholder="House, street, area"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="address_line2" className="text-sm font-medium text-gray-700">
+                    Address line 2 (optional)
+                  </label>
+                  <Input
+                    id="address_line2"
+                    name="address_line2"
+                    type="text"
+                    value={formData.address_line2}
+                    onChange={handleInputChange}
+                    placeholder="Apartment, suite, etc."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="address_city" className="text-sm font-medium text-gray-700">
+                      City
+                    </label>
+                    <Input
+                      id="address_city"
+                      name="address_city"
+                      type="text"
+                      required
+                      value={formData.address_city}
+                      onChange={handleInputChange}
+                      placeholder="City"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="address_state" className="text-sm font-medium text-gray-700">
+                      State / Region
+                    </label>
+                    <Input
+                      id="address_state"
+                      name="address_state"
+                      type="text"
+                      value={formData.address_state}
+                      onChange={handleInputChange}
+                      placeholder="State or region"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="address_postalCode" className="text-sm font-medium text-gray-700">
+                      Postal code
+                    </label>
+                    <Input
+                      id="address_postalCode"
+                      name="address_postalCode"
+                      type="text"
+                      required
+                      value={formData.address_postalCode}
+                      onChange={handleInputChange}
+                      placeholder="Postal code"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="address_country" className="text-sm font-medium text-gray-700">
+                      Country
+                    </label>
+                    <Input
+                      id="address_country"
+                      name="address_country"
+                      type="text"
+                      required
+                      value={formData.address_country}
+                      onChange={handleInputChange}
+                      placeholder="Country"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

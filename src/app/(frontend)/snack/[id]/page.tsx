@@ -5,6 +5,7 @@ import React from 'react'
 import config from '@/payload.config'
 import { notFound } from 'next/navigation'
 import { AddToCartButton } from '@/components/add-to-cart-button'
+import { OrderNowButton } from '@/components/order-now-button'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
@@ -64,9 +65,12 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
             <div className="mt-6">
               <span className="text-4xl font-bold text-green-600">${snack.price.toFixed(2)}</span>
             </div>
-            <div className="mt-8">
+            <div className="mt-8 flex gap-3">
               {user ? (
-                <AddToCartButton snack={snack} />
+                <>
+                  <AddToCartButton snack={snack} />
+                  <OrderNowButton snack={snack} />
+                </>
               ) : (
                 <Button asChild>
                   <Link href="/login">Login to Order</Link>
