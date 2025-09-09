@@ -45,7 +45,9 @@ export function OrderNowButton({
       })
 
       if (res.ok) {
-        router.push('/my-orders?success=true')
+        const data = await res.json().catch(() => null)
+        const oid = (data as any)?.doc?.id
+        router.push(oid ? `/my-orders?success=true&orderId=${oid}` : '/my-orders?success=true')
         return
       }
 
@@ -78,4 +80,3 @@ export function OrderNowButton({
     </div>
   )
 }
-

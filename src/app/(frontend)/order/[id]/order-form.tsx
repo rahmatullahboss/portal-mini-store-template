@@ -82,8 +82,10 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
       })
 
       if (response.ok) {
+        const data = await response.json().catch(() => null)
+        const oid = (data as any)?.doc?.id
         if (user) {
-          router.push('/my-orders?success=true')
+          router.push(oid ? `/my-orders?success=true&orderId=${oid}` : '/my-orders?success=true')
         } else {
           router.push('/?success=true')
         }

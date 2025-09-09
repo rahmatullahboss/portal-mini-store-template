@@ -18,7 +18,9 @@ export default async function MyOrdersPage({
 }: {
   searchParams: Promise<{ success?: string }>
 }) {
-  const { success } = await searchParams
+  const sp = await searchParams
+  const { success } = sp
+  const orderId = (sp as any)?.orderId as string | undefined
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
@@ -40,6 +42,10 @@ export default async function MyOrdersPage({
     depth: 3,
     sort: '-orderDate',
   })
+  const confirmedOrder =
+    success && orders.docs.length > 0
+      ? orders.docs.find((o: any) => String(o.id) === String(orderId)) || orders.docs[0]
+      : null
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -55,6 +61,36 @@ export default async function MyOrdersPage({
           <Alert className="mb-6">
             <AlertDescription>Order placed successfully! 🎉</AlertDescription>
           </Alert>
+        )}
+
+        {/* Order confirmation preview */}
+        {success && confirmedOrder && (
+          <div className="mb-6 flex items-center gap-3 rounded-lg border p-3 bg-white">
+            {confirmedOrder.items?.[0]?.snack &&
+              typeof confirmedOrder.items[0].snack === 'object' &&
+              confirmedOrder.items[0].snack.image &&
+              typeof confirmedOrder.items[0].snack.image === 'object' &&
+              confirmedOrder.items[0].snack.image.url && (
+                <div className="relative w-12 h-12 rounded overflow-hidden border">
+                  <Image
+                    src={confirmedOrder.items[0].snack.image.url}
+                    alt={
+                      confirmedOrder.items[0].snack.image.alt ||
+                      confirmedOrder.items[0].snack.name ||
+                      'Ordered item'
+                    }
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+            <div className="text-sm text-gray-700">
+              <span className="font-medium">
+                {confirmedOrder.items?.[0]?.snack?.name || 'Your item'}
+              </span>{' '}
+              has been confirmed.
+            </div>
+          </div>
         )}
 
         {orders.docs.length === 0 ? (
