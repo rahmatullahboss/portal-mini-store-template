@@ -17,6 +17,7 @@ interface AddToCartButtonProps {
       url: string
       alt?: string
     }
+    imageUrl?: string
   }
 }
 
@@ -30,7 +31,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ snack }) => {
       name: snack.name,
       price: snack.price,
       category: snack.category,
-      image: snack.image,
+      image: snack.image || (snack.imageUrl ? { url: snack.imageUrl } : undefined),
     })
 
     setIsAdded(true)

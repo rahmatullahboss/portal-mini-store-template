@@ -93,7 +93,7 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
               items: [
                 {
                   name: snack?.name,
-                  image: snack?.image,
+                  image: snack?.image || (snack?.imageUrl ? { url: snack.imageUrl } : undefined),
                 },
               ],
             }),

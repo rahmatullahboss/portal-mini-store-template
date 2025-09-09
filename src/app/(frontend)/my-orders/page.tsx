@@ -66,24 +66,25 @@ export default async function MyOrdersPage({
         {/* Order confirmation preview */}
         {success && confirmedOrder && (
           <div className="mb-6 flex items-center gap-3 rounded-lg border p-3 bg-white">
-            {confirmedOrder.items?.[0]?.snack &&
-              typeof confirmedOrder.items[0].snack === 'object' &&
-              confirmedOrder.items[0].snack.image &&
-              typeof confirmedOrder.items[0].snack.image === 'object' &&
-              confirmedOrder.items[0].snack.image.url && (
-                <div className="relative w-12 h-12 rounded overflow-hidden border">
-                  <Image
-                    src={confirmedOrder.items[0].snack.image.url}
-                    alt={
-                      confirmedOrder.items[0].snack.image.alt ||
-                      (confirmedOrder.items[0].snack as any).name ||
-                      'Ordered item'
-                    }
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
+            {(() => {
+              const s = confirmedOrder.items?.[0]?.snack
+              if (s && typeof s === 'object') {
+                const imgUrl = (s as any)?.image?.url || (s as any)?.imageUrl
+                if (imgUrl) {
+                  return (
+                    <div className="relative w-12 h-12 rounded overflow-hidden border">
+                      <Image
+                        src={imgUrl}
+                        alt={(s as any)?.image?.alt || (s as any)?.name || 'Ordered item'}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )
+                }
+              }
+              return null
+            })()}
             <div className="text-sm text-gray-700">
               <span className="font-medium">
                 {typeof confirmedOrder.items?.[0]?.snack === 'object'
@@ -135,20 +136,25 @@ export default async function MyOrdersPage({
                         key={index}
                         className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
                       >
-                        {item.snack &&
-                          typeof item.snack === 'object' &&
-                          item.snack.image &&
-                          typeof item.snack.image === 'object' &&
-                          item.snack.image.url && (
-                            <div className="relative w-16 h-16 rounded overflow-hidden">
-                              <Image
-                                src={item.snack.image.url}
-                                alt={item.snack.image.alt || item.snack.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                          )}
+                        {(() => {
+                          const s = item.snack
+                          if (s && typeof s === 'object') {
+                            const imgUrl = (s as any)?.image?.url || (s as any)?.imageUrl
+                            if (imgUrl) {
+                              return (
+                                <div className="relative w-16 h-16 rounded overflow-hidden">
+                                  <Image
+                                    src={imgUrl}
+                                    alt={(s as any)?.image?.alt || (s as any)?.name}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              )
+                            }
+                          }
+                          return null
+                        })()}
                         <div className="flex-1">
                           <h4 className="font-medium">{item.snack?.name || 'Unknown Item'}</h4>
                           <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>

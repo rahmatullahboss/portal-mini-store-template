@@ -12,6 +12,7 @@ type Snack = {
     url: string
     alt?: string
   }
+  imageUrl?: string
 }
 
 export function OrderNowButton({
@@ -61,7 +62,7 @@ export function OrderNowButton({
                 items: [
                   {
                     name: snack.name,
-                    image: snack.image,
+                    image: snack.image || (snack.imageUrl ? { url: snack.imageUrl } : undefined),
                   },
                 ],
               }),
