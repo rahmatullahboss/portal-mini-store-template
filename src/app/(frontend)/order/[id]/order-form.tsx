@@ -84,10 +84,25 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
       if (response.ok) {
         const data = await response.json().catch(() => null)
         const oid = (data as any)?.doc?.id
+        // Save confirmation preview for guest page
+        try {
+          sessionStorage.setItem(
+            'last-order-preview',
+            JSON.stringify({
+              orderId: oid,
+              items: [
+                {
+                  name: snack?.name,
+                  image: snack?.image,
+                },
+              ],
+            }),
+          )
+        } catch {}
         if (user) {
           router.push(oid ? `/my-orders?success=true&orderId=${oid}` : '/my-orders?success=true')
         } else {
-          router.push('/?success=true')
+          router.push(oid ? `/order-confirmation?orderId=${oid}` : '/order-confirmation')
         }
       } else {
         const errorData = await response.json()

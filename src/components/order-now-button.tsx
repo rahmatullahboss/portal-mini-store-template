@@ -8,6 +8,10 @@ type Snack = {
   id: string
   price: number
   name?: string
+  image?: {
+    url: string
+    alt?: string
+  }
 }
 
 export function OrderNowButton({
@@ -47,6 +51,23 @@ export function OrderNowButton({
       if (res.ok) {
         const data = await res.json().catch(() => null)
         const oid = (data as any)?.doc?.id
+        // Save a lightweight preview for confirmation pages
+        if (snack?.name) {
+          try {
+            sessionStorage.setItem(
+              'last-order-preview',
+              JSON.stringify({
+                orderId: oid,
+                items: [
+                  {
+                    name: snack.name,
+                    image: snack.image,
+                  },
+                ],
+              }),
+            )
+          } catch {}
+        }
         router.push(oid ? `/my-orders?success=true&orderId=${oid}` : '/my-orders?success=true')
         return
       }

@@ -92,8 +92,22 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
       }
 
       const result = await response.json()
+      // Save a lightweight preview for confirmation page
+      try {
+        sessionStorage.setItem(
+          'last-order-preview',
+          JSON.stringify({
+            orderId: result?.doc?.id,
+            items: state.items.map((i) => ({ name: i.name, image: i.image })),
+          }),
+        )
+      } catch {}
       clearCart()
-      router.push(`/my-orders?success=true&orderId=${result.doc.id}`)
+      if (user) {
+        router.push(`/my-orders?success=true&orderId=${result.doc.id}`)
+      } else {
+        router.push(result?.doc?.id ? `/order-confirmation?orderId=${result.doc.id}` : '/order-confirmation')
+      }
     } catch (err) {
       setError('Failed to place order. Please try again.')
       console.error('Order submission error:', err)
