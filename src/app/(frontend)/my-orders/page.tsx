@@ -76,7 +76,7 @@ export default async function MyOrdersPage({
                     src={confirmedOrder.items[0].snack.image.url}
                     alt={
                       confirmedOrder.items[0].snack.image.alt ||
-                      confirmedOrder.items[0].snack.name ||
+                      (confirmedOrder.items[0].snack as any).name ||
                       'Ordered item'
                     }
                     fill
@@ -86,7 +86,9 @@ export default async function MyOrdersPage({
               )}
             <div className="text-sm text-gray-700">
               <span className="font-medium">
-                {confirmedOrder.items?.[0]?.snack?.name || 'Your item'}
+                {typeof confirmedOrder.items?.[0]?.snack === 'object'
+                  ? (confirmedOrder.items[0].snack as any).name || 'Your item'
+                  : 'Your item'}
               </span>{' '}
               has been confirmed.
             </div>
