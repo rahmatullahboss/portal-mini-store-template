@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { SiteHeader } from '@/components/site-header'
 
 export default async function AdminDashboardPage() {
   const headers = await getHeaders()
@@ -38,6 +39,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" user={user} />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Button asChild variant="ghost" className="mb-4">

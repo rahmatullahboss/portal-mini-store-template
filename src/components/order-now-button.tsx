@@ -10,14 +10,52 @@ type Snack = {
   name?: string
 }
 
-export function OrderNowButton({ snack, className = '' }: { snack: Snack; className?: string }) {
+export function OrderNowButton({
+  snack,
+  className = '',
+  isLoggedIn,
+}: {
+  snack: Snack
+  className?: string
+  isLoggedIn?: boolean
+}) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   const handleOrder = async () => {
-    setLoading(true)
     try {
-      // Navigate to the single-item order page to confirm details (guest or user)
+      setLoading(true)
+      setError(null)
+
+      // If not logged in, go collect info first
+      if (!isLoggedIn) {
+        router.push(`/order/${snack.id}`)
+        return
+      }
+
+      // Logged in: place order immediately using profile info (API falls back to profile)
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [{ snack: snack.id, quantity: 1 }],
+          totalAmount: Number(snack.price.toFixed(2)),
+        }),
+      })
+
+      if (res.ok) {
+        router.push('/my-orders?success=true')
+        return
+      }
+
+      // If profile missing number/address, fall back to info page
+      const data = await res.json().catch(() => ({}))
+      const message = data?.error || data?.message || 'Additional details required'
+      setError(message)
+      router.push(`/order/${snack.id}`)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to place order')
       router.push(`/order/${snack.id}`)
     } finally {
       setLoading(false)
@@ -34,7 +72,10 @@ export function OrderNowButton({ snack, className = '' }: { snack: Snack; classN
       >
         {loading ? 'Ordering…' : 'Order Now'}
       </Button>
-      {/* Errors are handled on the order page; no local error display */}
+      {error ? (
+        <span className="text-xs text-red-600" role="alert">{error}</span>
+      ) : null}
     </div>
   )
 }
+

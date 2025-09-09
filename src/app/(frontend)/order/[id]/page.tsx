@@ -6,6 +6,7 @@ import Link from 'next/link'
 // guest checkout enabled; no redirect import
 
 import config from '@/payload.config'
+import { SiteHeader } from '@/components/site-header'
 import OrderForm from './order-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,6 +57,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
       <div className="container mx-auto px-4 py-8">
         <Button asChild variant="ghost" className="mb-6">
           <Link href="/">← Back to Snacks</Link>

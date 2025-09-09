@@ -51,9 +51,12 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="max-w-md w-full space-y-8">
-          <SiteHeader title="Check your email" />
+      <div className="min-h-screen bg-gray-50">
+        <SiteHeader variant="full" />
+        <div className="max-w-md w-full space-y-6 mx-auto py-12 px-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">Check your email</h1>
+          </div>
 
           {/* Success Message */}
           <Card>
@@ -92,19 +95,18 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <SiteHeader
-          title="Reset your password"
-          subtitle={
-            <>
-              Remember your password?{' '}
-              <Link href="/login" className="font-medium text-red-600 hover:text-red-500">
-                Sign in
-              </Link>
-            </>
-          }
-        />
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" />
+      <div className="max-w-md w-full space-y-6 mx-auto py-12 px-4">
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
+          <p className="text-sm text-gray-600">
+            Remember your password?{' '}
+            <Link href="/login" className="font-medium text-red-600 hover:text-red-500">
+              Sign in
+            </Link>
+          </p>
+        </div>
 
         {/* Forgot Password Form */}
         <Card>

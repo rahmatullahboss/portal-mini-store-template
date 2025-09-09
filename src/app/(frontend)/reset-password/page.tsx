@@ -91,9 +91,12 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="max-w-md w-full space-y-8">
-          <SiteHeader title="Password reset successful" />
+      <div className="min-h-screen bg-gray-50">
+        <SiteHeader variant="full" />
+        <div className="max-w-md w-full space-y-6 mx-auto py-12 px-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">Password reset successful</h1>
+          </div>
 
           {/* Success Message */}
           <Card>
@@ -126,9 +129,13 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <SiteHeader title="Reset your password" subtitle="Enter your new password below" />
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" />
+      <div className="max-w-md w-full space-y-6 mx-auto py-12 px-4">
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold text-gray-900">Reset your password</h1>
+          <p className="text-sm text-gray-600">Enter your new password below</p>
+        </div>
 
         {/* Reset Password Form */}
         <Card>

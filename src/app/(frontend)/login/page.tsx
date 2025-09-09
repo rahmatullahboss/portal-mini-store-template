@@ -74,19 +74,19 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <SiteHeader
-          title="Sign in to your account"
-          subtitle={
-            <>
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="font-medium text-red-600 hover:text-red-500">
-                Sign up
-              </Link>
-            </>
-          }
-        />
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" />
+      <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+      <div className="max-w-md w-full space-y-6">
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold text-gray-900">Sign in to your account</h1>
+          <p className="text-sm text-gray-600">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="font-medium text-red-600 hover:text-red-500">
+              Sign up
+            </Link>
+          </p>
+        </div>
 
         {/* Login Form */}
         <Card>
@@ -160,6 +160,7 @@ function LoginForm() {
           </Link>
         </div>
       </div>
+    </div>
     </div>
   )
 }

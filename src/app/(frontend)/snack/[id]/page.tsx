@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { getPayload } from 'payload'
 import React from 'react'
 import config from '@/payload.config'
+import { SiteHeader } from '@/components/site-header'
 import { notFound } from 'next/navigation'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { OrderNowButton } from '@/components/order-now-button'
@@ -34,6 +35,7 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" user={user} />
       <main className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div>
@@ -66,17 +68,10 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
               <span className="text-4xl font-bold text-green-600">${snack.price.toFixed(2)}</span>
             </div>
             <div className="mt-8 flex gap-3">
-              {user ? (
-                <>
-                  <AddToCartButton snack={snack} />
-                  <OrderNowButton snack={snack} />
-                </>
-              ) : (
-                <>
-                  <AddToCartButton snack={snack} />
-                  <OrderNowButton snack={snack} />
-                </>
-              )}
+              <>
+                <AddToCartButton snack={snack} />
+                <OrderNowButton snack={snack} isLoggedIn={!!user} />
+              </>
             </div>
             <div className="mt-4">
               <Button asChild variant="link">

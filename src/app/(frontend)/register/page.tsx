@@ -110,19 +110,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <SiteHeader
-          title="Create your account"
-          subtitle={
-            <>
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="full" />
+      <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+        <div className="max-w-md w-full space-y-6">
+          <div className="text-center space-y-1">
+            <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
+            <p className="text-sm text-gray-600">
               Already have an account?{' '}
               <Link href="/login" className="font-medium text-red-600 hover:text-red-500">
                 Sign in
               </Link>
-            </>
-          }
-        />
+            </p>
+          </div>
 
         {/* Registration Form */}
         <Card>
@@ -319,6 +319,7 @@ export default function RegisterPage() {
           </Link>
         </div>
       </div>
+    </div>
     </div>
   )
 }
