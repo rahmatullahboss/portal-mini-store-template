@@ -22,10 +22,8 @@ export default async function ProfilePage() {
       <SiteHeader className="mb-8" />
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         <h1 className="text-3xl font-bold mb-6">My Profile</h1>
-        {/* @ts-expect-error Server-to-Client prop */}
         <ProfileForm user={user} />
       </main>
     </div>
   )
 }
-
