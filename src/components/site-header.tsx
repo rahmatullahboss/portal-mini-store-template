@@ -46,6 +46,9 @@ export function SiteHeader({
                     Welcome, {user.firstName || user.email}
                   </span>
                   <Button asChild variant="ghost" size="sm">
+                    <Link href="/profile">Profile</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
                     <Link href="/my-orders">My Orders</Link>
                   </Button>
                   {user.role === 'admin' && (
