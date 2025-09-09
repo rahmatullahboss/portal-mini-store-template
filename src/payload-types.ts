@@ -126,6 +126,17 @@ export interface User {
   role: 'admin' | 'user';
   firstName: string;
   lastName: string;
+  /**
+   * Shipping address used for orders
+   */
+  address?: {
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -197,6 +208,17 @@ export interface Order {
   status: 'pending' | 'completed' | 'cancelled';
   totalAmount: number;
   orderDate: string;
+  /**
+   * Shipping address captured at time of order
+   */
+  shippingAddress: {
+    line1: string;
+    line2?: string | null;
+    city: string;
+    state?: string | null;
+    postalCode: string;
+    country: string;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -273,6 +295,16 @@ export interface UsersSelect<T extends boolean = true> {
   role?: T;
   firstName?: T;
   lastName?: T;
+  address?:
+    | T
+    | {
+        line1?: T;
+        line2?: T;
+        city?: T;
+        state?: T;
+        postalCode?: T;
+        country?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -339,6 +371,16 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   totalAmount?: T;
   orderDate?: T;
+  shippingAddress?:
+    | T
+    | {
+        line1?: T;
+        line2?: T;
+        city?: T;
+        state?: T;
+        postalCode?: T;
+        country?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
