@@ -180,7 +180,7 @@ export default async function HomePage() {
                       <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm p-4 rounded-b-3xl">
                         <div className="space-y-1">
                           <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                            ${snack.price.toFixed(2)}
+                            ৳{snack.price.toFixed(2)}
                           </span>
                           <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                         </div>
@@ -197,22 +197,7 @@ export default async function HomePage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative mt-24 border-t border-gray-200/60 bg-gray-50/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-gray-600">&copy; 2024 Dyad Online Bazar. Crafted with passion.</p>
-            <Button
-              asChild
-              variant="link"
-              size="sm"
-              className="text-amber-600 hover:text-amber-700"
-            >
-              <Link href={payloadConfig.routes.admin}>Admin Portal</Link>
-            </Button>
-          </div>
-        </div>
-      </footer>
+      {/* Global footer is rendered via layout */}
     </div>
   )
 }

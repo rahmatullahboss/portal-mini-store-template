@@ -118,7 +118,7 @@ export const CartSidebar: React.FC = () => {
                         </Badge>
 
                         <p className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                          ${item.price.toFixed(2)} each
+                          ৳{item.price.toFixed(2)} each
                         </p>
 
                         {/* Quantity Controls */}
@@ -152,7 +152,7 @@ export const CartSidebar: React.FC = () => {
                     <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200/60">
                       <span className="text-sm text-gray-600 font-medium">Subtotal:</span>
                       <span className="text-lg font-bold text-gray-800">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ৳{(item.price * item.quantity).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -165,7 +165,7 @@ export const CartSidebar: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-xl font-bold text-gray-800">Total:</span>
                 <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  ${getTotalPrice().toFixed(2)}
+                  ৳{getTotalPrice().toFixed(2)}
                 </span>
               </div>
 

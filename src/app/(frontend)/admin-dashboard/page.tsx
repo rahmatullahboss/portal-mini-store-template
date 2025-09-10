@@ -173,11 +173,11 @@ export default async function AdminDashboardPage() {
                           <div className="flex-1">
                             <h4 className="font-medium">{item.snack?.name || 'Unknown Item'}</h4>
                             <p className="text-sm text-gray-600">
-                              Qty: {item.quantity} × ${item.snack?.price?.toFixed(2) || '0.00'}
+                              Qty: {item.quantity} × ৳{item.snack?.price?.toFixed(2) || '0.00'}
                             </p>
                           </div>
                           <div className="text-right font-medium">
-                            ${((item.snack?.price || 0) * item.quantity).toFixed(2)}
+                            ৳{((item.snack?.price || 0) * item.quantity).toFixed(2)}
                           </div>
                         </div>
                       ))}
@@ -212,7 +212,7 @@ export default async function AdminDashboardPage() {
 
                     <div className="text-right">
                       <span className="text-lg font-bold">
-                        Total: ${order.totalAmount.toFixed(2)}
+                        Total: ৳{order.totalAmount.toFixed(2)}
                       </span>
                     </div>
                   </CardContent>

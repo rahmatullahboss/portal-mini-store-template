@@ -84,7 +84,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
               <CardDescription>{snack.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600">${snack.price.toFixed(2)} each</p>
+              <p className="text-2xl font-bold text-green-600">৳{snack.price.toFixed(2)} each</p>
             </CardContent>
           </Card>
 

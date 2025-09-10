@@ -219,7 +219,7 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
       <Separator />
 
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Total: ${totalPrice}</h3>
+        <h3 className="text-lg font-semibold">Total: ৳{totalPrice}</h3>
       </div>
 
       {error && (

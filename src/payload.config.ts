@@ -1,5 +1,5 @@
 // storage-adapter-import-placeholder
-import { s3Adapter } from '@payloadcms/storage-s3'
+import { s3Storage } from '@payloadcms/storage-s3'
 import nodemailer from 'nodemailer'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
@@ -41,10 +41,10 @@ if (
   process.env.S3_SECRET_ACCESS_KEY
 ) {
   storagePlugins.push(
-    s3Adapter({
+    s3Storage({
+      bucket: process.env.S3_BUCKET as string,
       collections: {
         media: {
-          bucket: process.env.S3_BUCKET as string,
           prefix: 'uploads',
         },
       },

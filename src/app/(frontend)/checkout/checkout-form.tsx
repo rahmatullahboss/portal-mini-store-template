@@ -152,11 +152,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
                     {item.category}
                   </Badge>
                   <p className="text-sm text-gray-600">
-                    ${item.price.toFixed(2)} × {item.quantity}
+                    ৳{item.price.toFixed(2)} × {item.quantity}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold">৳{(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               </div>
             </Card>
@@ -169,7 +169,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
       {/* Total */}
       <div className="flex justify-between items-center text-lg font-semibold">
         <span>Total:</span>
-        <span className="text-green-600">${getTotalPrice().toFixed(2)}</span>
+        <span className="text-green-600">৳{getTotalPrice().toFixed(2)}</span>
       </div>
 
       {/* Customer Details (for guests) */}

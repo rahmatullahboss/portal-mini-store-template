@@ -159,7 +159,7 @@ export default async function MyOrdersPage({
                           <h4 className="font-medium">{item.snack?.name || 'Unknown Item'}</h4>
                           <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                           <p className="text-sm text-gray-600">
-                            Price: ${(item.snack?.price * item.quantity || 0).toFixed(2)}
+                            Price: ৳{(item.snack?.price * item.quantity || 0).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -170,7 +170,7 @@ export default async function MyOrdersPage({
 
                   <div className="text-right">
                     <span className="text-lg font-bold">
-                      Total: ${order.totalAmount.toFixed(2)}
+                      Total: ৳{order.totalAmount.toFixed(2)}
                     </span>
                   </div>
                 </CardContent>
