@@ -14,7 +14,7 @@ export default async function OrderConfirmationPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={undefined as any} />
+      <SiteHeader variant="full" />
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Button asChild variant="ghost" className="mb-6">
           <Link href="/">← Back to Home</Link>

@@ -1,22 +1,20 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import { NextConfig } from 'next'
+import type { RemotePattern } from 'next/dist/shared/lib/image-config'
 
 const s3HostEnv = process.env.NEXT_PUBLIC_IMAGE_HOSTNAME || process.env.S3_PUBLIC_DOMAIN
-const dynamicRemotePatterns = [
+const dynamicRemotePatterns: RemotePattern[] = [
   {
     protocol: 'https',
     hostname: 'images.unsplash.com',
   },
-  // Allow S3 / CDN host if provided
-  ...(s3HostEnv
-    ? [
-        {
-          protocol: 'https',
-          hostname: String(s3HostEnv).replace(/^https?:\/\//, ''),
-        } as const,
-      ]
-    : []),
 ]
+if (s3HostEnv) {
+  dynamicRemotePatterns.push({
+    protocol: 'https',
+    hostname: String(s3HostEnv).replace(/^https?:\/\//, ''),
+  })
+}
 
 const nextConfig: NextConfig = {
   webpack: (config) => {
