@@ -1,4 +1,5 @@
 // storage-adapter-import-placeholder
+import { s3Adapter } from '@payloadcms/storage-s3'
 import nodemailer from 'nodemailer'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
@@ -31,6 +32,34 @@ export const getServerSideURL = () => {
   return undefined as unknown as string
 }
 
+const storagePlugins = [] as any[]
+
+if (
+  process.env.S3_BUCKET &&
+  process.env.S3_REGION &&
+  process.env.S3_ACCESS_KEY_ID &&
+  process.env.S3_SECRET_ACCESS_KEY
+) {
+  storagePlugins.push(
+    s3Adapter({
+      collections: {
+        media: {
+          bucket: process.env.S3_BUCKET as string,
+          prefix: 'uploads',
+        },
+      },
+      config: {
+        region: process.env.S3_REGION as string,
+        ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),
+        credentials: {
+          accessKeyId: process.env.S3_ACCESS_KEY_ID as string,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
+        },
+      },
+    }),
+  )
+}
+
 export default buildConfig({
   admin: {
     components: {
@@ -47,6 +76,7 @@ export default buildConfig({
   // Allow current deployment URL and localhost for dev
   cors: [getServerSideURL(), 'http://localhost:3000'].
     filter(Boolean) as string[],
+  plugins: storagePlugins,
   collections: [Users, Media, Snacks, Orders],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
