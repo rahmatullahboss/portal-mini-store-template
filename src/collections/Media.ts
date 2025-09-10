@@ -14,7 +14,10 @@ export const Media: CollectionConfig = {
     {
       name: 'alt',
       type: 'text',
-      required: true,
+      required: false,
+      admin: {
+        description: 'Optional. Provide descriptive text for accessibility when available.',
+      },
     },
   ],
   upload: true,
