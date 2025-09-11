@@ -5,6 +5,7 @@ import * as migration_20250909_123000_guest_checkout_orders_fields from './20250
 import * as migration_20250909_130000_add_customer_number_to_users from './20250909_130000_add_customer_number_to_users';
 import * as migration_20250910_000001_make_media_alt_nullable from './20250910_000001_make_media_alt_nullable';
 import * as migration_20250911_063423 from './20250911_063423';
+import * as migration_20250911_add_reviews_table from './20250911_add_reviews_table';
 
 export const migrations = [
   {
@@ -41,5 +42,10 @@ export const migrations = [
     up: migration_20250911_063423.up,
     down: migration_20250911_063423.down,
     name: '20250911_063423'
+  },
+  {
+    up: migration_20250911_add_reviews_table.up,
+    down: migration_20250911_add_reviews_table.down,
+    name: '20250911_add_reviews_table',
   },
 ];
