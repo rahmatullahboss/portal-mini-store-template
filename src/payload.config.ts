@@ -93,8 +93,7 @@ export default buildConfig({
   },
   serverURL: getServerSideURL(),
   // Allow current deployment URL and localhost for dev
-  cors: [getServerSideURL(), 'http://localhost:3000'].
-    filter(Boolean) as string[],
+  cors: [getServerSideURL(), 'http://localhost:3000'].filter(Boolean) as string[],
   plugins: storagePlugins,
   collections: [Users, Media, Snacks, Orders],
   editor: lexicalEditor(),
