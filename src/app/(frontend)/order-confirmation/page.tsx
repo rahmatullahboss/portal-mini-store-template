@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { ConfirmationClient } from './ConfirmationClient'
 
+// Ensure this page renders per-request so query params (searchParams)
+// are reflected in the server-rendered HTML and avoid hydration mismatches.
+export const dynamic = 'force-dynamic'
+
 export default async function OrderConfirmationPage({
   searchParams,
 }: {
