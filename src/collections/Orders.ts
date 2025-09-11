@@ -148,18 +148,21 @@ export const Orders: CollectionConfig = {
           const payload = req?.payload
           const serverURL = (payload?.config as any)?.serverURL || process.env.NEXT_PUBLIC_SERVER_URL || ''
 
-          // Build a human-friendly items summary (attempt to fetch snack names)
           const items: any[] = Array.isArray((doc as any).items) ? ((doc as any).items as any[]) : []
-          const lines: string[] = []
+          const detailed: { name: string; quantity: number; price?: number }[] = []
           for (const it of items) {
-            let label = String(it?.snack || 'Item')
+            let name = String(it?.snack || 'Item')
+            let price: number | undefined = undefined
             try {
               if (it?.snack) {
                 const snack = await payload?.findByID({ collection: 'snacks', id: String(it.snack) })
-                if (snack && (snack as any).name) label = (snack as any).name
+                if (snack) {
+                  if ((snack as any).name) name = (snack as any).name
+                  if (typeof (snack as any).price === 'number') price = Number((snack as any).price)
+                }
               }
             } catch {}
-            lines.push(`- ${label} x ${it?.quantity ?? 1}`)
+            detailed.push({ name, quantity: Number(it?.quantity ?? 1), price })
           }
 
           const orderId = (doc as any).id
@@ -167,34 +170,92 @@ export const Orders: CollectionConfig = {
           const customerName = String((doc as any).customerName || '')
           const customerEmail = String((doc as any).customerEmail || '')
           const orderAdminURL = serverURL ? `${serverURL}/admin/collections/orders/${orderId}` : ''
+          const companyName = process.env.EMAIL_DEFAULT_FROM_NAME || 'Online Bazar'
 
-          const subjectCustomer = `Order Confirmation #${orderId}`
-          const subjectAdmin = `New Order #${orderId} from ${customerName || 'Customer'}`
-          const bodyText = [
-            `Thank you for your order${customerName ? `, ${customerName}` : ''}!`,
-            '',
-            'Order summary:',
-            ...lines,
-            '',
-            `Total: ${total.toFixed(2)}`,
-            '',
-            'We will notify you when your order is processed.',
-          ].join('\n')
+          const orderDate = (doc as any).orderDate ? new Date((doc as any).orderDate) : new Date()
+          const orderDateStr = orderDate.toISOString().slice(0, 10)
+          const year = new Date().getFullYear()
+          const fmt = (n: number) => `৳${n.toFixed(2)}`
+
+          // Build customer email (Bangla)
+          const subjectCustomer = `আপনার অর্ডার #${orderId} কনফার্ম করা হয়েছে!`
+          const rowsHTML = detailed
+            .map((d) => `<tr><td style="padding:6px 8px;border:1px solid #e5e7eb;">${d.name}</td><td style=\"padding:6px 8px;border:1px solid #e5e7eb;text-align:center;\">${d.quantity}</td><td style=\"padding:6px 8px;border:1px solid #e5e7eb;text-align:right;\">${typeof d.price === 'number' ? fmt(d.price) : '-'}</td></tr>`) 
+            .join('')
+          const rowsText = detailed
+            .map((d) => `${d.name}\t${d.quantity}\t${typeof d.price === 'number' ? d.price.toFixed(2) : '-'}`)
+            .join('\n')
+
+          const address = (doc as any).shippingAddress || {}
+          const addressLines = [
+            String(address.line1 || '').trim(),
+            String(address.line2 || '').trim(),
+            [address.city, address.postalCode].filter(Boolean).join(', '),
+            String(address.country || '').trim(),
+          ].filter((l) => l && l.length > 0)
 
           const bodyHTML = `
-            <div>
-              <p>Thank you for your order${customerName ? `, ${customerName}` : ''}!</p>
-              <p><strong>Order #${orderId}</strong></p>
-              <p><strong>Order summary:</strong></p>
-              <ul>
-                ${lines.map((l) => `<li>${l.replace(/^\-\s*/, '')}</li>`).join('')}
-              </ul>
-              <p><strong>Total:</strong> ${total.toFixed(2)}</p>
-              <p>We will notify you when your order is processed.</p>
+            <div style="font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111827;">
+              <p>হ্যালো ${customerName || 'গ্রাহক'},</p>
+              <p>আপনার অর্ডারের জন্য ধন্যবাদ! আমরা আপনার অর্ডারটি পেয়েছি এবং এটি শিপমেন্টের জন্য প্রস্তুত করছি।</p>
+              <p><strong>অর্ডার আইডি:</strong> #${orderId}<br/>
+              <strong>অর্ডারের তারিখ:</strong> ${orderDateStr}</p>
+
+              <h3 style="margin:16px 0 8px 0;">অর্ডারের বিবরণ</h3>
+              <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;min-width:300px;">
+                <thead>
+                  <tr>
+                    <th align="left" style="padding:8px;border:1px solid #e5e7eb;background:#f9fafb;">পণ্য</th>
+                    <th align="center" style="padding:8px;border:1px solid #e5e7eb;background:#f9fafb;">পরিমাণ</th>
+                    <th align="right" style="padding:8px;border:1px solid #e5e7eb;background:#f9fafb;">মূল্য</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHTML}
+                </tbody>
+              </table>
+
+              <p style="margin-top:12px;"><strong>মোট মূল্য:</strong> ${fmt(total)}</p>
+
+              <h3 style="margin:16px 0 8px 0;">যে ঠিকানায় পাঠানো হবে:</h3>
+              <p>${addressLines.map((l: string) => l.replace(/</g, '&lt;').replace(/>/g, '&gt;')).join('<br/>')}</p>
+
+              <p style="margin-top:16px;">আমরা আপনার অর্ডারটি শিপিং করার পর আপনাকে আরেকটি ইমেলের মাধ্যমে জানিয়ে দেব।</p>
+              ${serverURL ? `<p>আপনার অর্ডার হিস্টোরি দেখতে চাইলে আমাদের ওয়েবসাইটে লগইন করতে পারেন: <a href="${serverURL}" target="_blank" rel="noreferrer">${serverURL}</a></p>` : ''}
+
+              <p>আমাদের সাথে শপিং করার জন্য আবারও ধন্যবাদ!</p>
+              <p>শুভেচ্ছান্তে,<br/>${companyName} টিম</p>
+
+              <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;"/>
+              <p style="font-size:12px;color:#6b7280;">© ${year} ${companyName}. সর্বস্বত্ব সংরক্ষিত।</p>
             </div>
           `
 
-          // Send to customer
+          const bodyText = [
+            `হ্যালো ${customerName || 'গ্রাহক'},`,
+            '',
+            'আপনার অর্ডারের জন্য ধন্যবাদ! আমরা আপনার অর্ডারটি পেয়েছি এবং এটি শিপমেন্টের জন্য প্রস্তুত করছি।',
+            '',
+            `অর্ডার আইডি: #${orderId}`,
+            `অর্ডারের তারিখ: ${orderDateStr}`,
+            '',
+            'অর্ডারের বিবরণ',
+            'পণ্য\tপরিমাণ\tমূল্য',
+            rowsText,
+            '',
+            `মোট মূল্য: ${total.toFixed(2)}`,
+            '',
+            'যে ঠিকানায় পাঠানো হবে:',
+            ...addressLines,
+            '',
+            'আমরা আপনার অর্ডারটি শিপিং করার পর আপনাকে আরেকটি ইমেলের মাধ্যমে জানিয়ে দেব।',
+            serverURL ? `অর্ডার হিস্টোরি: ${serverURL}` : '',
+            '',
+            `শুভেচ্ছান্তে,\n${companyName} টিম`,
+            `© ${year} ${companyName}. সর্বস্বত্ব সংরক্ষিত।`,
+          ].filter(Boolean).join('\n')
+
+          // Send to customer (Bangla template)
           if (customerEmail) {
             await payload?.sendEmail?.({
               to: customerEmail,
@@ -204,14 +265,15 @@ export const Orders: CollectionConfig = {
             })
           }
 
-          // Send to admin/owner
+          // Admin notification (keep English)
           const adminEmail = process.env.ORDER_NOTIFICATIONS_EMAIL || process.env.GMAIL_USER
           if (adminEmail) {
+            const adminLines = detailed.map((d) => `- ${d.name} x ${d.quantity}`).join('\n')
             const adminText = [
               `New order #${orderId} from ${customerName} <${customerEmail}>`,
               '',
               'Order summary:',
-              ...lines,
+              adminLines,
               '',
               `Total: ${total.toFixed(2)}`,
               orderAdminURL ? `\nAdmin link: ${orderAdminURL}` : '',
@@ -223,7 +285,7 @@ export const Orders: CollectionConfig = {
                 <p>Customer: ${customerName} &lt;${customerEmail}&gt;</p>
                 <p><strong>Order summary:</strong></p>
                 <ul>
-                  ${lines.map((l) => `<li>${l.replace(/^\-\s*/, '')}</li>`).join('')}
+                  ${detailed.map((d) => `<li>${d.name} x ${d.quantity}</li>`).join('')}
                 </ul>
                 <p><strong>Total:</strong> ${total.toFixed(2)}</p>
                 ${orderAdminURL ? `<p><a href="${orderAdminURL}">Open in Admin</a></p>` : ''}
@@ -232,13 +294,12 @@ export const Orders: CollectionConfig = {
 
             await payload?.sendEmail?.({
               to: adminEmail,
-              subject: subjectAdmin,
+              subject: `New Order #${orderId} from ${customerName || 'Customer'}`,
               text: adminText,
               html: adminHTML,
             })
           }
         } catch (e) {
-          // Do not block order creation on email errors
           req?.payload?.logger?.error?.('Order email hook failed', e as any)
         }
 
