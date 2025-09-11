@@ -139,4 +139,111 @@ export const Orders: CollectionConfig = {
       ],
     },
   ],
+  hooks: {
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        if (operation !== 'create') return doc
+
+        try {
+          const payload = req?.payload
+          const serverURL = (payload?.config as any)?.serverURL || process.env.NEXT_PUBLIC_SERVER_URL || ''
+
+          // Build a human-friendly items summary (attempt to fetch snack names)
+          const items: any[] = Array.isArray((doc as any).items) ? ((doc as any).items as any[]) : []
+          const lines: string[] = []
+          for (const it of items) {
+            let label = String(it?.snack || 'Item')
+            try {
+              if (it?.snack) {
+                const snack = await payload?.findByID({ collection: 'snacks', id: String(it.snack) })
+                if (snack && (snack as any).name) label = (snack as any).name
+              }
+            } catch {}
+            lines.push(`- ${label} x ${it?.quantity ?? 1}`)
+          }
+
+          const orderId = (doc as any).id
+          const total = Number((doc as any).totalAmount || 0)
+          const customerName = String((doc as any).customerName || '')
+          const customerEmail = String((doc as any).customerEmail || '')
+          const orderAdminURL = serverURL ? `${serverURL}/admin/collections/orders/${orderId}` : ''
+
+          const subjectCustomer = `Order Confirmation #${orderId}`
+          const subjectAdmin = `New Order #${orderId} from ${customerName || 'Customer'}`
+          const bodyText = [
+            `Thank you for your order${customerName ? `, ${customerName}` : ''}!`,
+            '',
+            'Order summary:',
+            ...lines,
+            '',
+            `Total: ${total.toFixed(2)}`,
+            '',
+            'We will notify you when your order is processed.',
+          ].join('\n')
+
+          const bodyHTML = `
+            <div>
+              <p>Thank you for your order${customerName ? `, ${customerName}` : ''}!</p>
+              <p><strong>Order #${orderId}</strong></p>
+              <p><strong>Order summary:</strong></p>
+              <ul>
+                ${lines.map((l) => `<li>${l.replace(/^\-\s*/, '')}</li>`).join('')}
+              </ul>
+              <p><strong>Total:</strong> ${total.toFixed(2)}</p>
+              <p>We will notify you when your order is processed.</p>
+            </div>
+          `
+
+          // Send to customer
+          if (customerEmail) {
+            await payload?.sendEmail?.({
+              to: customerEmail,
+              subject: subjectCustomer,
+              text: bodyText,
+              html: bodyHTML,
+            })
+          }
+
+          // Send to admin/owner
+          const adminEmail = process.env.ORDER_NOTIFICATIONS_EMAIL || process.env.GMAIL_USER
+          if (adminEmail) {
+            const adminText = [
+              `New order #${orderId} from ${customerName} <${customerEmail}>`,
+              '',
+              'Order summary:',
+              ...lines,
+              '',
+              `Total: ${total.toFixed(2)}`,
+              orderAdminURL ? `\nAdmin link: ${orderAdminURL}` : '',
+            ].filter(Boolean).join('\n')
+
+            const adminHTML = `
+              <div>
+                <p><strong>New order #${orderId}</strong></p>
+                <p>Customer: ${customerName} &lt;${customerEmail}&gt;</p>
+                <p><strong>Order summary:</strong></p>
+                <ul>
+                  ${lines.map((l) => `<li>${l.replace(/^\-\s*/, '')}</li>`).join('')}
+                </ul>
+                <p><strong>Total:</strong> ${total.toFixed(2)}</p>
+                ${orderAdminURL ? `<p><a href="${orderAdminURL}">Open in Admin</a></p>` : ''}
+              </div>
+            `
+
+            await payload?.sendEmail?.({
+              to: adminEmail,
+              subject: subjectAdmin,
+              text: adminText,
+              html: adminHTML,
+            })
+          }
+        } catch (e) {
+          // Do not block order creation on email errors
+          req?.payload?.logger?.error?.('Order email hook failed', e as any)
+        }
+
+        return doc
+      },
+    ],
+  },
 }

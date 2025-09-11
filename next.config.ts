@@ -29,6 +29,18 @@ for (const host of [s3OrBlobHostEnv, blobHostFromToken]) {
   }
 }
 
+// Also allow this app's own deployment host so absolute URLs like
+// https://<app-domain>/api/media/file/<filename> can be optimized by Next/Image.
+const vercelHosts = [process.env.VERCEL_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
+for (const host of vercelHosts) {
+  if (host) {
+    dynamicRemotePatterns.push({
+      protocol: 'https',
+      hostname: String(host).replace(/^https?:\/\//, ''),
+    })
+  }
+}
+
 const nextConfig: NextConfig = {
   webpack: (config) => {
     if (process.env.NODE_ENV === 'development') {
