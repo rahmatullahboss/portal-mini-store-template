@@ -69,8 +69,10 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
-    snacks: Snack;
+    items: Item;
+    categories: Category;
     orders: Order;
+    reviews: Review;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -79,8 +81,10 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    snacks: SnacksSelect<false> | SnacksSelect<true>;
+    items: ItemsSelect<false> | ItemsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -123,6 +127,10 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  /**
+   * Primary contact number for orders and updates
+   */
+  customerNumber?: string | null;
   role: 'admin' | 'user';
   firstName: string;
   lastName: string;
@@ -161,7 +169,11 @@ export interface User {
  */
 export interface Media {
   id: number;
-  alt: string;
+  /**
+   * Optional. Provide descriptive text for accessibility when available.
+   */
+  alt?: string | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -176,9 +188,9 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "snacks".
+ * via the `definition` "items".
  */
-export interface Snack {
+export interface Item {
   id: number;
   name: string;
   description: string;
@@ -189,7 +201,18 @@ export interface Snack {
    */
   imageUrl?: string | null;
   available?: boolean | null;
-  category: 'chips' | 'candy' | 'cookies' | 'nuts' | 'crackers' | 'drinks';
+  category?: (number | null) | Category;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -199,9 +222,18 @@ export interface Snack {
  */
 export interface Order {
   id: number;
-  user: number | User;
+  user?: (number | null) | User;
+  /**
+   * Name captured at time of order
+   */
+  customerName: string;
+  customerEmail: string;
+  /**
+   * Customer contact number captured at time of order
+   */
+  customerNumber: string;
   items: {
-    snack: number | Snack;
+    item: number | Item;
     quantity: number;
     id?: string | null;
   }[];
@@ -224,6 +256,24 @@ export interface Order {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: number;
+  item: number | Item;
+  /**
+   * Reviewer (auto-set)
+   */
+  user: number | User;
+  rating: number;
+  title?: string | null;
+  comment: string;
+  approved: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -238,12 +288,20 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
-        relationTo: 'snacks';
-        value: number | Snack;
+        relationTo: 'items';
+        value: number | Item;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
       } | null)
     | ({
         relationTo: 'orders';
         value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: number | Review;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -292,6 +350,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  customerNumber?: T;
   role?: T;
   firstName?: T;
   lastName?: T;
@@ -328,6 +387,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -342,9 +402,9 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "snacks_select".
+ * via the `definition` "items_select".
  */
-export interface SnacksSelect<T extends boolean = true> {
+export interface ItemsSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   price?: T;
@@ -357,14 +417,27 @@ export interface SnacksSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
   user?: T;
+  customerName?: T;
+  customerEmail?: T;
+  customerNumber?: T;
   items?:
     | T
     | {
-        snack?: T;
+        item?: T;
         quantity?: T;
         id?: T;
       };
@@ -381,6 +454,20 @@ export interface OrdersSelect<T extends boolean = true> {
         postalCode?: T;
         country?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  item?: T;
+  user?: T;
+  rating?: T;
+  title?: T;
+  comment?: T;
+  approved?: T;
   updatedAt?: T;
   createdAt?: T;
 }

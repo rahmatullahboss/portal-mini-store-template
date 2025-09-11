@@ -15,6 +15,7 @@ import { Media } from './collections/Media'
 import { Items } from './collections/Items'
 import { Categories } from './collections/Categories'
 import { Orders } from './collections/Orders'
+import { Reviews } from './collections/Reviews'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -91,7 +92,7 @@ export default buildConfig({
   // Allow current deployment URL and localhost for dev
   cors: [getServerSideURL(), 'http://localhost:3000'].filter(Boolean) as string[],
   plugins: storagePlugins,
-  collections: [Users, Media, Items, Categories, Orders],
+  collections: [Users, Media, Items, Categories, Orders, Reviews],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

@@ -10,6 +10,10 @@ import { OrderNowButton } from '@/components/order-now-button'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
+import ReviewSection from './ReviewSection'
+import { ReviewStars } from '@/components/review-stars'
 
 async function getItem(id: string, payload: any) {
   const item = await payload.findByID({
@@ -38,6 +42,43 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
       ? ((item as any).category as any)?.name
       : (item as any).category
 
+  // Approved reviews for this product
+  const reviewsRes = await payload.find({
+    collection: 'reviews',
+    where: {
+      and: [
+        { item: { equals: id } },
+        { approved: { equals: true } },
+      ],
+    },
+    depth: 1,
+    limit: 50,
+    sort: '-createdAt',
+  })
+  const reviews = reviewsRes?.docs || []
+  const ratingAvg = reviews.length
+    ? Math.round((reviews.reduce((a: number, r: any) => a + Number(r.rating || 0), 0) / reviews.length) * 10) / 10
+    : 0
+
+  // Check if current user can review (completed order contains this item)
+  let canReview = false
+  if (user) {
+    try {
+      const orders = await payload.find({
+        collection: 'orders',
+        where: {
+          and: [
+            { user: { equals: (user as any).id } },
+            { status: { equals: 'completed' } },
+            { 'items.item': { equals: id } },
+          ],
+        },
+        limit: 1,
+      })
+      canReview = (orders?.docs?.length || 0) > 0
+    } catch {}
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader variant="full" user={user} />
@@ -62,8 +103,12 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
           </div>
           <div className="flex flex-col justify-center">
             <h1 className="text-4xl font-bold text-gray-900">{item.name}</h1>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-3 mt-2">
               {categoryLabel ? <Badge variant="secondary">{categoryLabel}</Badge> : null}
+              <div className="flex items-center gap-2">
+                <ReviewStars value={ratingAvg} />
+                <span className="text-sm text-gray-600">{reviews.length} Reviews</span>
+              </div>
             </div>
             <p className="text-lg text-gray-700 mt-4">{item.description}</p>
             <div className="mt-6">
@@ -75,12 +120,57 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 <OrderNowButton item={item as any} isLoggedIn={!!user} />
               </>
             </div>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
+                <Truck className="text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium">Free shipping worldwide</p>
+                  <p className="text-xs text-gray-500">On all orders</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
+                <ShieldCheck className="text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium">100% Secured Payment</p>
+                  <p className="text-xs text-gray-500">Trusted checkout</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
+                <ShoppingCart className="text-gray-500" />
+                <div>
+                  <p className="text-sm font-medium">Top brand products</p>
+                  <p className="text-xs text-gray-500">Quality assured</p>
+                </div>
+              </div>
+            </div>
             <div className="mt-4">
               <Button asChild variant="link">
                 <Link href="/"> &larr; Back to all items</Link>
               </Button>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10">
+          <Tabs defaultValue="description">
+            <TabsList>
+              <TabsTrigger value="description">Description</TabsTrigger>
+              <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            </TabsList>
+            <TabsContent value="description">
+              <div className="prose max-w-none">
+                <p className="text-gray-700">{item.description}</p>
+              </div>
+            </TabsContent>
+            <TabsContent value="reviews">
+              <ReviewSection
+                itemId={id}
+                canReview={!!canReview}
+                userId={(user as any)?.id || null}
+                initialReviews={reviews as any}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
