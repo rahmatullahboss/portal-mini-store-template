@@ -156,28 +156,28 @@ export default async function AdminDashboardPage() {
                           key={index}
                           className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                         >
-                          {item.snack &&
-                            typeof item.snack === 'object' &&
-                            item.snack.image &&
-                            typeof item.snack.image === 'object' &&
-                            item.snack.image.url && (
+                          {item.item &&
+                            typeof item.item === 'object' &&
+                            item.item.image &&
+                            typeof item.item.image === 'object' &&
+                            item.item.image.url && (
                               <div className="relative w-12 h-12 rounded overflow-hidden">
                                 <Image
-                                  src={item.snack.image.url}
-                                  alt={item.snack.image.alt || item.snack.name}
+                                  src={item.item.image.url}
+                                  alt={item.item.image.alt || item.item.name}
                                   fill
                                   className="object-cover"
                                 />
                               </div>
                             )}
                           <div className="flex-1">
-                            <h4 className="font-medium">{item.snack?.name || 'Unknown Item'}</h4>
+                            <h4 className="font-medium">{item.item?.name || 'Unknown Item'}</h4>
                             <p className="text-sm text-gray-600">
-                              Qty: {item.quantity} × ৳{item.snack?.price?.toFixed(2) || '0.00'}
+                              Qty: {item.quantity} × ৳{item.item?.price?.toFixed(2) || '0.00'}
                             </p>
                           </div>
                           <div className="text-right font-medium">
-                            ৳{((item.snack?.price || 0) * item.quantity).toFixed(2)}
+                            ৳{((item.item?.price || 0) * item.quantity).toFixed(2)}
                           </div>
                         </div>
                       ))}

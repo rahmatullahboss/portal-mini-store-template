@@ -67,7 +67,7 @@ export default async function MyOrdersPage({
         {success && confirmedOrder && (
           <div className="mb-6 flex items-center gap-3 rounded-lg border p-3 bg-white">
             {(() => {
-              const s = confirmedOrder.items?.[0]?.snack
+              const s = confirmedOrder.items?.[0]?.item
               if (s && typeof s === 'object') {
                 const imgUrl = (s as any)?.image?.url || (s as any)?.imageUrl
                 if (imgUrl) {
@@ -87,8 +87,8 @@ export default async function MyOrdersPage({
             })()}
             <div className="text-sm text-gray-700">
               <span className="font-medium">
-                {typeof confirmedOrder.items?.[0]?.snack === 'object'
-                  ? (confirmedOrder.items[0].snack as any).name || 'Your item'
+                {typeof confirmedOrder.items?.[0]?.item === 'object'
+                  ? (confirmedOrder.items[0].item as any).name || 'Your item'
                   : 'Your item'}
               </span>{' '}
               has been confirmed.
@@ -101,7 +101,7 @@ export default async function MyOrdersPage({
             <CardContent className="py-12 text-center">
               <p className="text-gray-500 mb-6">You haven&apos;t placed any orders yet.</p>
               <Button asChild>
-                <Link href="/">Browse Snacks</Link>
+                <Link href="/">Browse Items</Link>
               </Button>
             </CardContent>
           </Card>
@@ -131,13 +131,13 @@ export default async function MyOrdersPage({
 
                 <CardContent>
                   <div className="space-y-4">
-                    {order.items.map((item: any, index: number) => (
+                    {order.items.map((line: any, index: number) => (
                       <div
                         key={index}
                         className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
                       >
                         {(() => {
-                          const s = item.snack
+                          const s = line.item
                           if (s && typeof s === 'object') {
                             const imgUrl = (s as any)?.image?.url || (s as any)?.imageUrl
                             if (imgUrl) {
@@ -156,10 +156,10 @@ export default async function MyOrdersPage({
                           return null
                         })()}
                         <div className="flex-1">
-                          <h4 className="font-medium">{item.snack?.name || 'Unknown Item'}</h4>
-                          <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                          <h4 className="font-medium">{(line.item as any)?.name || 'Unknown Item'}</h4>
+                          <p className="text-sm text-gray-600">Quantity: {line.quantity}</p>
                           <p className="text-sm text-gray-600">
-                            Price: ৳{(item.snack?.price * item.quantity || 0).toFixed(2)}
+                            Price: ৳{(((line.item as any)?.price || 0) * line.quantity).toFixed(2)}
                           </p>
                         </div>
                       </div>

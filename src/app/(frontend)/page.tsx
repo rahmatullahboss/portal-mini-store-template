@@ -36,9 +36,9 @@ export default async function HomePage() {
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
 
-  // Fetch all available snacks
-  const snacks = await payload.find({
-    collection: 'snacks',
+  // Fetch all available items
+  const items = await payload.find({
+    collection: 'items',
     where: {
       available: {
         equals: true,
@@ -82,7 +82,7 @@ export default async function HomePage() {
                 <div className="h-1 w-32 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full"></div>
               </div>
               <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Experience the future of snacking with our curated collection of premium treats,
+                Experience the future of shopping with our curated collection of premium items,
                 delivered with precision and passion.
               </p>
             </div>
@@ -108,7 +108,7 @@ export default async function HomePage() {
               </p>
             </div>
 
-            {snacks.docs.length === 0 ? (
+            {items.docs.length === 0 ? (
               <div className="text-center py-20">
                 <div className="space-y-4">
                   <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full mx-auto flex items-center justify-center">
@@ -119,9 +119,9 @@ export default async function HomePage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {snacks.docs.map((snack: any, index: number) => (
+                {items.docs.map((item: any, index: number) => (
                   <Card
-                    key={snack.id}
+                    key={item.id}
                     className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white/95 backdrop-blur-xl shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-gpu p-0"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
@@ -132,19 +132,19 @@ export default async function HomePage() {
                     <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
 
                     <div className="relative z-10 h-full flex flex-col">
-                      <Link href={`/snack/${snack.id}`} className="block">
-                        {((snack.image && typeof snack.image === 'object') || snack.imageUrl) && (
+                      <Link href={`/item/${item.id}`} className="block">
+                        {((item.image && typeof item.image === 'object') || item.imageUrl) && (
                           <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
                             <Image
                               src={
-                                snack.image && typeof snack.image === 'object'
-                                  ? snack.image.url
-                                  : snack.imageUrl
+                                item.image && typeof item.image === 'object'
+                                  ? item.image.url
+                                  : item.imageUrl
                               }
                               alt={
-                                (snack.image && typeof snack.image === 'object'
-                                  ? snack.image.alt
-                                  : undefined) || snack.name
+                                (item.image && typeof item.image === 'object'
+                                  ? item.image.alt
+                                  : undefined) || item.name
                               }
                               fill
                               className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
@@ -158,7 +158,7 @@ export default async function HomePage() {
                                 variant="secondary"
                                 className="bg-white/90 text-gray-700 border border-gray-200/60 backdrop-blur-sm shadow-lg font-medium px-3 py-1"
                               >
-                                {snack.category}
+                                {typeof item.category === 'object' ? (item.category as any)?.name : item.category}
                               </Badge>
                             </div>
                           </div>
@@ -167,12 +167,12 @@ export default async function HomePage() {
                         <CardHeader className="space-y-3 p-4">
                           <div className="space-y-1">
                             <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight">
-                              {snack.name}
+                              {item.name}
                             </CardTitle>
                             <div className="h-0.5 w-12 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                           </div>
                           <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                            {snack.description}
+                            {item.description}
                           </CardDescription>
                         </CardHeader>
                       </Link>
@@ -180,12 +180,12 @@ export default async function HomePage() {
                       <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm p-4 rounded-b-3xl">
                         <div className="space-y-1">
                           <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                            ৳{snack.price.toFixed(2)}
+                            ৳{item.price.toFixed(2)}
                           </span>
                           <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <OrderNowButton snack={snack} isLoggedIn={!!user} className="px-4 py-2 text-sm" />
+                          <OrderNowButton item={item} isLoggedIn={!!user} className="px-4 py-2 text-sm" />
                         </div>
                       </CardFooter>
                     </div>

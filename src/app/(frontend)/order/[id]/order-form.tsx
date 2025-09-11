@@ -8,11 +8,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 
 interface OrderFormProps {
-  snack: any
+  item: any
   user?: any
 }
 
-export default function OrderForm({ snack, user }: OrderFormProps) {
+export default function OrderForm({ item, user }: OrderFormProps) {
   const [quantity, setQuantity] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -28,7 +28,7 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
   const router = useRouter()
 
-  const totalPrice = (snack.price * quantity).toFixed(2)
+  const totalPrice = (item.price * quantity).toFixed(2)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +44,7 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
         body: JSON.stringify({
           items: [
             {
-              snack: snack.id,
+              item: item.id,
               quantity,
             },
           ],
@@ -92,8 +92,8 @@ export default function OrderForm({ snack, user }: OrderFormProps) {
               orderId: oid,
               items: [
                 {
-                  name: snack?.name,
-                  image: snack?.image || (snack?.imageUrl ? { url: snack.imageUrl } : undefined),
+                  name: item?.name,
+                  image: item?.image || (item?.imageUrl ? { url: item.imageUrl } : undefined),
                 },
               ],
             }),

@@ -60,9 +60,9 @@ export const Orders: CollectionConfig = {
       type: 'array',
       fields: [
         {
-          name: 'snack',
+          name: 'item',
           type: 'relationship',
-          relationTo: 'snacks',
+          relationTo: 'items',
           required: true,
         },
         {
@@ -151,18 +151,39 @@ export const Orders: CollectionConfig = {
           const items: any[] = Array.isArray((doc as any).items) ? ((doc as any).items as any[]) : []
           const detailed: { name: string; quantity: number; price?: number }[] = []
           for (const it of items) {
-            let name = String(it?.snack || 'Item')
-            let price: number | undefined = undefined
-            try {
-              if (it?.snack) {
-                const snack = await payload?.findByID({ collection: 'snacks', id: String(it.snack) })
-                if (snack) {
-                  if ((snack as any).name) name = (snack as any).name
-                  if (typeof (snack as any).price === 'number') price = Number((snack as any).price)
-                }
+            let name = 'Item'
+            let price: number | undefined
+            let snackId: string | undefined
+
+            const rel = (it as any)?.item
+            if (rel && typeof rel === 'object') {
+              // If populated relationship
+              if (typeof (rel as any).name === 'string') name = (rel as any).name
+              if (typeof (rel as any).price === 'number') price = Number((rel as any).price)
+              if (typeof (rel as any).id === 'string' || typeof (rel as any).id === 'number') {
+                snackId = String((rel as any).id)
+              } else if (typeof (rel as any).value === 'string' || typeof (rel as any).value === 'number') {
+                snackId = String((rel as any).value)
               }
-            } catch {}
-            detailed.push({ name, quantity: Number(it?.quantity ?? 1), price })
+            } else if (rel != null && (typeof rel === 'string' || typeof rel === 'number')) {
+              // If stored as an ID
+              snackId = String(rel)
+            }
+
+            // Fetch snack if needed to fill missing fields
+            if ((!name || name === 'Item' || typeof price !== 'number') && snackId) {
+              try {
+                const itemDoc = await payload?.findByID({ collection: 'items', id: snackId })
+                if (itemDoc) {
+                  if ((itemDoc as any).name && (!name || name === 'Item')) name = (itemDoc as any).name
+                  if (typeof (itemDoc as any).price === 'number' && typeof price !== 'number') {
+                    price = Number((itemDoc as any).price)
+                  }
+                }
+              } catch {}
+            }
+
+            detailed.push({ name: name || 'Item', quantity: Number((it as any)?.quantity ?? 1), price })
           }
 
           const orderId = (doc as any).id

@@ -16,26 +16,42 @@ export const seed = async ({
   payload.logger.info('Seeding database...')
 
   try {
-    // Create snacks with placeholder image URLs
-    const snackPromises = snackSeedData.map(async (snack) => {
+    // Create categories (unique by name)
+    const categoryNames = Array.from(new Set(snackSeedData.map((s) => s.category)))
+    const categories = new Map<string, any>()
+    for (const name of categoryNames) {
+      try {
+        const existing = await payload.find({ collection: 'categories', where: { name: { equals: name } }, limit: 1 })
+        const doc = existing.docs[0]
+          ? existing.docs[0]
+          : await payload.create({ collection: 'categories', data: { name }, req })
+        categories.set(name, doc)
+      } catch (e) {
+        payload.logger.warn(`Failed to upsert category ${name}: ${String((e as any)?.message || e)}`)
+      }
+    }
+
+    // Create items with placeholder image URLs
+    const itemPromises = snackSeedData.map(async (seed) => {
+      const cat = categories.get(seed.category)
       return await payload.create({
-        collection: 'snacks',
+        collection: 'items',
         data: {
-          name: snack.name,
-          description: snack.description,
-          price: snack.price,
-          category: snack.category,
-          available: snack.available,
-          imageUrl: snack.imageUrl,
+          name: seed.name,
+          description: seed.description,
+          price: seed.price,
+          category: cat ? (cat as any).id : undefined,
+          available: seed.available,
+          imageUrl: seed.imageUrl,
         },
         req,
       })
     })
 
-    const createdSnacks = await Promise.all(snackPromises)
+    const createdItems = await Promise.all(itemPromises)
 
     payload.logger.info(
-      `Successfully created ${createdSnacks.length} snacks with placeholder images`,
+      `Successfully created ${createdItems.length} items with placeholder images`,
     )
   } catch (error) {
     payload.logger.error('Error running seed migration:', error)

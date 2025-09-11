@@ -69,14 +69,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate items exist and are available
-    for (const item of items) {
-      const snack = await payload.findByID({
-        collection: 'snacks',
-        id: item.snack,
+    for (const line of items) {
+      const itemDoc = await payload.findByID({
+        collection: 'items',
+        id: line.item,
       })
 
-      if (!snack || !snack.available) {
-        return NextResponse.json({ error: `Snack ${item.snack} is not available` }, { status: 400 })
+      if (!itemDoc || !itemDoc.available) {
+        return NextResponse.json({ error: `Item ${line.item} is not available` }, { status: 400 })
       }
     }
 

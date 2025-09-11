@@ -28,21 +28,21 @@ export default async function OrderPage({ params }: OrderPageProps) {
 
   // Guest checkout allowed; no redirect
 
-  // Fetch the specific snack
-  const snack = await payload.findByID({
-    collection: 'snacks',
+  // Fetch the specific item
+  const item = await payload.findByID({
+    collection: 'items',
     id,
     depth: 2,
   })
 
-  if (!snack || !snack.available) {
+  if (!item || !item.available) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardHeader>
-              <CardTitle>Snack Not Available</CardTitle>
-              <CardDescription>Sorry, this snack is not available for ordering.</CardDescription>
+              <CardTitle>Item Not Available</CardTitle>
+              <CardDescription>Sorry, this item is not available for ordering.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild>
@@ -60,17 +60,17 @@ export default async function OrderPage({ params }: OrderPageProps) {
       <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
       <div className="container mx-auto px-4 py-8">
         <Button asChild variant="ghost" className="mb-6">
-          <Link href="/">← Back to Snacks</Link>
+          <Link href="/">← Back to Items</Link>
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Snack Details */}
+          {/* Item Details */}
           <Card className="overflow-hidden">
-            {snack.image && typeof snack.image === 'object' && snack.image.url && (
+            {item.image && typeof item.image === 'object' && item.image.url && (
               <div className="aspect-video relative">
                 <Image
-                  src={snack.image.url}
-                  alt={snack.image.alt || snack.name}
+                  src={item.image.url}
+                  alt={item.image.alt || item.name}
                   fill
                   className="object-cover"
                 />
@@ -78,13 +78,13 @@ export default async function OrderPage({ params }: OrderPageProps) {
             )}
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">{snack.name}</CardTitle>
-                <Badge variant="secondary">{snack.category}</Badge>
+                <CardTitle className="text-2xl">{item.name}</CardTitle>
+                <Badge variant="secondary">{typeof (item as any).category === 'object' ? ((item as any).category as any)?.name : (item as any).category}</Badge>
               </div>
-              <CardDescription>{snack.description}</CardDescription>
+              <CardDescription>{item.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600">৳{snack.price.toFixed(2)} each</p>
+              <p className="text-2xl font-bold text-green-600">৳{item.price.toFixed(2)} each</p>
             </CardContent>
           </Card>
 
@@ -105,7 +105,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
                   </p>
                 </div>
               ) : null}
-              <OrderForm snack={snack} user={(fullUser as any) || (user as any)} />
+              <OrderForm item={item} user={(fullUser as any) || (user as any)} />
             </CardContent>
           </Card>
         </div>

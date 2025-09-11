@@ -8,15 +8,15 @@ export async function GET() {
     const media = await payload.find({ collection: 'media', limit: 1 }).catch((e) => {
       throw new Error(`media table check failed: ${e?.message || e}`)
     })
-    const snacks = await payload.find({ collection: 'snacks', limit: 1 }).catch((e) => {
-      throw new Error(`snacks table check failed: ${e?.message || e}`)
+    const items = await payload.find({ collection: 'items', limit: 1 }).catch((e) => {
+      throw new Error(`items table check failed: ${e?.message || e}`)
     })
 
     return NextResponse.json({
       ok: true,
       mediaTable: true,
-      snacksTable: true,
-      counts: { media: media.totalDocs, snacks: snacks.totalDocs },
+      itemsTable: true,
+      counts: { media: media.totalDocs, items: items.totalDocs },
     })
   } catch (err: any) {
     return NextResponse.json(
@@ -28,4 +28,3 @@ export async function GET() {
     )
   }
 }
-

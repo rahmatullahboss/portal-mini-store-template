@@ -12,7 +12,8 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
-import { Snacks } from './collections/Snacks'
+import { Items } from './collections/Items'
+import { Categories } from './collections/Categories'
 import { Orders } from './collections/Orders'
 
 const filename = fileURLToPath(import.meta.url)
@@ -81,11 +82,6 @@ if (process.env.BLOB_READ_WRITE_TOKEN) {
 
 export default buildConfig({
   admin: {
-    components: {
-      // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
-      // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
-      beforeDashboard: ['@/components/before-dashboard'],
-    },
     user: Users.slug,
     importMap: {
       baseDir: path.resolve(dirname),
@@ -95,7 +91,7 @@ export default buildConfig({
   // Allow current deployment URL and localhost for dev
   cors: [getServerSideURL(), 'http://localhost:3000'].filter(Boolean) as string[],
   plugins: storagePlugins,
-  collections: [Users, Media, Snacks, Orders],
+  collections: [Users, Media, Items, Categories, Orders],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

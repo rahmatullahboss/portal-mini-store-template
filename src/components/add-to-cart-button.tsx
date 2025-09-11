@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button'
 import type { CartItem } from '@/lib/cart-context'
 
 interface AddToCartButtonProps {
-  snack: {
+  item: {
     id: string
     name: string
     price: number
-    category: string
+    category?: any
     image?: {
       url: string
       alt?: string
@@ -21,17 +21,20 @@ interface AddToCartButtonProps {
   }
 }
 
-export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ snack }) => {
+export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item }) => {
   const { addItem, openCart } = useCart()
   const [isAdded, setIsAdded] = useState(false)
 
   const handleAddToCart = () => {
     addItem({
-      id: snack.id,
-      name: snack.name,
-      price: snack.price,
-      category: snack.category,
-      image: snack.image || (snack.imageUrl ? { url: snack.imageUrl } : undefined),
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      category:
+        typeof (item as any).category === 'object'
+          ? ((item as any).category as any)?.name
+          : (item as any).category,
+      image: item.image || (item.imageUrl ? { url: item.imageUrl } : undefined),
     })
 
     setIsAdded(true)

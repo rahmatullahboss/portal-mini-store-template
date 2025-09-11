@@ -50,9 +50,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: state.items.map((item) => ({
-            snack: item.id,
-            quantity: item.quantity,
+          items: state.items.map((ci) => ({
+            item: ci.id,
+            quantity: ci.quantity,
           })),
           totalAmount: getTotalPrice(),
           customerNumber,

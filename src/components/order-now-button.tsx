@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
-type Snack = {
+type Item = {
   id: string
   price: number
   name?: string
@@ -16,11 +16,11 @@ type Snack = {
 }
 
 export function OrderNowButton({
-  snack,
+  item,
   className = '',
   isLoggedIn,
 }: {
-  snack: Snack
+  item: Item
   className?: string
   isLoggedIn?: boolean
 }) {
@@ -35,7 +35,7 @@ export function OrderNowButton({
 
       // If not logged in, go collect info first
       if (!isLoggedIn) {
-        router.push(`/order/${snack.id}`)
+        router.push(`/order/${item.id}`)
         return
       }
 
@@ -44,8 +44,8 @@ export function OrderNowButton({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: [{ snack: snack.id, quantity: 1 }],
-          totalAmount: Number(snack.price.toFixed(2)),
+          items: [{ item: item.id, quantity: 1 }],
+          totalAmount: Number(item.price.toFixed(2)),
         }),
       })
 
@@ -53,7 +53,7 @@ export function OrderNowButton({
         const data = await res.json().catch(() => null)
         const oid = (data as any)?.doc?.id
         // Save a lightweight preview for confirmation pages
-        if (snack?.name) {
+        if (item?.name) {
           try {
             sessionStorage.setItem(
               'last-order-preview',
@@ -61,8 +61,8 @@ export function OrderNowButton({
                 orderId: oid,
                 items: [
                   {
-                    name: snack.name,
-                    image: snack.image || (snack.imageUrl ? { url: snack.imageUrl } : undefined),
+                    name: item.name,
+                    image: item.image || (item.imageUrl ? { url: item.imageUrl } : undefined),
                   },
                 ],
               }),
@@ -77,10 +77,10 @@ export function OrderNowButton({
       const data = await res.json().catch(() => ({}))
       const message = data?.error || data?.message || 'Additional details required'
       setError(message)
-      router.push(`/order/${snack.id}`)
+      router.push(`/order/${item.id}`)
     } catch (e: any) {
       setError(e?.message || 'Failed to place order')
-      router.push(`/order/${snack.id}`)
+      router.push(`/order/${item.id}`)
     } finally {
       setLoading(false)
     }
