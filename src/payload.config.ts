@@ -1,4 +1,5 @@
-// storage-adapter-import-placeholder
+// storage adapters
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { s3Storage } from '@payloadcms/storage-s3'
 import nodemailer from 'nodemailer'
 import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
@@ -34,7 +35,25 @@ export const getServerSideURL = () => {
 
 const storagePlugins = [] as any[]
 
-if (
+// Prefer Vercel Blob if configured; otherwise fall back to S3 if configured
+if (process.env.BLOB_READ_WRITE_TOKEN) {
+  storagePlugins.push(
+    vercelBlobStorage({
+      enabled: true,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      // Apply to the Payload 'media' collection
+      collections: {
+        media: {
+          // optional: keep uploads under a folder-like prefix
+          prefix: 'uploads',
+        },
+      },
+      // optional flags
+      // addRandomSuffix: true,
+      // clientUploads: false, // enable if you need >4.5MB files on Vercel
+    }),
+  )
+} else if (
   process.env.S3_BUCKET &&
   process.env.S3_REGION &&
   process.env.S3_ACCESS_KEY_ID &&

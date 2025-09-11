@@ -2,18 +2,31 @@ import { withPayload } from '@payloadcms/next/withPayload'
 import { NextConfig } from 'next'
 import type { RemotePattern } from 'next/dist/shared/lib/image-config'
 
-const s3HostEnv = process.env.NEXT_PUBLIC_IMAGE_HOSTNAME || process.env.S3_PUBLIC_DOMAIN
+const s3OrBlobHostEnv =
+  process.env.NEXT_PUBLIC_IMAGE_HOSTNAME ||
+  process.env.S3_PUBLIC_DOMAIN ||
+  process.env.BLOB_PUBLIC_HOST ||
+  process.env.BLOB_PUBLIC_DOMAIN
+
+// Derive Blob hostname from token if provided
+const blobHostFromToken = (() => {
+  const token = process.env.BLOB_READ_WRITE_TOKEN
+  const match = token?.match(/^vercel_blob_rw_([a-z\d]+)_[a-z\d]+$/i)
+  const id = match?.[1]?.toLowerCase()
+  return id ? `${id}.public.blob.vercel-storage.com` : undefined
+})()
+
 const dynamicRemotePatterns: RemotePattern[] = [
-  {
-    protocol: 'https',
-    hostname: 'images.unsplash.com',
-  },
+  { protocol: 'https', hostname: 'images.unsplash.com' },
 ]
-if (s3HostEnv) {
-  dynamicRemotePatterns.push({
-    protocol: 'https',
-    hostname: String(s3HostEnv).replace(/^https?:\/\//, ''),
-  })
+
+for (const host of [s3OrBlobHostEnv, blobHostFromToken]) {
+  if (host) {
+    dynamicRemotePatterns.push({
+      protocol: 'https',
+      hostname: String(host).replace(/^https?:\/\//, ''),
+    })
+  }
 }
 
 const nextConfig: NextConfig = {
