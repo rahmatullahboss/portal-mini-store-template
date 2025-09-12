@@ -8,6 +8,7 @@ import * as migration_20250911_063423 from './20250911_063423';
 import * as migration_20250911_add_reviews_table from './20250911_add_reviews_table';
 import * as migration_20250911_add_categories_lock_rel from './20250911_add_categories_lock_rel';
 import * as migration_20250912_add_reviews_lock_rel from './20250912_add_reviews_lock_rel';
+import * as migration_20250912_add_reviewer_name_to_reviews from './20250912_add_reviewer_name_to_reviews';
 
 export const migrations = [
   {
@@ -59,5 +60,10 @@ export const migrations = [
     up: migration_20250912_add_reviews_lock_rel.up,
     down: migration_20250912_add_reviews_lock_rel.down,
     name: '20250912_add_reviews_lock_rel',
+  },
+  {
+    up: migration_20250912_add_reviewer_name_to_reviews.up,
+    down: migration_20250912_add_reviewer_name_to_reviews.down,
+    name: '20250912_add_reviewer_name_to_reviews',
   },
 ];

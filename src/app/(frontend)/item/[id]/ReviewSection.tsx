@@ -24,6 +24,7 @@ type Review = {
   comment: string
   createdAt?: string
   user?: any
+  reviewerName?: string
 }
 
 export default function ReviewSection({
@@ -88,6 +89,7 @@ export default function ReviewSection({
                   <ReviewStars value={r.rating} />
                   <span className="text-xs text-gray-500">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</span>
                 </div>
+                <p className="mt-1 text-xs text-gray-600">By {getReviewerName(r)}</p>
                 {r.title ? <h4 className="font-medium mt-1">{r.title}</h4> : null}
                 <p className="text-gray-700 text-sm mt-1 whitespace-pre-line">{r.comment}</p>
               </li>
@@ -166,4 +168,15 @@ export default function ReviewSection({
       </div>
     </div>
   )
+}
+
+function getReviewerName(r: Review) {
+  if (r.reviewerName && r.reviewerName.trim().length > 0) return r.reviewerName
+  const u: any = r.user
+  const first = typeof u === 'object' ? (u?.firstName || '') : ''
+  const last = typeof u === 'object' ? (u?.lastName || '') : ''
+  const name = `${first} ${last}`.trim()
+  if (name) return name
+  const email = typeof u === 'object' ? u?.email : undefined
+  return email || 'Verified Buyer'
 }

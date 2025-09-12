@@ -51,7 +51,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         { approved: { equals: true } },
       ],
     },
-    depth: 1,
+    depth: 2,
     limit: 50,
     sort: '-createdAt',
   })
@@ -176,4 +176,3 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
     </div>
   )
 }
-

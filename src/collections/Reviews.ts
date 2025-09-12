@@ -70,6 +70,15 @@ export const Reviews: CollectionConfig = {
       }
     },
     {
+      name: 'reviewerName',
+      type: 'text',
+      required: false,
+      admin: {
+        description: 'Captured from user at time of review',
+        readOnly: true,
+      },
+    },
+    {
       name: 'rating',
       type: 'number',
       required: true,
@@ -98,6 +107,10 @@ export const Reviews: CollectionConfig = {
       // Always set the user from the request if available
       if (req?.user) {
         (data as any).user = (req.user as any).id
+        const first = (req.user as any)?.firstName || ''
+        const last = (req.user as any)?.lastName || ''
+        const name = `${first} ${last}`.trim() || (req.user as any)?.email
+        if (name && !(data as any).reviewerName) (data as any).reviewerName = name
       }
       return data
     }],
@@ -116,6 +129,13 @@ export const Reviews: CollectionConfig = {
               })
               if (existing?.docs?.length) {
                 throw new Error('You already reviewed this product')
+              }
+              // Ensure reviewerName exists
+              if (!(data as any).reviewerName && req.user) {
+                const first = (req.user as any)?.firstName || ''
+                const last = (req.user as any)?.lastName || ''
+                const name = `${first} ${last}`.trim() || (req.user as any)?.email
+                if (name) (data as any).reviewerName = name
               }
             }
           } catch (e) {
