@@ -9,6 +9,7 @@ import * as migration_20250911_add_reviews_table from './20250911_add_reviews_ta
 import * as migration_20250911_add_categories_lock_rel from './20250911_add_categories_lock_rel';
 import * as migration_20250912_add_reviews_lock_rel from './20250912_add_reviews_lock_rel';
 import * as migration_20250912_add_reviewer_name_to_reviews from './20250912_add_reviewer_name_to_reviews';
+import * as migration_20250912_make_orders_items_item_nullable from './20250912_make_orders_items_item_nullable';
 
 export const migrations = [
   {
@@ -65,5 +66,10 @@ export const migrations = [
     up: migration_20250912_add_reviewer_name_to_reviews.up,
     down: migration_20250912_add_reviewer_name_to_reviews.down,
     name: '20250912_add_reviewer_name_to_reviews',
+  },
+  {
+    up: migration_20250912_make_orders_items_item_nullable.up,
+    down: migration_20250912_make_orders_items_item_nullable.down,
+    name: '20250912_make_orders_items_item_nullable',
   },
 ];
