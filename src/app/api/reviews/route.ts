@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { item, rating, title, comment } = body || {}
-    if (!item || !rating || !comment) {
+    const itemId = typeof item === 'string' ? parseInt(item, 10) : item
+    if (!itemId || !rating || !comment) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
     const numericRating = Number(rating)
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
         and: [
           { user: { equals: (user as any).id } },
           { status: { equals: 'completed' } },
-          { 'items.item': { equals: item } },
+          { 'items.item': { equals: itemId } },
         ],
       },
       limit: 1,
@@ -36,10 +37,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Review allowed after completed purchase' }, { status: 403 })
     }
 
+    // Ensure item exists
+    try {
+      await payload.findByID({ collection: 'items', id: itemId })
+    } catch {
+      return NextResponse.json({ error: 'Invalid item' }, { status: 400 })
+    }
+
     const doc = await payload.create({
       collection: 'reviews',
       data: {
-        item,
+        item: itemId,
         user: (user as any).id,
         rating: numericRating,
         title: title || undefined,
@@ -81,4 +89,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 })
   }
 }
-

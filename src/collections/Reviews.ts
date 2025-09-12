@@ -23,7 +23,8 @@ export const Reviews: CollectionConfig = {
       if (!user) return false
 
       try {
-        const itemId = (req.body as any)?.item
+        const raw = (req.body as any)?.item
+        const itemId = typeof raw === 'string' ? parseInt(raw, 10) : raw
         if (!itemId) return false
 
         // Check if the user has a completed order containing this item
@@ -105,7 +106,8 @@ export const Reviews: CollectionConfig = {
         if (operation === 'create') {
           try {
             const userId = (req.user as any)?.id
-            const itemId = (data as any)?.item
+            const raw = (data as any)?.item
+            const itemId = typeof raw === 'string' ? parseInt(raw, 10) : raw
             if (userId && itemId) {
               const existing = await req.payload.find({
                 collection: 'reviews',

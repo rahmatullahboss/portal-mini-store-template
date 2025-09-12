@@ -14,7 +14,7 @@ import { ReviewStars } from '@/components/review-stars'
 const schema = z.object({
   rating: z.number().min(1).max(5),
   title: z.string().optional(),
-  comment: z.string().min(10, 'কমপক্ষে ১০ অক্ষর লিখুন'),
+  comment: z.string().min(10, 'Please write at least 10 characters'),
 })
 
 type Review = {
@@ -61,10 +61,10 @@ export default function ReviewSection({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Failed to submit review')
-      toast.success('রিভিউ সাবমিট হয়েছে। এপ্রুভালের পর দেখাবে।')
+      toast.success('Review submitted. It will be visible after approval.')
       form.reset({ rating: 5, title: '', comment: '' })
     } catch (e: any) {
-      toast.error(e?.message || 'রিভিউ সাবমিট করতে সমস্যা হয়েছে')
+      toast.error(e?.message || 'Unable to submit review')
     } finally {
       setSubmitting(false)
     }
@@ -94,15 +94,15 @@ export default function ReviewSection({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-500">এখনো কোনো রিভিউ নেই।</p>
+          <p className="text-sm text-gray-500">No reviews yet.</p>
         )}
       </div>
 
       <div className="pt-2">
         {!userId ? (
-          <p className="text-sm text-gray-600">রিভিউ দিতে লগইন করুন।</p>
+          <p className="text-sm text-gray-600">Please log in to leave a review.</p>
         ) : !canReview ? (
-          <p className="text-sm text-gray-600">রিভিউ দিতে হলে পণ্যটি ক্রয় করে অর্ডার সম্পন্ন করতে হবে।</p>
+          <p className="text-sm text-gray-600">You can review after you have a completed order for this product.</p>
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -111,7 +111,7 @@ export default function ReviewSection({
                 name="rating"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>রেটিং</FormLabel>
+                    <FormLabel>Rating</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((n) => (
@@ -136,9 +136,9 @@ export default function ReviewSection({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>শিরোনাম (ঐচ্ছিক)</FormLabel>
+                    <FormLabel>Title (optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="দারুণ পণ্য!" {...field} />
+                      <Input placeholder="Great product!" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -149,16 +149,16 @@ export default function ReviewSection({
                 name="comment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>আপনার অভিজ্ঞতা</FormLabel>
+                    <FormLabel>Your experience</FormLabel>
                     <FormControl>
-                      <Textarea rows={4} placeholder="ব্যবহারের অভিজ্ঞতা লিখুন..." {...field} />
+                      <Textarea rows={4} placeholder="Share your experience..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" disabled={submitting}>
-                {submitting ? 'দেওয়া হচ্ছে...' : 'রিভিউ সাবমিট করুন'}
+                {submitting ? 'Submitting...' : 'Submit Review'}
               </Button>
             </form>
           </Form>
@@ -167,4 +167,3 @@ export default function ReviewSection({
     </div>
   )
 }
-
