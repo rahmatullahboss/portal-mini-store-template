@@ -7,7 +7,7 @@ export function SiteFooter() {
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div>
-            <Link href="/" className="text-2xl font-semibold text-emerald-700">
+            <Link href="/" className="text-2xl font-semibold brand-text">
               Online Bazar
             </Link>
             <p className="text-sm text-gray-600 mt-3 max-w-xs">
