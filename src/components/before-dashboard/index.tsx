@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import './index.scss'
 
 type Metrics = {
@@ -124,12 +125,12 @@ export default function BeforeDashboard() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <a
+            <Link
               href="/admin/collections/abandoned-carts"
               style={{ fontSize: 12, color: '#2563eb', textDecoration: 'underline' }}
             >
-              View Abandoned Carts →
-            </a>
+              View Abandoned Carts ->
+            </Link>
           </div>
 
           <div style={twoCol}>
