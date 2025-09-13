@@ -11,6 +11,7 @@ import * as migration_20250912_add_reviews_lock_rel from './20250912_add_reviews
 import * as migration_20250912_add_reviewer_name_to_reviews from './20250912_add_reviewer_name_to_reviews';
 import * as migration_20250912_make_orders_items_item_nullable from './20250912_make_orders_items_item_nullable';
 import * as migration_20250912_add_device_fields_to_orders from './20250912_add_device_fields_to_orders';
+import * as migration_20250913_add_abandoned_carts from './20250913_add_abandoned_carts';
 
 export const migrations = [
   {
@@ -77,5 +78,10 @@ export const migrations = [
     up: migration_20250912_add_device_fields_to_orders.up,
     down: migration_20250912_add_device_fields_to_orders.down,
     name: '20250912_add_device_fields_to_orders',
+  },
+  {
+    up: migration_20250913_add_abandoned_carts.up,
+    down: migration_20250913_add_abandoned_carts.down,
+    name: '20250913_add_abandoned_carts',
   },
 ];
