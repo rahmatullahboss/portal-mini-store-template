@@ -58,8 +58,10 @@ export default function BeforeDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [range, setRange] = useState<'this-month' | 'all-time'>('this-month')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     let mounted = true
     setLoading(true)
     fetch(`/api/admin/metrics?range=${range}`)
@@ -80,7 +82,7 @@ export default function BeforeDashboard() {
   const sparkData = useMemo(() => metrics?.salesSeries?.map((s) => s.value) || [], [metrics])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" suppressHydrationWarning>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Store Overview</h2>
         <select
@@ -93,7 +95,7 @@ export default function BeforeDashboard() {
         </select>
       </div>
 
-      {loading ? (
+      {!mounted || loading ? (
         <div className="text-sm text-gray-500">Loading metrics…</div>
       ) : err ? (
         <div className="text-sm text-red-600">{err}</div>
@@ -176,4 +178,3 @@ function DeviceDonut({ devices }: { devices: { mobile: number; desktop: number; 
     </div>
   )
 }
-
