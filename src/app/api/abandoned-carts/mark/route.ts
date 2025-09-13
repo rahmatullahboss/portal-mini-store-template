@@ -1,0 +1,47 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
+
+export async function POST(request: NextRequest) {
+  try {
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers: request.headers })
+
+    if (!user || (user as any).role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const url = new URL(request.url)
+    const ttlMinutes = Number(url.searchParams.get('ttlMinutes') || 60)
+    const cutoff = new Date(Date.now() - Math.max(5, ttlMinutes) * 60 * 1000).toISOString()
+
+    const res = await payload.find({
+      collection: 'abandoned-carts',
+      limit: 500,
+      where: {
+        and: [
+          { status: { not_equals: 'recovered' } },
+          { lastActivityAt: { less_than: cutoff } },
+        ],
+      },
+    })
+
+    let updated = 0
+    for (const doc of res.docs || []) {
+      try {
+        await payload.update({
+          collection: 'abandoned-carts',
+          id: (doc as any).id,
+          data: { status: 'abandoned' },
+        })
+        updated++
+      } catch {}
+    }
+
+    return NextResponse.json({ success: true, updated, cutoff })
+  } catch (e) {
+    console.error('Mark abandoned error:', e)
+    return NextResponse.json({ error: 'Failed to mark carts' }, { status: 500 })
+  }
+}
+

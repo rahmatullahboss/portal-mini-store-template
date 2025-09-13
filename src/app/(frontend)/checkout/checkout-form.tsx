@@ -32,6 +32,16 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
   const router = useRouter()
 
+  // Persist guest details for abandoned cart tracking
+  React.useEffect(() => {
+    if (!user) {
+      try {
+        localStorage.setItem('dyad-guest-email', email || '')
+        localStorage.setItem('dyad-guest-number', customerNumber || '')
+      } catch {}
+    }
+  }, [user, email, customerNumber])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 

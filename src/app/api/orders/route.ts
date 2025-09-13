@@ -116,6 +116,35 @@ export async function POST(request: NextRequest) {
       } as any,
     })
 
+    // Mark any associated abandoned cart as recovered
+    try {
+      const sid = request.cookies.get('dyad_cart_sid')?.value
+      if (sid) {
+        const carts = await payload.find({
+          collection: 'abandoned-carts',
+          limit: 1,
+          where: {
+            and: [
+              { sessionId: { equals: String(sid) } },
+              { status: { not_equals: 'recovered' } },
+            ],
+          },
+        })
+        if (carts?.docs?.[0]) {
+          await payload.update({
+            collection: 'abandoned-carts',
+            id: (carts.docs[0] as any).id,
+            data: {
+              status: 'recovered',
+              recoveredOrder: (order as any).id,
+            } as any,
+          })
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to mark cart as recovered:', e)
+    }
+
     return NextResponse.json({ success: true, doc: order })
   } catch (error) {
     console.error('Order creation error:', error)

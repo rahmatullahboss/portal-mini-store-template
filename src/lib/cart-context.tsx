@@ -131,6 +131,37 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('dyad-cart', JSON.stringify({ items: state.items }))
   }, [state.items])
 
+  // Send lightweight cart activity to server (for abandoned cart tracking)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    // Debounce to avoid spamming on rapid changes
+    const handle = setTimeout(() => {
+      try {
+        const total = state.items.reduce((sum, it) => sum + it.price * it.quantity, 0)
+        // Try to include any known guest details
+        let customerEmail: string | undefined
+        let customerNumber: string | undefined
+        try {
+          customerEmail = localStorage.getItem('dyad-guest-email') || undefined
+          customerNumber = localStorage.getItem('dyad-guest-number') || undefined
+        } catch {}
+
+        fetch('/api/cart-activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: state.items.map((i) => ({ id: i.id, quantity: i.quantity })),
+            total,
+            customerEmail,
+            customerNumber,
+          }),
+          keepalive: true,
+        }).catch(() => {})
+      } catch {}
+    }, 800)
+    return () => clearTimeout(handle)
+  }, [state.items])
+
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
     dispatch({ type: 'ADD_ITEM', payload: item })
   }
