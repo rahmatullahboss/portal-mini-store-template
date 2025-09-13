@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import type { SelectFieldComponent } from 'payload'
 
 const statusOptions = [
   { 
@@ -36,7 +35,7 @@ const statusOptions = [
   }
 ]
 
-const OrderStatusSelect: SelectFieldComponent = (props) => {
+const OrderStatusSelect: React.FC<{ field?: any; value?: any; setValue?: any; readOnly?: boolean }> = (props) => {
   const { field, value, setValue, readOnly } = props
   const currentStatus = statusOptions.find(option => option.value === value)
 

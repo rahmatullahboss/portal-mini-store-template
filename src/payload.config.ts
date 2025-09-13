@@ -109,7 +109,7 @@ export default buildConfig({
     },
     // When set to undefined or true, Payload will automatically push DB
     // changes in dev environment.
-    push: process.env.DYAD_DISABLE_DB_PUSH === 'true' ? false : undefined,
+    push: process.env.NODE_ENV === 'production' ? false : (process.env.DYAD_DISABLE_DB_PUSH === 'true' ? false : undefined),
   }),
   sharp,
   email: nodemailerAdapter({

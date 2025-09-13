@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import type { CellComponent } from 'payload'
 
 const statusConfig = {
   pending: {
@@ -36,7 +35,7 @@ const statusConfig = {
   }
 }
 
-const OrderStatusCell: CellComponent = ({ cellData }) => {
+const OrderStatusCell: React.FC<{ cellData: any }> = ({ cellData }) => {
   const status = cellData as keyof typeof statusConfig
   const config = statusConfig[status]
 
