@@ -141,9 +141,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Try to include any known guest details
         let customerEmail: string | undefined
         let customerNumber: string | undefined
+        let customerName: string | undefined
         try {
           customerEmail = localStorage.getItem('dyad-guest-email') || undefined
           customerNumber = localStorage.getItem('dyad-guest-number') || undefined
+          const n = localStorage.getItem('dyad-guest-name') || undefined
+          customerName = n && n.trim().length > 0 ? n : undefined
         } catch {}
 
         fetch('/api/cart-activity', {
@@ -154,6 +157,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             total,
             customerEmail,
             customerNumber,
+            customerName,
           }),
           keepalive: true,
         }).catch(() => {})

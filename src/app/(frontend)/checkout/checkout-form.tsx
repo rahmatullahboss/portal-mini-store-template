@@ -38,9 +38,41 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
       try {
         localStorage.setItem('dyad-guest-email', email || '')
         localStorage.setItem('dyad-guest-number', customerNumber || '')
+        const name = `${firstName} ${lastName}`.trim()
+        localStorage.setItem('dyad-guest-name', name)
       } catch {}
     }
-  }, [user, email, customerNumber])
+  }, [user, email, customerNumber, firstName, lastName])
+
+  // Proactively sync abandoned cart record when guest details change
+  React.useEffect(() => {
+    if (user) return
+    if (!state.items.length) return
+    const controller = new AbortController()
+    const handle = setTimeout(() => {
+      try {
+        const total = getTotalPrice()
+        const name = `${firstName} ${lastName}`.trim()
+        fetch('/api/cart-activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: state.items.map((i) => ({ id: i.id, quantity: i.quantity })),
+            total,
+            customerEmail: email || undefined,
+            customerNumber: customerNumber || undefined,
+            customerName: name || undefined,
+          }),
+          keepalive: true,
+          signal: controller.signal,
+        }).catch(() => {})
+      } catch {}
+    }, 600)
+    return () => {
+      controller.abort()
+      clearTimeout(handle)
+    }
+  }, [user, state.items, email, customerNumber, firstName, lastName, getTotalPrice])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -32,10 +32,23 @@ export default async function AdminDashboardPage() {
     limit: 50,
   })
 
+  // Fetch recent abandoned carts (active + abandoned)
+  const carts = await payload.find({
+    collection: 'abandoned-carts',
+    depth: 2,
+    sort: '-lastActivityAt',
+    limit: 50,
+    where: {
+      status: { not_equals: 'recovered' },
+    },
+  })
+
   // Get order statistics
   const pendingOrders = orders.docs.filter((order: any) => order.status === 'pending')
   const completedOrders = orders.docs.filter((order: any) => order.status === 'completed')
   const cancelledOrders = orders.docs.filter((order: any) => order.status === 'cancelled')
+  const activeCarts = (carts.docs as any[]).filter((c: any) => c.status === 'active')
+  const abandonedCarts = (carts.docs as any[]).filter((c: any) => c.status === 'abandoned')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -214,6 +227,96 @@ export default async function AdminDashboardPage() {
                       <span className="text-lg font-bold">
                         Total: ৳{order.totalAmount.toFixed(2)}
                       </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Separator className="my-8" />
+
+        {/* Abandoned Carts Section */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900">Abandoned Carts</h2>
+            <div className="flex gap-3">
+              <Badge variant="secondary">Active: {activeCarts.length}</Badge>
+              <Badge variant="destructive">Abandoned: {abandonedCarts.length}</Badge>
+            </div>
+          </div>
+
+          {carts.docs.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-gray-500">No active or abandoned carts.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              {carts.docs.map((cart: any) => (
+                <Card key={cart.id} className="overflow-hidden">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">
+                          {cart.customerName || cart.customerEmail || (cart.user ? `${cart.user?.firstName || ''} ${cart.user?.lastName || ''}`.trim() : null) || `Session ${String(cart.sessionId).slice(0, 8)}…`}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          Last activity: {new Date(cart.lastActivityAt).toLocaleString()}
+                        </CardDescription>
+                        {cart.customerEmail ? (
+                          <p className="text-sm text-gray-600 mt-1">Email: {cart.customerEmail}</p>
+                        ) : null}
+                        {cart.customerNumber ? (
+                          <p className="text-sm text-gray-600">Number: {cart.customerNumber}</p>
+                        ) : null}
+                        {cart.user ? (
+                          <p className="text-sm text-gray-600">User: {cart.user?.email}</p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-col items-end gap-3">
+                        <Badge
+                          variant={cart.status === 'active' ? 'secondary' : cart.status === 'abandoned' ? 'destructive' : 'default'}
+                        >
+                          {cart.status.charAt(0).toUpperCase() + cart.status.slice(1)}
+                        </Badge>
+                        {cart.recoveredOrder ? (
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/admin/collections/orders/${cart.recoveredOrder?.id || cart.recoveredOrder}`}>
+                              View Order
+                            </Link>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {(cart.items || []).map((line: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div className="flex items-center gap-3">
+                            {line.item && typeof line.item === 'object' && line.item?.image?.url ? (
+                              <div className="relative w-10 h-10 rounded overflow-hidden">
+                                <Image src={line.item.image.url} alt={line.item.image.alt || line.item.name} fill className="object-cover" />
+                              </div>
+                            ) : null}
+                            <div>
+                              <div className="text-sm font-medium">{line.item?.name || 'Item'}</div>
+                              <div className="text-xs text-gray-600">Qty: {line.quantity}</div>
+                            </div>
+                          </div>
+                          <div className="text-sm font-medium">
+                            {typeof line?.item?.price === 'number' ? `৳${(line.item.price * (line.quantity || 1)).toFixed(2)}` : ''}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Separator className="my-4" />
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">Session: {String(cart.sessionId).slice(0, 16)}</div>
+                      <div className="text-right font-semibold">Total: ৳{Number(cart.cartTotal || 0).toFixed(2)}</div>
                     </div>
                   </CardContent>
                 </Card>
