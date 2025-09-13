@@ -4,6 +4,7 @@ import { CartSidebar } from '@/components/cart-sidebar'
 import { SiteFooter } from '@/components/site-footer'
 import '../globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata = {
   description: 'Online Bazar — a mini store template powered by Payload.',
@@ -21,6 +22,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <SiteFooter />
           <CartSidebar />
           <Toaster richColors position="top-center" />
+          <Analytics />
         </CartProvider>
       </body>
     </html>
