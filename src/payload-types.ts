@@ -73,6 +73,7 @@ export interface Config {
     categories: Category;
     orders: Order;
     reviews: Review;
+    'abandoned-carts': AbandonedCart;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -85,6 +86,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'abandoned-carts': AbandonedCartsSelect<false> | AbandonedCartsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -242,7 +244,10 @@ export interface Order {
     quantity: number;
     id?: string | null;
   }[];
-  status: 'pending' | 'completed' | 'cancelled';
+  /**
+   * Current status of the order - updates customer via email notifications
+   */
+  status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled' | 'refunded';
   totalAmount: number;
   orderDate: string;
   /**
@@ -283,6 +288,36 @@ export interface Review {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "abandoned-carts".
+ */
+export interface AbandonedCart {
+  id: number;
+  /**
+   * Anonymous session identifier for the cart
+   */
+  sessionId: string;
+  user?: (number | null) | User;
+  customerName?: string | null;
+  customerEmail?: string | null;
+  customerNumber?: string | null;
+  items?:
+    | {
+        item: number | Item;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  cartTotal?: number | null;
+  status: 'active' | 'abandoned' | 'recovered';
+  lastActivityAt: string;
+  recoveredOrder?: (number | null) | Order;
+  recoveryEmailSentAt?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -311,6 +346,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'abandoned-carts';
+        value: number | AbandonedCart;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -480,6 +519,32 @@ export interface ReviewsSelect<T extends boolean = true> {
   title?: T;
   comment?: T;
   approved?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "abandoned-carts_select".
+ */
+export interface AbandonedCartsSelect<T extends boolean = true> {
+  sessionId?: T;
+  user?: T;
+  customerName?: T;
+  customerEmail?: T;
+  customerNumber?: T;
+  items?:
+    | T
+    | {
+        item?: T;
+        quantity?: T;
+        id?: T;
+      };
+  cartTotal?: T;
+  status?: T;
+  lastActivityAt?: T;
+  recoveredOrder?: T;
+  recoveryEmailSentAt?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

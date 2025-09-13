@@ -2,8 +2,14 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface OrderStatusUpdateProps {
   orderId: string
@@ -49,39 +55,26 @@ export default function OrderStatusUpdate({ orderId, currentStatus }: OrderStatu
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex gap-2 flex-wrap">
-        <Button
-          onClick={() => handleStatusUpdate('pending')}
-          disabled={isUpdating || status === 'pending'}
-          variant={status === 'pending' ? 'default' : 'outline'}
-          size="sm"
-        >
-          Pending
-        </Button>
-        <Button
-          onClick={() => handleStatusUpdate('completed')}
-          disabled={isUpdating || status === 'completed'}
-          variant={status === 'completed' ? 'default' : 'outline'}
-          size="sm"
-        >
-          Completed
-        </Button>
-        <Button
-          onClick={() => handleStatusUpdate('cancelled')}
-          disabled={isUpdating || status === 'cancelled'}
-          variant={status === 'cancelled' ? 'destructive' : 'outline'}
-          size="sm"
-        >
-          Cancelled
-        </Button>
-      </div>
+    <div className="space-y-2">
+      <Select
+        value={status}
+        onValueChange={(val) => handleStatusUpdate(val)}
+      >
+        <SelectTrigger size="sm" aria-label="Update order status">
+          <SelectValue placeholder="Set status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="pending">Pending</SelectItem>
+          <SelectItem value="completed">Completed</SelectItem>
+          <SelectItem value="cancelled">Cancelled</SelectItem>
+        </SelectContent>
+      </Select>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      {isUpdating && <div className="text-sm text-gray-500">Updating...</div>}
+      {isUpdating && <div className="text-xs text-gray-500">Updating…</div>}
     </div>
   )
 }

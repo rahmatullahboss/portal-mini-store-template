@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { admins, adminsOnly, adminsOrOwner, authenticated } from './access'
+import orderStatusUpdate from './hooks/orderStatusUpdate'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -7,7 +8,6 @@ export const Orders: CollectionConfig = {
     useAsTitle: 'id',
     defaultColumns: [
       'id',
-      'user',
       'customerName',
       'customerEmail',
       'status',
@@ -97,12 +97,22 @@ export const Orders: CollectionConfig = {
       name: 'status',
       type: 'select',
       options: [
-        { label: 'Pending', value: 'pending' },
-        { label: 'Completed', value: 'completed' },
-        { label: 'Cancelled', value: 'cancelled' },
+        { label: '⏳ Pending', value: 'pending' },
+        { label: '🔄 Processing', value: 'processing' },
+        { label: '📦 Shipped', value: 'shipped' },
+        { label: '✅ Completed', value: 'completed' },
+        { label: '❌ Cancelled', value: 'cancelled' },
+        { label: '🔄 Refunded', value: 'refunded' },
       ],
       defaultValue: 'pending',
       required: true,
+      admin: {
+        description: 'Current status of the order - updates customer via email notifications',
+        components: {
+          Field: '@/components/admin/OrderStatusSelect',
+          Cell: '@/components/admin/OrderStatusCell'
+        }
+      }
     },
     {
       name: 'totalAmount',
@@ -159,6 +169,7 @@ export const Orders: CollectionConfig = {
   ],
   hooks: {
     afterChange: [
+      orderStatusUpdate,
       async ({ doc, operation, req }) => {
         if (operation !== 'create') return doc
 
