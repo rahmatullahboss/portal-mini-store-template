@@ -60,6 +60,8 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({ cellData, row
     if (newStatus === currentStatus || isUpdating) return
 
     setIsUpdating(true)
+    setIsOpen(false) // Close dropdown immediately
+    
     try {
       const response = await fetch('/api/orders/update-status', {
         method: 'PATCH',
@@ -72,31 +74,44 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({ cellData, row
         })
       })
 
+      const responseData = await response.json()
+
       if (response.ok) {
         setCurrentStatus(newStatus as keyof typeof statusConfig)
+        
         // Show success message
         const event = new CustomEvent('order-status-updated', {
-          detail: { orderId: rowData.id, newStatus, success: true }
+          detail: { 
+            orderId: rowData.id, 
+            newStatus, 
+            success: true,
+            message: `Order status updated successfully to ${newStatus}`
+          }
         })
         window.dispatchEvent(event)
         
         // Refresh the page data after a short delay
         setTimeout(() => {
           window.location.reload()
-        }, 1000)
+        }, 1500)
       } else {
-        throw new Error('Failed to update status')
+        throw new Error(responseData.message || 'Failed to update status')
       }
     } catch (error) {
       console.error('Error updating order status:', error)
-      // Show error message
+      
+      // Revert status on error
       const event = new CustomEvent('order-status-updated', {
-        detail: { orderId: rowData.id, newStatus, success: false, error }
+        detail: { 
+          orderId: rowData.id, 
+          newStatus, 
+          success: false, 
+          error: error instanceof Error ? error.message : 'Unknown error occurred'
+        }
       })
       window.dispatchEvent(event)
     } finally {
       setIsUpdating(false)
-      setIsOpen(false)
     }
   }
 
@@ -171,15 +186,16 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({ cellData, row
             position: 'absolute',
             top: '100%',
             left: '0',
-            right: '0',
-            marginTop: '4px',
+            marginTop: '8px',
             backgroundColor: 'white',
             border: '1px solid #e5e7eb',
             borderRadius: '12px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-            zIndex: 1000,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+            zIndex: 10000,
             overflow: 'hidden',
-            minWidth: '180px'
+            minWidth: '200px',
+            maxWidth: '250px',
+            whiteSpace: 'nowrap'
           }}
         >
           {Object.entries(statusConfig).map(([status, config]) => (

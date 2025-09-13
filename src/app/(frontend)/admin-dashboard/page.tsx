@@ -43,10 +43,13 @@ export default async function AdminDashboardPage() {
     },
   })
 
-  // Get order statistics
+  // Get order statistics for all 6 statuses
   const pendingOrders = orders.docs.filter((order: any) => order.status === 'pending')
+  const processingOrders = orders.docs.filter((order: any) => order.status === 'processing')
+  const shippedOrders = orders.docs.filter((order: any) => order.status === 'shipped')
   const completedOrders = orders.docs.filter((order: any) => order.status === 'completed')
   const cancelledOrders = orders.docs.filter((order: any) => order.status === 'cancelled')
+  const refundedOrders = orders.docs.filter((order: any) => order.status === 'refunded')
   const activeCarts = (carts.docs as any[]).filter((c: any) => c.status === 'active')
   const abandonedCarts = (carts.docs as any[]).filter((c: any) => c.status === 'abandoned')
 
@@ -62,40 +65,83 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Orders</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">⏳ Pending</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{pendingOrders.length}</div>
+              <div className="text-xl font-bold text-yellow-600">{pendingOrders.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Completed Orders</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">🔄 Processing</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{completedOrders.length}</div>
+              <div className="text-xl font-bold text-blue-600">{processingOrders.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Cancelled Orders</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">📦 Shipped</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{cancelledOrders.length}</div>
+              <div className="text-xl font-bold text-purple-600">{shippedOrders.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Orders</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">✅ Completed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{orders.docs.length}</div>
+              <div className="text-xl font-bold text-green-600">{completedOrders.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">❌ Cancelled</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold text-red-600">{cancelledOrders.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">💰 Refunded</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold text-gray-600">{refundedOrders.length}</div>
             </CardContent>
           </Card>
         </div>
+        
+        {/* Summary Card */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Order Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-blue-600">{orders.docs.length}</div>
+                <div className="text-sm text-gray-600">Total Orders</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-600">{pendingOrders.length + processingOrders.length}</div>
+                <div className="text-sm text-gray-600">Active Orders</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">{completedOrders.length + shippedOrders.length}</div>
+                <div className="text-sm text-gray-600">Fulfilled</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-600">{cancelledOrders.length + refundedOrders.length}</div>
+                <div className="text-sm text-gray-600">Issues</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Separator className="my-8" />
 
@@ -150,11 +196,38 @@ export default async function AdminDashboardPage() {
                           variant={
                             order.status === 'pending'
                               ? 'secondary'
-                              : order.status === 'completed'
+                              : order.status === 'processing'
                                 ? 'default'
-                                : 'destructive'
+                                : order.status === 'shipped'
+                                  ? 'outline'
+                                  : order.status === 'completed'
+                                    ? 'default'
+                                    : order.status === 'cancelled' || order.status === 'refunded'
+                                      ? 'destructive'
+                                      : 'secondary'
+                          }
+                          className={
+                            order.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : order.status === 'processing'
+                                ? 'bg-blue-100 text-blue-800'
+                                : order.status === 'shipped'
+                                  ? 'bg-purple-100 text-purple-800'
+                                  : order.status === 'completed'
+                                    ? 'bg-green-100 text-green-800'
+                                    : order.status === 'cancelled'
+                                      ? 'bg-red-100 text-red-800'
+                                      : order.status === 'refunded'
+                                        ? 'bg-gray-100 text-gray-800'
+                                        : ''
                           }
                         >
+                          {order.status === 'pending' && '⏳ '}
+                          {order.status === 'processing' && '🔄 '}
+                          {order.status === 'shipped' && '📦 '}
+                          {order.status === 'completed' && '✅ '}
+                          {order.status === 'cancelled' && '❌ '}
+                          {order.status === 'refunded' && '💰 '}
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </Badge>
                         <OrderStatusUpdate orderId={order.id} currentStatus={order.status} />

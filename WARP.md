@@ -91,12 +91,19 @@ src/
 - `src/components/ui/` - shadcn/ui components, regenerate via CLI instead
 
 ### Collections Architecture
-- **Users**: Authentication, roles (admin/user), customer information
-- **Items**: Product catalog with media relations, categories, pricing
-- **Orders**: Order management with user relationships, status tracking
-- **Categories**: Product categorization system
-- **Reviews**: Product review and rating system
-- **Media**: File uploads with Sharp optimization
+- **Users**: Authentication, roles (admin/user), customer information, address management
+- **Items**: Product catalog with media relations, categories, pricing, availability
+- **Orders**: Enhanced order management with 6-status tracking (pending→processing→shipped→completed/cancelled/refunded)
+- **Categories**: Hierarchical product categorization system
+- **Reviews**: Product review and rating system with moderation
+- **Media**: File uploads with Sharp optimization, Vercel Blob/S3 integration
+
+### Enhanced Order Status System
+- **Interactive Dropdown**: Admin can change status directly from list view
+- **Real-time Updates**: Status changes immediately update database and UI
+- **Email Notifications**: Automatic customer notifications in Bangla, admin alerts in English
+- **Visual Feedback**: Color-coded status badges with emojis and loading states
+- **Status Workflow**: pending → processing → shipped → completed/cancelled/refunded
 
 ### Security Model
 - **Role-based access**: Least privilege principle with explicit permissions
@@ -111,6 +118,13 @@ src/
 - Always use proper TypeScript types from `payload-types.ts`
 - Handle relationships with Payload's depth parameter
 - Use access control patterns instead of custom middleware
+
+### Admin Component Development
+- **OrderStatusDropdown.tsx**: Interactive dropdown for real-time status updates
+- **OrderStatusNotifications.tsx**: Toast notification system with custom events
+- **GlobalNotificationProvider.tsx**: Admin-wide notification injection
+- Custom components use React.FC with proper TypeScript interfaces
+- Status updates trigger email notifications via hooks/orderStatusUpdate.ts
 
 ### UI Development
 - Always use shadcn/ui components from `@/components/ui/`

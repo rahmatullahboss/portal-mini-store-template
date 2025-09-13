@@ -15,11 +15,12 @@ This template comes configured with the bare minimum to get started on anything 
 - **Order Tracking**: See order status (Pending, Completed, Cancelled)
 
 ### 🔧 Admin Features
-- **Admin Dashboard**: Comprehensive order management interface
-- **Order Management**: Review all orders from all customers
-- **Status Updates**: Update order status (Pending → Completed/Cancelled)
-- **Order Statistics**: View summary statistics of all orders
-- **Snack Management**: Add, edit, and manage snack inventory through Payload CMS admin panel
+- **Enhanced Admin Dashboard**: Comprehensive order management with analytics
+- **Interactive Order Management**: Real-time status updates with dropdown interface
+- **Advanced Status System**: 6-status workflow (⏳ Pending → 🔄 Processing → 📦 Shipped → ✅ Completed/❌ Cancelled/🔄 Refunded)
+- **Smart Notifications**: Toast alerts for admin actions with email confirmation
+- **Order Analytics**: Detailed statistics, sales trends, and performance metrics
+- **Inventory Management**: Complete product catalog management through Payload CMS
 
 ## Tech Stack
 
