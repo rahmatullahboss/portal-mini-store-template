@@ -266,15 +266,12 @@ export default async function AdminDashboardPage() {
                         <CardDescription className="mt-1">
                           Last activity: {new Date(cart.lastActivityAt).toLocaleString()}
                         </CardDescription>
-                        {cart.customerEmail ? (
-                          <p className="text-sm text-gray-600 mt-1">Email: {cart.customerEmail}</p>
-                        ) : null}
-                        {cart.customerNumber ? (
-                          <p className="text-sm text-gray-600">Number: {cart.customerNumber}</p>
-                        ) : null}
-                        {cart.user ? (
-                          <p className="text-sm text-gray-600">User: {cart.user?.email}</p>
-                        ) : null}
+                        <p className="text-sm text-gray-600 mt-1">
+                          Email: {cart.customerEmail || cart.user?.email || '—'}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Number: {cart.customerNumber || cart.user?.customerNumber || '—'}
+                        </p>
                       </div>
                       <div className="flex flex-col items-end gap-3">
                         <Badge

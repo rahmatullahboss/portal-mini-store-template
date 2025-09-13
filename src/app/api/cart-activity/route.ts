@@ -60,12 +60,20 @@ export async function POST(request: NextRequest) {
       })
       .filter((row): row is { item: number; quantity: number } => !!row)
 
+    // Pull profile fallbacks for logged-in users
+    const userEmail = user ? String((user as any)?.email || '') : undefined
+    const userName = user
+      ? `${String((user as any)?.firstName || '')} ${String((user as any)?.lastName || '')}`.trim()
+      : undefined
+    const userNumber = user ? String((user as any)?.customerNumber || '') : undefined
+
     const data: any = {
       sessionId: String(sid),
       ...(user ? { user: (user as any).id } : {}),
-      ...(typeof customerEmail === 'string' ? { customerEmail } : {}),
-      ...(typeof customerName === 'string' ? { customerName } : {}),
-      ...(typeof customerNumber === 'string' ? { customerNumber } : {}),
+      // Prefer explicit payload; otherwise fall back to user profile
+      ...((customerEmail || userEmail) ? { customerEmail: customerEmail || userEmail } : {}),
+      ...((customerName || userName) ? { customerName: customerName || userName } : {}),
+      ...((customerNumber || userNumber) ? { customerNumber: customerNumber || userNumber } : {}),
       ...(sanitizedItems.length ? { items: sanitizedItems } : {}),
       ...(typeof total === 'number' ? { cartTotal: total } : {}),
       status: 'active',
