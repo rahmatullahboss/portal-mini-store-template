@@ -21,13 +21,19 @@ export const seed = async ({
     const categories = new Map<string, any>()
     for (const name of categoryNames) {
       try {
-        const existing = await payload.find({ collection: 'categories', where: { name: { equals: name } }, limit: 1 })
+        const existing = await payload.find({
+          collection: 'categories',
+          where: { name: { equals: name } },
+          limit: 1,
+        })
         const doc = existing.docs[0]
           ? existing.docs[0]
           : await payload.create({ collection: 'categories', data: { name }, req })
         categories.set(name, doc)
       } catch (e) {
-        payload.logger.warn(`Failed to upsert category ${name}: ${String((e as any)?.message || e)}`)
+        payload.logger.warn(
+          `Failed to upsert category ${name}: ${String((e as any)?.message || e)}`,
+        )
       }
     }
 
@@ -51,12 +57,12 @@ export const seed = async ({
     const createdItems = await Promise.all(itemPromises)
 
     // Create sample admin user if doesn't exist
-    const adminExists = await payload.find({ 
-      collection: 'users', 
-      where: { role: { equals: 'admin' } }, 
-      limit: 1 
+    const adminExists = await payload.find({
+      collection: 'users',
+      where: { role: { equals: 'admin' } },
+      limit: 1,
     })
-    
+
     let adminUser
     if (!adminExists.docs.length) {
       adminUser = await payload.create({
@@ -66,21 +72,21 @@ export const seed = async ({
           password: 'admin123',
           role: 'admin',
           firstName: 'Admin',
-          lastName: 'User'
+          lastName: 'User',
         },
-        req
+        req,
       })
     } else {
       adminUser = adminExists.docs[0]
     }
 
     // Create sample customer user
-    const customerExists = await payload.find({ 
-      collection: 'users', 
-      where: { email: { equals: 'customer@example.com' } }, 
-      limit: 1 
+    const customerExists = await payload.find({
+      collection: 'users',
+      where: { email: { equals: 'customer@example.com' } },
+      limit: 1,
     })
-    
+
     let customerUser
     if (!customerExists.docs.length) {
       customerUser = await payload.create({
@@ -91,16 +97,23 @@ export const seed = async ({
           role: 'user',
           firstName: 'রহমত',
           lastName: 'উল্লাহ',
-          customerNumber: '01739-416661'
+          customerNumber: '01739-416661',
         },
-        req
+        req,
       })
     } else {
       customerUser = customerExists.docs[0]
     }
 
     // Create sample orders with different statuses
-    const sampleOrderStatuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded']
+    const sampleOrderStatuses = [
+      'pending',
+      'processing',
+      'shipped',
+      'completed',
+      'cancelled',
+      'refunded',
+    ] as const
     const orderPromises = sampleOrderStatuses.map(async (status, index) => {
       if (createdItems.length > index) {
         return await payload.create({
@@ -110,31 +123,35 @@ export const seed = async ({
             customerName: 'রহমত উল্লাহ',
             customerEmail: 'customer@example.com',
             customerNumber: '01739-416661',
-            items: [{
-              item: (createdItems[index] as any).id,
-              quantity: Math.floor(Math.random() * 3) + 1
-            }],
+            items: [
+              {
+                item: (createdItems[index] as any).id,
+                quantity: Math.floor(Math.random() * 3) + 1,
+              },
+            ],
             status: status,
             totalAmount: createdItems[index].price * (Math.floor(Math.random() * 3) + 1),
-            orderDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
+            orderDate: new Date(
+              Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
+            ).toISOString(), // Random date within last 30 days
             shippingAddress: {
               line1: 'পাটুয়াখালী সদর',
               line2: 'সৈয়দনগর',
               city: 'পাটুয়াখালী',
               state: 'বরিশাল',
               postalCode: '8600',
-              country: 'বাংলাদেশ'
+              country: 'বাংলাদেশ',
             },
             deviceType: ['mobile', 'desktop', 'tablet'][Math.floor(Math.random() * 3)] as any,
-            userAgent: 'Sample User Agent'
+            userAgent: 'Sample User Agent',
           },
-          req
+          req,
         })
       }
     })
 
     const createdOrders = await Promise.allSettled(orderPromises)
-    const successfulOrders = createdOrders.filter(result => result.status === 'fulfilled').length
+    const successfulOrders = createdOrders.filter((result) => result.status === 'fulfilled').length
 
     payload.logger.info(
       `Successfully created ${createdItems.length} items and ${successfulOrders} sample orders with all status types`,
