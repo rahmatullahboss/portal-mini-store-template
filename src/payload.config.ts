@@ -87,6 +87,9 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      beforeDashboard: ['@/components/before-dashboard'],
+    },
   },
   serverURL: getServerSideURL(),
   // Allow current deployment URL and localhost for dev
