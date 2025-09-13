@@ -110,7 +110,7 @@ export const Orders: CollectionConfig = {
         description: 'Current status of the order - updates customer via email notifications',
         components: {
           Field: '@/components/admin/OrderStatusSelect',
-          Cell: '@/components/admin/OrderStatusCell'
+          Cell: '@/components/admin/OrderStatusDropdown'
         }
       }
     },

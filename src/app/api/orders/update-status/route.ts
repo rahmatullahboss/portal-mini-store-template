@@ -22,8 +22,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'Order ID and status are required' }, { status: 400 })
     }
 
-    if (!['pending', 'completed', 'cancelled'].includes(status)) {
-      return NextResponse.json({ message: 'Invalid status' }, { status: 400 })
+    const validStatuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded']
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json({ 
+        message: `Invalid status. Valid statuses are: ${validStatuses.join(', ')}` 
+      }, { status: 400 })
     }
 
     // Update the order

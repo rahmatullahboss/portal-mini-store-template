@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import GlobalNotificationProvider from '../admin/GlobalNotificationProvider'
 import './index.scss'
 
 type Metrics = {
@@ -100,14 +101,16 @@ export default function BeforeDashboard() {
   const twoCol: React.CSSProperties = { display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, alignItems: 'start' }
 
   return (
-    <div style={container} suppressHydrationWarning>
-      <div style={headerRow}>
-        <h2 style={{ margin: 0 }}>Store Overview</h2>
-        <select value={range} onChange={(e) => setRange(e.target.value as any)} style={{ padding: '6px 8px', borderRadius: 6 }}>
-          <option value="this-month">This Month</option>
-          <option value="all-time">All Time</option>
-        </select>
-      </div>
+    <>
+      <GlobalNotificationProvider />
+      <div style={container} suppressHydrationWarning>
+        <div style={headerRow}>
+          <h2 style={{ margin: 0 }}>Store Overview</h2>
+          <select value={range} onChange={(e) => setRange(e.target.value as any)} style={{ padding: '6px 8px', borderRadius: 6 }}>
+            <option value="this-month">This Month</option>
+            <option value="all-time">All Time</option>
+          </select>
+        </div>
 
       {!mounted || loading ? (
         <div style={smallText}>Loading metrics…</div>
@@ -144,7 +147,8 @@ export default function BeforeDashboard() {
           </div>
         </>
       ) : null}
-    </div>
+      </div>
+    </>
   )
 }
 
