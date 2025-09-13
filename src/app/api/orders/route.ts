@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       } as any,
     })
 
-    // Mark any associated abandoned cart as recovered
+    // Mark any associated abandoned cart as recovered, then delete it
     try {
       const sid = request.cookies.get('dyad_cart_sid')?.value
       if (sid) {
@@ -176,14 +176,19 @@ export async function POST(request: NextRequest) {
           },
         })
         if (carts?.docs?.[0]) {
+          const cartId = (carts.docs[0] as any).id
           await payload.update({
             collection: 'abandoned-carts',
-            id: (carts.docs[0] as any).id,
+            id: cartId,
             data: {
               status: 'recovered',
               recoveredOrder: (order as any).id,
             } as any,
           })
+          // After marking recovered, remove the record to keep abandoned list clean
+          try {
+            await payload.delete({ collection: 'abandoned-carts', id: cartId, overrideAccess: true } as any)
+          } catch {}
         }
       }
     } catch (e) {
