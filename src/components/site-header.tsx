@@ -123,6 +123,8 @@ export function SiteHeader({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+                {/* Cart available for guests too */}
+                <CartButton />
               </>
             )}
           </div>

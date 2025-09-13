@@ -185,6 +185,7 @@ export default async function HomePage() {
                           <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                         </div>
                         <div className="flex items-center gap-2">
+                          <AddToCartButton item={item} />
                           <OrderNowButton item={item} isLoggedIn={!!user} className="px-4 py-2 text-sm" />
                         </div>
                       </CardFooter>
