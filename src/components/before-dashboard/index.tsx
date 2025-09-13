@@ -123,6 +123,15 @@ export default function BeforeDashboard() {
             <Card title="Abandoned Carts" value={String(metrics.carts?.abandoned ?? 0)} color="#dc2626" />
           </div>
 
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <a
+              href="/admin/collections/abandoned-carts"
+              style={{ fontSize: 12, color: '#2563eb', textDecoration: 'underline' }}
+            >
+              View Abandoned Carts →
+            </a>
+          </div>
+
           <div style={twoCol}>
             <div style={cardStyle}>
               <div style={{ ...smallText, marginBottom: 8 }}>Total sales</div>

@@ -75,21 +75,38 @@ export async function GET(req: NextRequest) {
     })
 
     // Abandoned carts: from AbandonedCarts collection marked as 'abandoned'
-    const abandonedWhere: any = {
-      and: [
-        { status: { equals: 'abandoned' } },
-      ],
+    // Abandoned cart count (prefer AbandonedCarts collection; fallback to pending Orders if table not migrated yet)
+    let abandonedCount = 0
+    try {
+      const abandonedWhere: any = {
+        and: [{ status: { equals: 'abandoned' } }],
+      }
+      if (range !== 'all-time') {
+        ;(abandonedWhere.and as any[]).push({ lastActivityAt: { greater_than_equal: from.toISOString() } })
+        ;(abandonedWhere.and as any[]).push({ lastActivityAt: { less_than_equal: to.toISOString() } })
+      }
+      const res = await payload.find({ collection: 'abandoned-carts', where: abandonedWhere, depth: 0, limit: 1 })
+      abandonedCount = res.totalDocs ?? res.docs.length
+    } catch (e: any) {
+      const msg = String(e?.message || '')
+      // If the table/columns don't exist yet (42P01/42703), fallback to pending order heuristic
+      if (msg.includes('relation "abandoned_carts" does not exist') || msg.includes('42703') || msg.includes('42P01')) {
+        const fallback = await payload.find({
+          collection: 'orders',
+          where: {
+            and: [
+              { status: { equals: 'pending' } },
+              { orderDate: { less_than_equal: new Date(Date.now() - abandonedHours * 60 * 60 * 1000).toISOString() } },
+            ],
+          },
+          depth: 0,
+          limit: 1,
+        })
+        abandonedCount = fallback.totalDocs ?? fallback.docs.length
+      } else {
+        throw e
+      }
     }
-    if (range !== 'all-time') {
-      ;(abandonedWhere.and as any[]).push({ lastActivityAt: { greater_than_equal: from.toISOString() } })
-      ;(abandonedWhere.and as any[]).push({ lastActivityAt: { less_than_equal: to.toISOString() } })
-    }
-    const abandoned = await payload.find({
-      collection: 'abandoned-carts',
-      where: abandonedWhere,
-      depth: 0,
-      limit: 10000,
-    })
 
     // Device distribution from orders in range (fallback by UA)
     const deviceCounts: Record<string, number> = { mobile: 0, desktop: 0, tablet: 0, other: 0 }
@@ -151,7 +168,7 @@ export async function GET(req: NextRequest) {
       },
       users: { newUsers: users.totalDocs ?? users.docs.length },
       devices: deviceCounts,
-      carts: { abandoned: abandoned.totalDocs ?? abandoned.docs.length },
+      carts: { abandoned: abandonedCount },
     })
   } catch (e) {
     console.error('metrics error', e)
