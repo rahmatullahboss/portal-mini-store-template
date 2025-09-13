@@ -10,14 +10,40 @@ export async function POST(request: NextRequest) {
     // Get user from the request (optional for guest checkout)
     const { user } = await payload.auth({ headers: request.headers })
 
-    const body = await request.json()
+    // Parse body defensively to avoid crashing on non-JSON payloads
+    const contentType = (request.headers.get('content-type') || '').toLowerCase()
+    let body: any = {}
+    try {
+      if (contentType.includes('application/json')) {
+        body = await request.json()
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const fd = await request.formData()
+        body = Object.fromEntries(Array.from(fd.entries()))
+      } else if (contentType.includes('multipart/form-data')) {
+        const fd = await request.formData()
+        body = Object.fromEntries(Array.from(fd.entries()))
+      } else {
+        // Try to parse as JSON text, otherwise fallback to empty
+        const txt = await request.text()
+        try {
+          body = JSON.parse(txt)
+        } catch {
+          // If looks like query string (e.g., depth=0&draft=false), ignore gracefully
+          body = {}
+        }
+      }
+    } catch {
+      body = {}
+    }
+
     const { items, totalAmount, customerNumber, customerName, customerEmail } = body
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
     }
 
-    if (!totalAmount || totalAmount <= 0) {
+    const totalNum = typeof totalAmount === 'string' ? Number(totalAmount) : Number(totalAmount || 0)
+    if (!totalNum || totalNum <= 0) {
       return NextResponse.json({ error: 'Invalid total amount' }, { status: 400 })
     }
 
@@ -72,7 +98,7 @@ export async function POST(request: NextRequest) {
     for (const line of items) {
       const itemDoc = await payload.findByID({
         collection: 'items',
-        id: line.item,
+        id: (line as any).item,
       })
 
       if (!itemDoc || !itemDoc.available) {
@@ -100,7 +126,7 @@ export async function POST(request: NextRequest) {
         customerEmail: String(computedCustomerEmail).trim(),
         customerNumber: String(computedCustomerNumber).trim(),
         items,
-        totalAmount,
+        totalAmount: totalNum,
         status: 'pending',
         orderDate: new Date().toISOString(),
         userAgent: ua || undefined,
