@@ -94,8 +94,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Customer name and email are required' }, { status: 400 })
     }
 
+    // Normalize item IDs to numeric (Payload default id type)
+    const normalizedItems = (items as any[])
+      .map((line) => {
+        let idNum: number | undefined
+        const raw = (line as any)?.item
+        if (typeof raw === 'number' && Number.isFinite(raw)) idNum = raw
+        else {
+          const s = String(raw)
+          if (/^\d+$/.test(s)) idNum = Number(s)
+        }
+        const qty = Number((line as any)?.quantity ?? 1)
+        return idNum ? { item: idNum, quantity: qty > 0 ? qty : 1 } : null
+      })
+      .filter((r): r is { item: number; quantity: number } => !!r)
+
+    if (!normalizedItems.length) {
+      return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
+    }
+
     // Validate items exist and are available
-    for (const line of items) {
+    for (const line of normalizedItems) {
       const itemDoc = await payload.findByID({
         collection: 'items',
         id: (line as any).item,
@@ -125,7 +144,7 @@ export async function POST(request: NextRequest) {
         customerName: computedCustomerName,
         customerEmail: String(computedCustomerEmail).trim(),
         customerNumber: String(computedCustomerNumber).trim(),
-        items,
+        items: normalizedItems,
         totalAmount: totalNum,
         status: 'pending',
         orderDate: new Date().toISOString(),

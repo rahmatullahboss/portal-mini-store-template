@@ -45,15 +45,28 @@ export async function POST(request: NextRequest) {
     })
 
     const now = new Date().toISOString()
+    // Sanitize cart items: ensure numeric relationship IDs for Payload (default ID type: number)
+    const sanitizedItems = items
+      .filter((it) => (typeof it?.id === 'string' || typeof it?.id === 'number') && Number(it.quantity) > 0)
+      .map((it) => {
+        let idNum: number | undefined
+        if (typeof it.id === 'number' && Number.isFinite(it.id)) {
+          idNum = it.id
+        } else {
+          const s = String(it.id).trim()
+          if (/^\d+$/.test(s)) idNum = Number(s)
+        }
+        return idNum ? { item: idNum, quantity: Number(it.quantity) } : null
+      })
+      .filter((row): row is { item: number; quantity: number } => !!row)
+
     const data: any = {
       sessionId: String(sid),
       ...(user ? { user: (user as any).id } : {}),
       ...(typeof customerEmail === 'string' ? { customerEmail } : {}),
       ...(typeof customerName === 'string' ? { customerName } : {}),
       ...(typeof customerNumber === 'string' ? { customerNumber } : {}),
-      items: items
-        .filter((it) => (typeof it?.id === 'string' || typeof it?.id === 'number') && Number(it.quantity) > 0)
-        .map((it) => ({ item: String(it.id), quantity: Number(it.quantity) })),
+      ...(sanitizedItems.length ? { items: sanitizedItems } : {}),
       ...(typeof total === 'number' ? { cartTotal: total } : {}),
       status: 'active',
       lastActivityAt: now,
