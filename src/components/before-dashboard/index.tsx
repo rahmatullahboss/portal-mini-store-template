@@ -125,11 +125,8 @@ export default function BeforeDashboard() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Link
-              href="/admin/collections/abandoned-carts"
-              style={{ fontSize: 12, color: '#2563eb', textDecoration: 'underline' }}
-            >
-              View Abandoned Carts ->
+            <Link href="/admin/collections/abandoned-carts" className="text-blue-600 underline text-xs">
+              View Abandoned Carts
             </Link>
           </div>
 
