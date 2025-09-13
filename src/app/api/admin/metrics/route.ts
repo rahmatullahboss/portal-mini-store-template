@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url)
     const range = url.searchParams.get('range') || 'this-month'
+    const abandonedHours = Number(url.searchParams.get('abandonedHours') || '24')
 
     const now = new Date()
     const from = range === 'all-time' ? new Date(2000, 0, 1) : startOfMonth(now)
@@ -55,6 +56,49 @@ export async function GET(req: NextRequest) {
       activeOrders: pending.length,
       fulfilledOrders: completed.length,
       cancelledOrders: cancelled.length,
+    }
+
+    const avgOrderValue = completed.length ? totals.grossSales / completed.length : 0
+    const conversionRate = totals.totalOrders ? (completed.length / totals.totalOrders) * 100 : 0
+
+    // New users in range
+    const users = await payload.find({
+      collection: 'users',
+      where: {
+        and: [
+          { createdAt: { greater_than_equal: from.toISOString() } },
+          { createdAt: { less_than_equal: to.toISOString() } },
+        ],
+      },
+      depth: 0,
+      limit: 10000,
+    })
+
+    // Abandoned carts: pending orders older than 24h
+    const abandoned = await payload.find({
+      collection: 'orders',
+      where: {
+        and: [
+          { status: { equals: 'pending' } },
+          { orderDate: { less_than_equal: new Date(Date.now() - abandonedHours * 60 * 60 * 1000).toISOString() } },
+        ],
+      },
+      depth: 0,
+      limit: 10000,
+    })
+
+    // Device distribution from orders in range (fallback by UA)
+    const deviceCounts: Record<string, number> = { mobile: 0, desktop: 0, tablet: 0, other: 0 }
+    const classify = (ua: string) => {
+      const u = (ua || '').toLowerCase()
+      if (u.includes('mobile') || u.includes('iphone') || u.includes('android')) return 'mobile'
+      if (u.includes('ipad') || u.includes('tablet')) return 'tablet'
+      if (u.includes('windows') || u.includes('macintosh') || u.includes('linux')) return 'desktop'
+      return 'other'
+    }
+    for (const o of [...completed, ...pending, ...cancelled]) {
+      const key = (o as any).deviceType || classify((o as any).userAgent || '')
+      deviceCounts[key] = (deviceCounts[key] || 0) + 1
     }
 
     // Build last 12 months series for completed orders
@@ -93,7 +137,7 @@ export async function GET(req: NextRequest) {
       range,
       from: from.toISOString(),
       to: to.toISOString(),
-      totals,
+      totals: { ...totals, avgOrderValue, conversionRate },
       salesSeries,
       breakdown: {
         grossSales: totals.grossSales,
@@ -101,10 +145,12 @@ export async function GET(req: NextRequest) {
         returns: 0,
         deliveryCharge: 0,
       },
+      users: { newUsers: users.totalDocs ?? users.docs.length },
+      devices: deviceCounts,
+      carts: { abandoned: abandoned.totalDocs ?? abandoned.docs.length },
     })
   } catch (e) {
     console.error('metrics error', e)
     return NextResponse.json({ error: 'Failed to load metrics' }, { status: 500 })
   }
 }
-

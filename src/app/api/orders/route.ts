@@ -80,6 +80,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Detect device
+    const ua = request.headers.get('user-agent') || ''
+    const uaLower = ua.toLowerCase()
+    const deviceType = uaLower.includes('mobile') || uaLower.includes('iphone') || uaLower.includes('android')
+      ? 'mobile'
+      : uaLower.includes('ipad') || uaLower.includes('tablet')
+        ? 'tablet'
+        : uaLower.includes('windows') || uaLower.includes('macintosh') || uaLower.includes('linux')
+          ? 'desktop'
+          : 'other'
+
     // Create the order
     const order = await payload.create({
       collection: 'orders',
@@ -92,6 +103,8 @@ export async function POST(request: NextRequest) {
         totalAmount,
         status: 'pending',
         orderDate: new Date().toISOString(),
+        userAgent: ua || undefined,
+        deviceType,
         shippingAddress: {
           line1: shippingAddress.line1,
           line2: shippingAddress.line2 || undefined,

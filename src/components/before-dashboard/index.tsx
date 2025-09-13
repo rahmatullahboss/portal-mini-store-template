@@ -12,20 +12,28 @@ type Metrics = {
     activeOrders: number
     fulfilledOrders: number
     cancelledOrders: number
+    avgOrderValue?: number
+    conversionRate?: number
   }
   salesSeries: { month: string; value: number }[]
   breakdown: { grossSales: number; discounts: number; returns: number; deliveryCharge: number }
+  users?: { newUsers: number }
+  devices?: { mobile: number; desktop: number; tablet: number; other: number }
+  carts?: { abandoned: number }
 }
 
 const formatBDT = (n: number) => `৳${n.toFixed(2)}`
 
-const Card = ({ title, value, trend }: { title: string; value: string; trend?: string }) => (
-  <div className="p-4 rounded-lg border bg-white">
-    <div className="text-xs text-gray-500">{title}</div>
-    <div className="mt-1 text-2xl font-semibold">{value}</div>
-    {trend ? <div className="text-xs text-emerald-600 mt-1">{trend}</div> : null}
-  </div>
-)
+const Card = ({ title, value, trend, accent }: { title: string; value: string; trend?: string; accent?: 'blue'|'green'|'red'|'amber'|'violet' }) => {
+  const acc = accent === 'blue' ? 'text-blue-600' : accent === 'green' ? 'text-green-600' : accent === 'red' ? 'text-red-600' : accent === 'amber' ? 'text-amber-600' : accent === 'violet' ? 'text-violet-600' : ''
+  return (
+    <div className="p-4 rounded-lg border bg-white">
+      <div className="text-xs text-gray-500">{title}</div>
+      <div className={`mt-1 text-2xl font-semibold ${acc}`}>{value}</div>
+      {trend ? <div className="text-xs text-emerald-600 mt-1">{trend}</div> : null}
+    </div>
+  )
+}
 
 const Spark = ({ data }: { data: number[] }) => {
   const width = 200
@@ -91,11 +99,13 @@ export default function BeforeDashboard() {
         <div className="text-sm text-red-600">{err}</div>
       ) : metrics ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card title="Gross sales" value={formatBDT(metrics.totals.grossSales)} trend={'+ compare to prev'} />
-            <Card title="Active Orders" value={String(metrics.totals.activeOrders)} />
-            <Card title="Fulfilled Orders" value={String(metrics.totals.fulfilledOrders)} />
-            <Card title="Cancelled Orders" value={String(metrics.totals.cancelledOrders)} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+            <Card title="Gross Sales" value={formatBDT(metrics.totals.grossSales)} trend={'+ vs last month'} accent="blue" />
+            <Card title="Avg Order Value" value={formatBDT(metrics.totals.avgOrderValue || 0)} accent="violet" />
+            <Card title="Conversion Rate" value={`${(metrics.totals.conversionRate || 0).toFixed(1)}%`} accent="green" />
+            <Card title="New Users" value={String(metrics.users?.newUsers ?? 0)} accent="amber" />
+            <Card title="Active Orders" value={String(metrics.totals.activeOrders)} accent="blue" />
+            <Card title="Abandoned Carts" value={String(metrics.carts?.abandoned ?? 0)} accent="red" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
@@ -108,13 +118,8 @@ export default function BeforeDashboard() {
               <div className="text-xs text-gray-400 mt-2">Last 12 months</div>
             </div>
             <div className="p-4 rounded-lg border bg-white">
-              <div className="text-sm text-gray-600 mb-2">Sales breakdown</div>
-              <ul className="text-sm space-y-1">
-                <li className="flex justify-between"><span>Gross sales</span><span>{formatBDT(metrics.breakdown.grossSales)}</span></li>
-                <li className="flex justify-between"><span>Discounts</span><span>{formatBDT(metrics.breakdown.discounts)}</span></li>
-                <li className="flex justify-between"><span>Returns</span><span>{formatBDT(metrics.breakdown.returns)}</span></li>
-                <li className="flex justify-between"><span>Delivery charge</span><span>{formatBDT(metrics.breakdown.deliveryCharge)}</span></li>
-              </ul>
+              <div className="text-sm text-gray-600 mb-2">Device sessions</div>
+              <DeviceDonut devices={metrics.devices || { mobile: 0, desktop: 0, tablet: 0, other: 0 }} />
             </div>
           </div>
         </>
@@ -122,3 +127,53 @@ export default function BeforeDashboard() {
     </div>
   )
 }
+
+function DeviceDonut({ devices }: { devices: { mobile: number; desktop: number; tablet: number; other: number } }) {
+  const total = Object.values(devices).reduce((a, b) => a + b, 0) || 1
+  const pct = (n: number) => Math.round((n / total) * 100)
+  const slices = [
+    { key: 'Mobile', value: devices.mobile, color: '#10b981' },
+    { key: 'Desktop', value: devices.desktop, color: '#3b82f6' },
+    { key: 'Tablet', value: devices.tablet, color: '#f59e0b' },
+    { key: 'Other', value: devices.other, color: '#6b7280' },
+  ]
+  return (
+    <div className="flex items-center gap-4">
+      <svg viewBox="0 0 36 36" className="w-28 h-28 -rotate-90">
+        {(() => {
+          let acc = 0
+          return slices.map((s, i) => {
+            const p = (s.value / total) * 100
+            const dash = `${p} ${100 - p}`
+            const el = (
+              <circle
+                key={i}
+                cx="18"
+                cy="18"
+                r="16"
+                fill="transparent"
+                stroke={s.color}
+                strokeWidth="4"
+                strokeDasharray={dash}
+                strokeDashoffset={acc}
+              />
+            )
+            acc -= p
+            return el
+          })
+        })()}
+        <circle cx="18" cy="18" r="12" fill="white" />
+      </svg>
+      <div className="text-sm space-y-1">
+        {slices.map((s) => (
+          <div key={s.key} className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: s.color }} />
+            <span className="text-gray-600 w-16">{s.key}</span>
+            <span className="font-medium">{pct(s.value)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+

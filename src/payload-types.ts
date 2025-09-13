@@ -224,6 +224,11 @@ export interface Order {
   id: number;
   user?: (number | null) | User;
   /**
+   * Captured at order time
+   */
+  userAgent?: string | null;
+  deviceType?: ('mobile' | 'desktop' | 'tablet' | 'other') | null;
+  /**
    * Name captured at time of order
    */
   customerName: string;
@@ -265,6 +270,10 @@ export interface Review {
    * Reviewer (auto-set)
    */
   user: number | User;
+  /**
+   * Captured from user at time of review
+   */
+  reviewerName?: string | null;
   rating: number;
   title?: string | null;
   comment: string;
@@ -431,6 +440,8 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface OrdersSelect<T extends boolean = true> {
   user?: T;
+  userAgent?: T;
+  deviceType?: T;
   customerName?: T;
   customerEmail?: T;
   customerNumber?: T;
@@ -464,6 +475,7 @@ export interface OrdersSelect<T extends boolean = true> {
 export interface ReviewsSelect<T extends boolean = true> {
   item?: T;
   user?: T;
+  reviewerName?: T;
   rating?: T;
   title?: T;
   comment?: T;

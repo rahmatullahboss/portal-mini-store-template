@@ -31,6 +31,24 @@ export const Orders: CollectionConfig = {
       relationTo: 'users',
       required: false,
     },
+    // Client/device metadata for analytics
+    {
+      name: 'userAgent',
+      type: 'text',
+      required: false,
+      admin: { description: 'Captured at order time' },
+    },
+    {
+      name: 'deviceType',
+      type: 'select',
+      required: false,
+      options: [
+        { label: 'Mobile', value: 'mobile' },
+        { label: 'Desktop', value: 'desktop' },
+        { label: 'Tablet', value: 'tablet' },
+        { label: 'Other', value: 'other' },
+      ],
+    },
     {
       name: 'customerName',
       type: 'text',
