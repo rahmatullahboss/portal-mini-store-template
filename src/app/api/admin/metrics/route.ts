@@ -74,15 +74,19 @@ export async function GET(req: NextRequest) {
       limit: 10000,
     })
 
-    // Abandoned carts: pending orders older than 24h
+    // Abandoned carts: from AbandonedCarts collection marked as 'abandoned'
+    const abandonedWhere: any = {
+      and: [
+        { status: { equals: 'abandoned' } },
+      ],
+    }
+    if (range !== 'all-time') {
+      ;(abandonedWhere.and as any[]).push({ lastActivityAt: { greater_than_equal: from.toISOString() } })
+      ;(abandonedWhere.and as any[]).push({ lastActivityAt: { less_than_equal: to.toISOString() } })
+    }
     const abandoned = await payload.find({
-      collection: 'orders',
-      where: {
-        and: [
-          { status: { equals: 'pending' } },
-          { orderDate: { less_than_equal: new Date(Date.now() - abandonedHours * 60 * 60 * 1000).toISOString() } },
-        ],
-      },
+      collection: 'abandoned-carts',
+      where: abandonedWhere,
       depth: 0,
       limit: 10000,
     })
