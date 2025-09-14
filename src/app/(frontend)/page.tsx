@@ -34,18 +34,21 @@ export default async function HomePage() {
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
-
-  // Fetch all available items
-  const items = await payload.find({
-    collection: 'items',
-    where: {
-      available: {
-        equals: true,
+  // Fetch auth status and available items in parallel to reduce latency
+  const [{ user }, items] = await Promise.all([
+    payload.auth({ headers }),
+    payload.find({
+      collection: 'items',
+      where: {
+        available: {
+          equals: true,
+        },
       },
-    },
-    depth: 2,
-  })
+      // Limit depth and number of returned documents to speed up the query
+      depth: 1,
+      limit: 12,
+    }),
+  ])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100 text-gray-800">
