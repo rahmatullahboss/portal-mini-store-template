@@ -6,12 +6,12 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import config from '@/payload.config'
-import OrderStatusUpdate from './order-status-update'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
+import { OrderStatusUpdate } from '@/components/lazy-client-components'
 
 export default async function AdminDashboardPage() {
   const headers = await getHeaders()
