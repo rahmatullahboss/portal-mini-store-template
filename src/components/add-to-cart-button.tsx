@@ -63,14 +63,12 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item }) => {
       {isAdded ? (
         <>
           <Check className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2 md:mr-3" />
-          <span className="hidden sm:inline">Added!</span>
-          <span className="sm:hidden">✓</span>
+          <span>Added!</span>
         </>
       ) : (
         <>
           <Plus className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2 md:mr-3" />
-          <span className="hidden sm:inline">Add to Cart</span>
-          <span className="sm:hidden">Add</span>
+          <span>Add to Cart</span>
         </>
       )}
     </Button>
