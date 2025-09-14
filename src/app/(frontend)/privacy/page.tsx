@@ -15,10 +15,11 @@ export default async function PrivacyPage() {
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
 
-  const updated = new Date().toLocaleDateString(undefined, {
+  const updated = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC',
   })
 
   return (

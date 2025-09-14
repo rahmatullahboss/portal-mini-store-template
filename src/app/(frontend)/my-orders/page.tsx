@@ -126,7 +126,7 @@ export default async function MyOrdersPage({
                     </Badge>
                   </div>
                   <CardDescription>
-                    Ordered: {new Date(order.orderDate).toLocaleDateString()}
+                    Ordered: {new Date(order.orderDate).toLocaleDateString('en-US', { timeZone: 'UTC' })}
                   </CardDescription>
                 </CardHeader>
 
