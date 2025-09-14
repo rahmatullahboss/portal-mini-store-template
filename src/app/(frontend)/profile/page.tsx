@@ -7,6 +7,8 @@ import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 import ProfileForm from './profile-form'
 
+export const revalidate = 3600
+
 export default async function ProfilePage() {
   const headers = await getHeaders()
   const payloadConfig = await config
