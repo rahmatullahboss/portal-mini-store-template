@@ -18,3 +18,10 @@ export const Toaster = dynamic(
   () => import('@/components/ui/sonner').then((mod) => mod.Toaster),
   { ssr: false },
 )
+export const OrderStatusUpdate = dynamic(
+  () => import('@/app/(frontend)/admin-dashboard/order-status-update'),
+  {
+    loading: () => <div className="text-xs text-gray-500">Loading...</div>,
+    ssr: false,
+  },
+)
