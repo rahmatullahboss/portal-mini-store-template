@@ -82,7 +82,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader variant="full" user={user} />
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div>
             {((item.image && typeof item.image === 'object') || item.imageUrl) && (
@@ -172,7 +172,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             </TabsContent>
           </Tabs>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

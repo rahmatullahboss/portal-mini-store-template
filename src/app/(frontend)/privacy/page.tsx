@@ -24,7 +24,7 @@ export default async function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader variant="full" user={user} />
-      <main className="container mx-auto px-4 py-12 prose prose-gray max-w-3xl">
+      <div className="container mx-auto px-4 py-12 prose prose-gray max-w-3xl">
         <h1 className="brand-text text-4xl font-extrabold">Privacy Policy</h1>
         <p className="text-sm text-gray-500">Last updated: {updated}</p>
 
@@ -81,7 +81,7 @@ export default async function PrivacyPage() {
           Phone: <a href="tel:01739416661">01739-416661</a><br />
           Facebook: <a href="https://www.facebook.com/onlinebazarbarguna" target="_blank" rel="noreferrer">@onlinebazarbarguna</a>
         </p>
-      </main>
+      </div>
     </div>
   )
 }
