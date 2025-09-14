@@ -61,7 +61,7 @@ export default async function HomePage() {
 
       <SiteHeader variant="full" user={user} />
 
-      <main className="relative z-10">
+      <div className="relative z-10">
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
           {/* Floating Elements */}
@@ -201,7 +201,7 @@ export default async function HomePage() {
             )}
           </section>
         </div>
-      </main>
+      </div>
 
       {/* Global footer is rendered via layout */}
     </div>
