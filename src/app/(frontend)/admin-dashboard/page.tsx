@@ -375,6 +375,7 @@ export default async function AdminDashboardPage() {
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
+                            timeZone: 'UTC',
                           })}
                         </p>
                       </div>
@@ -561,7 +562,7 @@ export default async function AdminDashboardPage() {
                         </CardTitle>
                         <CardDescription className="mt-1 flex items-center gap-4">
                           <span className="flex items-center gap-1">
-                            🕰️ Last activity: {new Date(cart.lastActivityAt).toLocaleString()}
+                            🕰️ Last activity: {new Date(cart.lastActivityAt).toLocaleString('en-US', { timeZone: 'UTC' })}
                           </span>
                           {cart.status === 'abandoned' && (
                             <span className="text-red-600 font-medium">⚠️ Needs Recovery</span>

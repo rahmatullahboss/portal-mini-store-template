@@ -87,7 +87,7 @@ export default function ReviewSection({
               <li key={r.id} className="border rounded-lg p-4 bg-white">
                 <div className="flex items-center justify-between">
                   <ReviewStars value={r.rating} />
-                  <span className="text-xs text-gray-500">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</span>
+                  <span className="text-xs text-gray-500">{r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' }) : ''}</span>
                 </div>
                 <p className="mt-1 text-xs text-gray-600">By {getReviewerName(r)}</p>
                 {r.title ? <h4 className="font-medium mt-1">{r.title}</h4> : null}
