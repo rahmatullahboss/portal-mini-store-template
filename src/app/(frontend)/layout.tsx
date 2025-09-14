@@ -1,23 +1,14 @@
 import React from 'react'
-import dynamic from 'next/dynamic'
 
 import { CartProvider } from '@/lib/cart-context'
 import { SiteFooter } from '@/components/site-footer'
 import '../globals.css'
 import { Toaster } from '@/components/ui/sonner'
-
-// Lazily load heavier client components to reduce initial bundle size
-const CartSidebar = dynamic(() => import('@/components/cart-sidebar'), {
-  ssr: false,
-})
-const Analytics = dynamic(
-  () => import('@vercel/analytics/next').then((mod) => mod.Analytics),
-  { ssr: false },
-)
-const SpeedInsights = dynamic(
-  () => import('@vercel/speed-insights/next').then((mod) => mod.SpeedInsights),
-  { ssr: false },
-)
+import {
+  CartSidebar,
+  Analytics,
+  SpeedInsights,
+} from '@/components/lazy-client-components'
 
 export const metadata = {
   description: 'Online Bazar — a mini store template powered by Payload.',
