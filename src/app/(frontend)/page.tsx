@@ -73,9 +73,7 @@ export default async function HomePage() {
             <div className="space-y-8 animate-fade-in">
               <div className="space-y-4">
                 <h2 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter">
-                  <span className="brand-text animate-gradient-x">
-                    Online Bazar
-                  </span>
+                  <span className="brand-text animate-gradient-x">Online Bazar</span>
                   <br />
                   <span className="text-gray-800">Reimagined</span>
                 </h2>
@@ -100,9 +98,7 @@ export default async function HomePage() {
           {/* Online Bazar Grid */}
           <section className="space-y-12">
             <div className="text-center space-y-4">
-              <h3 className="text-5xl font-bold brand-text">
-                Our Collection
-              </h3>
+              <h3 className="text-5xl font-bold brand-text">Our Collection</h3>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                 Handcrafted experiences, delivered to perfection
               </p>
@@ -158,7 +154,9 @@ export default async function HomePage() {
                                 variant="secondary"
                                 className="bg-white/90 text-gray-700 border border-gray-200/60 backdrop-blur-sm shadow-lg font-medium px-3 py-1"
                               >
-                                {typeof item.category === 'object' ? (item.category as any)?.name : item.category}
+                                {typeof item.category === 'object'
+                                  ? (item.category as any)?.name
+                                  : item.category}
                               </Badge>
                             </div>
                           </div>
@@ -184,9 +182,13 @@ export default async function HomePage() {
                           </span>
                           <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           <AddToCartButton item={item} />
-                          <OrderNowButton item={item} isLoggedIn={!!user} className="px-4 py-2 text-sm" />
+                          <OrderNowButton
+                            item={item}
+                            isLoggedIn={!!user}
+                            className="px-2 sm:px-4 py-2 text-xs sm:text-sm"
+                          />
                         </div>
                       </CardFooter>
                     </div>
@@ -202,9 +204,3 @@ export default async function HomePage() {
     </div>
   )
 }
-
-
-
-
-
-

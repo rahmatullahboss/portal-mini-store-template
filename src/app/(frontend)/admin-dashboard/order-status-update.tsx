@@ -56,17 +56,17 @@ export default function OrderStatusUpdate({ orderId, currentStatus }: OrderStatu
 
   return (
     <div className="space-y-2">
-      <Select
-        value={status}
-        onValueChange={(val) => handleStatusUpdate(val)}
-      >
+      <Select value={status} onValueChange={(val) => handleStatusUpdate(val)}>
         <SelectTrigger size="sm" aria-label="Update order status">
           <SelectValue placeholder="Set status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="pending">Pending</SelectItem>
-          <SelectItem value="completed">Completed</SelectItem>
-          <SelectItem value="cancelled">Cancelled</SelectItem>
+          <SelectItem value="pending">⏳ Pending</SelectItem>
+          <SelectItem value="processing">🔄 Processing</SelectItem>
+          <SelectItem value="shipped">📦 Shipped</SelectItem>
+          <SelectItem value="completed">✅ Completed</SelectItem>
+          <SelectItem value="cancelled">❌ Cancelled</SelectItem>
+          <SelectItem value="refunded">💰 Refunded</SelectItem>
         </SelectContent>
       </Select>
       {error && (
