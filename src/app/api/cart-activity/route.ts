@@ -60,6 +60,17 @@ export async function POST(request: NextRequest) {
       })
       .filter((row): row is { item: number; quantity: number } => !!row)
 
+    const isZeroCart = (typeof total === 'number' && total <= 0) || sanitizedItems.length === 0
+    if (isZeroCart) {
+      if (existing?.docs?.[0]) {
+        await payload.delete({
+          collection: 'abandoned-carts',
+          id: (existing.docs[0] as any).id,
+        })
+      }
+      return NextResponse.json({ success: true })
+    }
+
     // Pull profile fallbacks for logged-in users
     const userEmail = user ? String((user as any)?.email || '') : undefined
     const userName = user
