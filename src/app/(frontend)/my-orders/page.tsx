@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
 import { CancelOrderButton } from './CancelOrderButton'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export default async function MyOrdersPage({
   searchParams,

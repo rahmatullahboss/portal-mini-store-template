@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 interface OrderPageProps {
   params: Promise<{ id: string }>

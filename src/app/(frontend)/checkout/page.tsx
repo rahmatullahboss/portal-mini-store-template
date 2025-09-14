@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SiteHeader } from '@/components/site-header'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export default async function CheckoutPage() {
   const headers = await getHeaders()
