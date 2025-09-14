@@ -1,4 +1,5 @@
 import React from 'react'
+import type { Metadata } from 'next'
 
 import { CartProvider } from '@/lib/cart-context'
 import { SiteFooter } from '@/components/site-footer'
@@ -10,9 +11,24 @@ import {
   Toaster,
 } from '@/components/lazy-client-components'
 
-export const metadata = {
+export const metadata: Metadata = {
   description: 'Online Bazar — a mini store template powered by Payload.',
   title: 'Online Bazar',
+  openGraph: {
+    title: 'Online Bazar',
+    description: 'Online Bazar — a mini store template powered by Payload.',
+    url: process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000',
+    siteName: 'Online Bazar',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Online Bazar preview',
+      },
+    ],
+    type: 'website',
+  },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
