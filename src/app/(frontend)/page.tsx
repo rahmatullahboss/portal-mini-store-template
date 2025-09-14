@@ -187,12 +187,13 @@ export default async function HomePage() {
                           </span>
                           <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                         </div>
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <AddToCartButton item={item} />
+                        <div className="flex items-center gap-1 sm:gap-2 md:flex-col md:items-stretch md:gap-2 lg:flex-row lg:items-center">
+                          <AddToCartButton item={item} className="md:w-full lg:w-auto" />
                           <OrderNowButton
                             item={item}
                             isLoggedIn={!!user}
-                            className="px-2 sm:px-4 py-2 text-xs sm:text-sm"
+                            className="px-2 sm:px-4 py-2 text-xs sm:text-sm md:w-full lg:w-auto"
+                            wrapperClassName="md:w-full lg:w-auto"
                           />
                         </div>
                       </CardFooter>

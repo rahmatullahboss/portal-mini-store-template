@@ -6,6 +6,7 @@ import { Plus, Check } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
 import type { CartItem } from '@/lib/cart-context'
+import { cn } from '@/lib/utils'
 
 interface AddToCartButtonProps {
   item: {
@@ -19,9 +20,10 @@ interface AddToCartButtonProps {
     }
     imageUrl?: string
   }
+  className?: string
 }
 
-export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item }) => {
+export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, className }) => {
   const { addItem, openCart } = useCart()
   const [isAdded, setIsAdded] = useState(false)
 
@@ -53,12 +55,13 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item }) => {
       onClick={handleAddToCart}
       disabled={isAdded}
       size="sm"
-      className={`
-        h-8 px-2 text-xs
-        sm:h-9 sm:px-4 sm:text-sm
-        md:h-10 md:px-6 md:text-base
-        ${isAdded ? 'bg-green-600 hover:bg-green-600' : ''}
-      `}
+      className={cn(
+        'h-8 px-2 text-xs',
+        'sm:h-9 sm:px-4 sm:text-sm',
+        'md:h-10 md:px-6 md:text-base',
+        isAdded && 'bg-green-600 hover:bg-green-600',
+        className,
+      )}
     >
       {isAdded ? (
         <>

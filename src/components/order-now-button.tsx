@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 type Item = {
   id: string
@@ -18,10 +19,12 @@ type Item = {
 export function OrderNowButton({
   item,
   className = '',
+  wrapperClassName = '',
   isLoggedIn,
 }: {
   item: Item
   className?: string
+  wrapperClassName?: string
   isLoggedIn?: boolean
 }) {
   const [loading, setLoading] = useState(false)
@@ -87,12 +90,15 @@ export function OrderNowButton({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn('flex flex-col gap-2', wrapperClassName)}>
       <Button
         type="button"
         onClick={handleOrder}
         disabled={loading}
-        className={`bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105 ${className}`}
+        className={cn(
+          'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105',
+          className,
+        )}
       >
         {loading ? 'Ordering…' : 'Order Now'}
       </Button>
