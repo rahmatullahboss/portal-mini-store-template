@@ -13,6 +13,8 @@ import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
 import { OrderStatusUpdate } from '@/components/lazy-client-components'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminDashboardPage() {
   const headers = await getHeaders()
   const payloadConfig = await config

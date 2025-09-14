@@ -15,6 +15,8 @@ import { ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import ReviewSection from './ReviewSection'
 import { ReviewStars } from '@/components/review-stars'
 
+export const revalidate = 3600
+
 async function getItem(id: string, payload: any) {
   const item = await payload.findByID({
     collection: 'items',

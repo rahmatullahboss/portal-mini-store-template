@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 
+export const revalidate = 3600
+
 async function getSnack(id: string, payload: any) {
   const snack = await payload.findByID({
     collection: 'items',

@@ -30,6 +30,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
+export const revalidate = 3600
+
 export default async function HomePage() {
   const headers = await getHeaders()
   const payloadConfig = await config

@@ -14,6 +14,8 @@ import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
 import { CancelOrderButton } from './CancelOrderButton'
 
+export const dynamic = 'force-dynamic'
+
 export default async function MyOrdersPage({
   searchParams,
 }: {

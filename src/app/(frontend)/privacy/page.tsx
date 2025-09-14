@@ -9,6 +9,8 @@ export const metadata = {
   description: 'How Online Bazar collects, uses, and protects your information.',
 }
 
+export const revalidate = 3600
+
 export default async function PrivacyPage() {
   const headers = await getHeaders()
   const payloadConfig = await config
