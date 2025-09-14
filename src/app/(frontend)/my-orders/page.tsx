@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
+import { CancelOrderButton } from './CancelOrderButton'
 
 export default async function MyOrdersPage({
   searchParams,
@@ -173,6 +174,11 @@ export default async function MyOrdersPage({
                       Total: ৳{order.totalAmount.toFixed(2)}
                     </span>
                   </div>
+                  {order.status === 'pending' && (
+                    <div className="text-right mt-4">
+                      <CancelOrderButton orderId={order.id} />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

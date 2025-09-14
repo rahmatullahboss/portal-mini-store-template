@@ -13,6 +13,7 @@ This template comes configured with the bare minimum to get started on anything 
 - **Place Orders**: Add snacks to cart and place orders
 - **Order History**: View personal order history with status tracking
 - **Order Tracking**: See order status (Pending, Completed, Cancelled)
+- **Cancel Pending Orders**: Cancel orders while they are still pending
 
 ### 🔧 Admin Features
 - **Enhanced Admin Dashboard**: Comprehensive order management with analytics
@@ -37,7 +38,8 @@ This template comes configured with the bare minimum to get started on anything 
 - Can view all available snacks
 - Can place orders for snacks
 - Can view their own order history
-- Cannot modify or cancel orders once placed
+- Cannot modify orders once placed
+- Can cancel orders while status is pending
 
 ### Admin Users (`role: 'admin'`)
 - All regular user permissions
@@ -120,6 +122,7 @@ This template comes configured with the bare minimum to get started on anything 
 ### Orders
 - `POST /api/orders` - Create a new order (authenticated users)
 - `PATCH /api/orders/update-status` - Update order status (admin only)
+- `POST /api/orders/cancel` - Cancel a pending order (authenticated users)
 
 ### Built-in Payload Endpoints
 - `/api/users` - User management
