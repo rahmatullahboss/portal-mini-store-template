@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import React from 'react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { addDays, format, parseISO, startOfDay, subDays } from 'date-fns'
 
 import config from '@/payload.config'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,11 @@ import { OrderStatusUpdate } from '@/components/lazy-client-components'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams?: { date?: string }
+}) {
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
@@ -26,12 +31,23 @@ export default async function AdminDashboardPage() {
     redirect('/')
   }
 
-  // Fetch all orders
+  // Determine selected date (default to today)
+  const selectedDate = searchParams?.date ? parseISO(searchParams.date) : new Date()
+  const start = startOfDay(selectedDate)
+  const end = addDays(start, 1)
+
+  // Fetch orders for the selected date
   const orders = await payload.find({
     collection: 'orders',
     depth: 3,
     sort: '-orderDate',
     limit: 50,
+    where: {
+      and: [
+        { orderDate: { greater_than_equal: start.toISOString() } },
+        { orderDate: { less_than: end.toISOString() } },
+      ],
+    },
   })
 
   // Fetch recent abandoned carts (active + abandoned)
@@ -54,6 +70,8 @@ export default async function AdminDashboardPage() {
   const refundedOrders = orders.docs.filter((order: any) => order.status === 'refunded')
   const activeCarts = (carts.docs as any[]).filter((c: any) => c.status === 'active')
   const abandonedCarts = (carts.docs as any[]).filter((c: any) => c.status === 'abandoned')
+  const prevDate = format(subDays(start, 1), 'yyyy-MM-dd')
+  const nextDate = format(addDays(start, 1), 'yyyy-MM-dd')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -334,7 +352,19 @@ export default async function AdminDashboardPage() {
 
         {/* Orders Section */}
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">All Orders</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Orders for {format(start, 'PPP')}
+            </h2>
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/admin-dashboard?date=${prevDate}`}>Previous Day</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/admin-dashboard?date=${nextDate}`}>Next Day</Link>
+              </Button>
+            </div>
+          </div>
 
           {orders.docs.length === 0 ? (
             <Card>
