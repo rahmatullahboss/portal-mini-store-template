@@ -83,19 +83,23 @@ export function DateFilter({
               <ToggleGroupItem value="single" aria-label="Single day">Single Day</ToggleGroupItem>
               <ToggleGroupItem value="range" aria-label="Date range">Date Range</ToggleGroupItem>
             </ToggleGroup>
-            <Calendar
-              mode={mode}
-              selected={mode === "single" ? single : (range?.from ? range : undefined)}
-              onSelect={(val: Date | DateRange | undefined) => {
-                if (mode === "single") {
-                  setSingle((val as Date) || undefined)
-                } else {
-                  setRange((val as DateRange) || undefined)
-                }
-              }}
-              numberOfMonths={mode === "range" ? 2 : 1}
-              captionLayout="dropdown"
-            />
+            {mode === "single" ? (
+              <Calendar
+                mode="single"
+                selected={single}
+                onSelect={(val?: Date) => setSingle(val)}
+                numberOfMonths={1}
+                captionLayout="dropdown"
+              />
+            ) : (
+              <Calendar
+                mode="range"
+                selected={range}
+                onSelect={(val?: DateRange) => setRange(val)}
+                numberOfMonths={2}
+                captionLayout="dropdown"
+              />
+            )}
             <div className="flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={resetToday} className="gap-1">
                 <RotateCcw className="size-4" /> Today
