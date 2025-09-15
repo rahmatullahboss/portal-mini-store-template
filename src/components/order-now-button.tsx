@@ -97,14 +97,16 @@ export function OrderNowButton({
         disabled={loading}
         size="sm"
         className={cn(
-          'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105 h-7 px-3 text-xs sm:h-8 sm:px-4 sm:text-sm md:h-9 md:px-5 md:text-base',
+          'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105 h-7 px-3 text-xs sm:h-8 sm:px-4 sm:text-sm md:h-9 md:px-5 md:text-sm',
           className,
         )}
       >
         {loading ? 'Ordering…' : 'Order Now'}
       </Button>
       {error ? (
-        <span className="text-xs text-red-600" role="alert">{error}</span>
+        <span className="text-xs text-red-600" role="alert">
+          {error}
+        </span>
       ) : null}
     </div>
   )

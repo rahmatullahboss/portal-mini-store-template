@@ -187,14 +187,9 @@ export default async function HomePage() {
                           </span>
                           <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                         </div>
-                        <div className="flex flex-1 flex-wrap justify-end gap-1 sm:gap-2 md:flex-col md:items-end md:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
-                          <AddToCartButton item={item} className="flex-1" />
-                          <OrderNowButton
-                            item={item}
-                            isLoggedIn={!!user}
-                            className="w-full h-8 px-2 text-xs sm:h-9 sm:px-4 sm:text-sm md:h-10 md:px-6 md:text-base"
-                            wrapperClassName="flex-1"
-                          />
+                        <div className="flex flex-wrap justify-end gap-1 sm:gap-2 md:flex-col md:items-end md:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+                          <AddToCartButton item={item} />
+                          <OrderNowButton item={item} isLoggedIn={!!user} />
                         </div>
                       </CardFooter>
                     </div>
