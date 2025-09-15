@@ -1,6 +1,7 @@
 import { headers as getHeaders } from 'next/headers.js'
 import Image from 'next/image'
 import { getPayload } from 'payload'
+import { unstable_cache as unstableCache } from 'next/cache'
 import React from 'react'
 import Link from 'next/link'
 
@@ -36,20 +37,26 @@ export default async function HomePage() {
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
-  // Fetch auth status and available items in parallel to reduce latency
+
+  // Cache item list for mobile speed (does not depend on user)
+  const getItemsCached = unstableCache(
+    async () => {
+      const p = await getPayload({ config: payloadConfig })
+      return p.find({
+        collection: 'items',
+        where: { available: { equals: true } },
+        depth: 1,
+        limit: 12,
+      })
+    },
+    ['items:list:v1'],
+    { revalidate: 300 },
+  )
+
+  // Fetch auth status and cached items in parallel
   const [{ user }, items] = await Promise.all([
     payload.auth({ headers }),
-    payload.find({
-      collection: 'items',
-      where: {
-        available: {
-          equals: true,
-        },
-      },
-      // Limit depth and number of returned documents to speed up the query
-      depth: 1,
-      limit: 12,
-    }),
+    getItemsCached(),
   ])
 
   return (
@@ -148,6 +155,7 @@ export default async function HomePage() {
                                   : undefined) || item.name
                               }
                               fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                               className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
                             />
                             {/* Image Overlay */}

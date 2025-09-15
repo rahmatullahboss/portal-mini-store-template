@@ -3,7 +3,8 @@
   "buildCommand": "pnpm run ci",
   "functions": {
     "app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "regions": ["sin1", "bom1"]
     }
   },
   "build": {

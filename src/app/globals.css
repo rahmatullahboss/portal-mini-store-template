@@ -176,3 +176,27 @@
 .brand-glow {
   background-image: radial-gradient(closest-side, rgba(255, 215, 0, 0.5), rgba(255, 215, 0, 0));
 }
+
+/* Mobile and reduced-motion optimizations */
+@media (prefers-reduced-motion: reduce), (max-width: 768px) {
+  /* Disable heavy animations on mobile to reduce main-thread work */
+  .animate-pulse,
+  .animate-bounce,
+  .animate-gradient-x,
+  .animate-fade-in {
+    animation: none !important;
+  }
+
+  /* Avoid expensive blur filters on budget/mobile devices */
+  .blur-xl {
+    filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Prevent complex transforms from triggering costly composites */
+  .transform,
+  .transition-transform,
+  .transition-all {
+    transition: opacity 150ms ease-out !important;
+  }
+}

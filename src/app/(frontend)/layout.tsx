@@ -33,19 +33,36 @@ export const metadata: Metadata = {
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+  const blobHost = (() => {
+    const match = blobToken?.match(/^vercel_blob_rw_([a-z\d]+)_[a-z\d]+$/i)
+    const id = match?.[1]?.toLowerCase()
+    return id ? `${id}.public.blob.vercel-storage.com` : undefined
+  })()
+  const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS !== 'false'
 
   return (
     <html lang="en">
       <head>
-        {/* Google tag (gtag.js) */}
+        {/* Performance hints for mobile */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        {/* Preconnects to speed up first requests on mobile */}
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        {blobHost ? (
+          <link rel="preconnect" href={`https://${blobHost}`} crossOrigin="anonymous" />
+        ) : null}
+        {/* DNS prefetch as a lightweight fallback */}
+        <link rel="dns-prefetch" href="//images.unsplash.com" />
+        {blobHost ? <link rel="dns-prefetch" href={`//${blobHost}`} /> : null}
+
+        {/* Google tag (gtag.js) - kept from your update */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3LY08VXYN"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
+              function gtag(){dataLayer.push(arguments);} 
               gtag('js', new Date());
-
               gtag('config', 'G-Q3LY08VXYN');
             `,
           }}
@@ -55,10 +72,11 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         <CartProvider>
           <main>{children}</main>
           <SiteFooter />
+          {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}
           <CartSidebar />
           <Toaster richColors position="top-center" />
-          <Analytics />
-          <SpeedInsights />
+          {enableAnalytics && <Analytics />}
+          {enableAnalytics && <SpeedInsights />}
         </CartProvider>
       </body>
     </html>

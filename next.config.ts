@@ -55,8 +55,27 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: dynamicRemotePatterns,
+    formats: ['image/avif', 'image/webp'],
+    // Favor smaller device sizes for mobile-first loading
+    deviceSizes: [360, 414, 640, 750, 828, 1080, 1200, 1920],
   },
   // Your Next.js config here
+  experimental: {
+    // Reduce JS by optimizing common lib imports
+    optimizePackageImports: [
+      'date-fns',
+      'lucide-react',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-hover-card',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      'embla-carousel-react',
+      'recharts',
+      'react-day-picker',
+    ],
+  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
