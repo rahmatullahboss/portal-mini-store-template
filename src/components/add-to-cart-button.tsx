@@ -59,21 +59,21 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
       disabled={isAdded}
       size="sm"
       className={cn(
-        'h-8 px-2 text-xs',
-        'sm:h-9 sm:px-4 sm:text-sm',
-        'md:h-10 md:px-6 md:text-base',
+        'h-7 px-2 text-xs',
+        'sm:h-8 sm:px-3 sm:text-sm',
+        'md:h-9 md:px-4 md:text-sm',
         isAdded && 'bg-green-600 hover:bg-green-600',
         className,
       )}
     >
       {isAdded ? (
         <>
-          <Check className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2 md:mr-3" />
+          <Check className="h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2" />
           <span>Added!</span>
         </>
       ) : (
         <>
-          <Plus className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 mr-1 sm:mr-2 md:mr-3" />
+          <Plus className="h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2" />
           <span>Add to Cart</span>
         </>
       )}
