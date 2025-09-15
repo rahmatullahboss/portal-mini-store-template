@@ -15,7 +15,11 @@ import { OrderStatusUpdate } from '@/components/lazy-client-components'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams?: { page?: string }
+}) {
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
@@ -26,13 +30,36 @@ export default async function AdminDashboardPage() {
     redirect('/')
   }
 
-  // Fetch all orders
+  // Determine current page for orders pagination
+  const page = searchParams?.page ? Math.max(parseInt(String(searchParams.page), 10) || 1, 1) : 1
+
+  // Fetch paginated orders
   const orders = await payload.find({
     collection: 'orders',
     depth: 3,
     sort: '-orderDate',
-    limit: 50,
+    limit: 10,
+    page,
   })
+
+  // Fetch order counts for statistics
+  const [
+    totalOrders,
+    pendingOrders,
+    processingOrders,
+    shippedOrders,
+    completedOrders,
+    cancelledOrders,
+    refundedOrders,
+  ] = await Promise.all([
+    payload.count({ collection: 'orders' }),
+    payload.count({ collection: 'orders', where: { status: { equals: 'pending' } } }),
+    payload.count({ collection: 'orders', where: { status: { equals: 'processing' } } }),
+    payload.count({ collection: 'orders', where: { status: { equals: 'shipped' } } }),
+    payload.count({ collection: 'orders', where: { status: { equals: 'completed' } } }),
+    payload.count({ collection: 'orders', where: { status: { equals: 'cancelled' } } }),
+    payload.count({ collection: 'orders', where: { status: { equals: 'refunded' } } }),
+  ])
 
   // Fetch recent abandoned carts (active + abandoned)
   const carts = await payload.find({
@@ -45,13 +72,6 @@ export default async function AdminDashboardPage() {
     },
   })
 
-  // Get order statistics for all 6 statuses
-  const pendingOrders = orders.docs.filter((order: any) => order.status === 'pending')
-  const processingOrders = orders.docs.filter((order: any) => order.status === 'processing')
-  const shippedOrders = orders.docs.filter((order: any) => order.status === 'shipped')
-  const completedOrders = orders.docs.filter((order: any) => order.status === 'completed')
-  const cancelledOrders = orders.docs.filter((order: any) => order.status === 'cancelled')
-  const refundedOrders = orders.docs.filter((order: any) => order.status === 'refunded')
   const activeCarts = (carts.docs as any[]).filter((c: any) => c.status === 'active')
   const abandonedCarts = (carts.docs as any[]).filter((c: any) => c.status === 'abandoned')
 
@@ -78,9 +98,9 @@ export default async function AdminDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{pendingOrders.length}</div>
+              <div className="text-2xl font-bold text-yellow-600">{pendingOrders}</div>
               <div className="text-xs text-yellow-600 mt-1">
-                {((pendingOrders.length / orders.docs.length) * 100 || 0).toFixed(1)}% of total
+                {((pendingOrders / totalOrders) * 100 || 0).toFixed(1)}% of total
               </div>
             </CardContent>
           </Card>
@@ -95,9 +115,9 @@ export default async function AdminDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{processingOrders.length}</div>
+              <div className="text-2xl font-bold text-blue-600">{processingOrders}</div>
               <div className="text-xs text-blue-600 mt-1">
-                {((processingOrders.length / orders.docs.length) * 100 || 0).toFixed(1)}% of total
+                {((processingOrders / totalOrders) * 100 || 0).toFixed(1)}% of total
               </div>
             </CardContent>
           </Card>
@@ -112,9 +132,9 @@ export default async function AdminDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{shippedOrders.length}</div>
+              <div className="text-2xl font-bold text-purple-600">{shippedOrders}</div>
               <div className="text-xs text-purple-600 mt-1">
-                {((shippedOrders.length / orders.docs.length) * 100 || 0).toFixed(1)}% of total
+                {((shippedOrders / totalOrders) * 100 || 0).toFixed(1)}% of total
               </div>
             </CardContent>
           </Card>
@@ -129,9 +149,9 @@ export default async function AdminDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{completedOrders.length}</div>
+              <div className="text-2xl font-bold text-green-600">{completedOrders}</div>
               <div className="text-xs text-green-600 mt-1">
-                {((completedOrders.length / orders.docs.length) * 100 || 0).toFixed(1)}% of total
+                {((completedOrders / totalOrders) * 100 || 0).toFixed(1)}% of total
               </div>
             </CardContent>
           </Card>
@@ -146,9 +166,9 @@ export default async function AdminDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{cancelledOrders.length}</div>
+              <div className="text-2xl font-bold text-red-600">{cancelledOrders}</div>
               <div className="text-xs text-red-600 mt-1">
-                {((cancelledOrders.length / orders.docs.length) * 100 || 0).toFixed(1)}% of total
+                {((cancelledOrders / totalOrders) * 100 || 0).toFixed(1)}% of total
               </div>
             </CardContent>
           </Card>
@@ -163,9 +183,9 @@ export default async function AdminDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-600">{refundedOrders.length}</div>
+              <div className="text-2xl font-bold text-gray-600">{refundedOrders}</div>
               <div className="text-xs text-gray-600 mt-1">
-                {((refundedOrders.length / orders.docs.length) * 100 || 0).toFixed(1)}% of total
+                {((refundedOrders / totalOrders) * 100 || 0).toFixed(1)}% of total
               </div>
             </CardContent>
           </Card>
@@ -186,24 +206,24 @@ export default async function AdminDashboardPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">{orders.docs.length}</div>
+                  <div className="text-3xl font-bold text-blue-600">{totalOrders}</div>
                   <div className="text-sm text-gray-600 font-medium">Total Orders</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-yellow-600">
-                    {pendingOrders.length + processingOrders.length}
+                    {pendingOrders + processingOrders}
                   </div>
                   <div className="text-sm text-gray-600 font-medium">Active Orders</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600">
-                    {completedOrders.length + shippedOrders.length}
+                    {completedOrders + shippedOrders}
                   </div>
                   <div className="text-sm text-gray-600 font-medium">Fulfilled</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-red-600">
-                    {cancelledOrders.length + refundedOrders.length}
+                    {cancelledOrders + refundedOrders}
                   </div>
                   <div className="text-sm text-gray-600 font-medium">Issues</div>
                 </div>
@@ -215,39 +235,37 @@ export default async function AdminDashboardPage() {
                   Order Status Distribution
                 </div>
                 <div className="flex h-3 bg-gray-200 rounded-full overflow-hidden">
-                  {orders.docs.length > 0 && (
+                  {totalOrders > 0 && (
                     <>
                       <div
                         className="bg-yellow-500"
-                        style={{ width: `${(pendingOrders.length / orders.docs.length) * 100}%` }}
-                        title={`Pending: ${pendingOrders.length}`}
+                        style={{ width: `${(pendingOrders / totalOrders) * 100}%` }}
+                        title={`Pending: ${pendingOrders}`}
                       />
                       <div
                         className="bg-blue-500"
-                        style={{
-                          width: `${(processingOrders.length / orders.docs.length) * 100}%`,
-                        }}
-                        title={`Processing: ${processingOrders.length}`}
+                        style={{ width: `${(processingOrders / totalOrders) * 100}%` }}
+                        title={`Processing: ${processingOrders}`}
                       />
                       <div
                         className="bg-purple-500"
-                        style={{ width: `${(shippedOrders.length / orders.docs.length) * 100}%` }}
-                        title={`Shipped: ${shippedOrders.length}`}
+                        style={{ width: `${(shippedOrders / totalOrders) * 100}%` }}
+                        title={`Shipped: ${shippedOrders}`}
                       />
                       <div
                         className="bg-green-500"
-                        style={{ width: `${(completedOrders.length / orders.docs.length) * 100}%` }}
-                        title={`Completed: ${completedOrders.length}`}
+                        style={{ width: `${(completedOrders / totalOrders) * 100}%` }}
+                        title={`Completed: ${completedOrders}`}
                       />
                       <div
                         className="bg-red-500"
-                        style={{ width: `${(cancelledOrders.length / orders.docs.length) * 100}%` }}
-                        title={`Cancelled: ${cancelledOrders.length}`}
+                        style={{ width: `${(cancelledOrders / totalOrders) * 100}%` }}
+                        title={`Cancelled: ${cancelledOrders}`}
                       />
                       <div
                         className="bg-gray-500"
-                        style={{ width: `${(refundedOrders.length / orders.docs.length) * 100}%` }}
-                        title={`Refunded: ${refundedOrders.length}`}
+                        style={{ width: `${(refundedOrders / totalOrders) * 100}%` }}
+                        title={`Refunded: ${refundedOrders}`}
                       />
                     </>
                   )}
@@ -496,6 +514,17 @@ export default async function AdminDashboardPage() {
               ))}
             </div>
           )}
+          <div className="flex items-center justify-between mt-6">
+            <Button asChild variant="outline" disabled={!orders.hasPrevPage}>
+              <Link href={`/admin-dashboard?page=${orders.page - 1}`}>Previous</Link>
+            </Button>
+            <span className="text-sm text-gray-600">
+              Page {orders.page} of {orders.totalPages}
+            </span>
+            <Button asChild variant="outline" disabled={!orders.hasNextPage}>
+              <Link href={`/admin-dashboard?page=${orders.page + 1}`}>Next</Link>
+            </Button>
+          </div>
         </div>
 
         <Separator className="my-8" />
