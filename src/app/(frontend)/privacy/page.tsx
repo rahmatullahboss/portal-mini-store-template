@@ -1,7 +1,4 @@
-import { headers as getHeaders } from 'next/headers.js'
-import { getPayload } from 'payload'
 import React from 'react'
-import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 
 export const metadata = {
@@ -9,14 +6,10 @@ export const metadata = {
   description: 'How Online Bazar collects, uses, and protects your information.',
 }
 
-export const revalidate = 3600
+// Static generation for improved performance on this mostly immutable page
+export const dynamic = 'force-static'
 
-export default async function PrivacyPage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
-
+export default function PrivacyPage() {
   const updated = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -26,7 +19,7 @@ export default async function PrivacyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
+      <SiteHeader variant="full" />
       <div className="container mx-auto px-4 py-12 prose prose-gray max-w-3xl">
         <h1 className="brand-text text-4xl font-extrabold">Privacy Policy</h1>
         <p className="text-sm text-gray-500">Last updated: {updated}</p>
