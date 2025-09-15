@@ -95,8 +95,9 @@ export function OrderNowButton({
         type="button"
         onClick={handleOrder}
         disabled={loading}
+        size="sm"
         className={cn(
-          'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105',
+          'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105 h-7 px-2 text-xs sm:h-8 sm:px-3 sm:text-sm md:h-9 md:px-4 md:text-sm',
           className,
         )}
       >
