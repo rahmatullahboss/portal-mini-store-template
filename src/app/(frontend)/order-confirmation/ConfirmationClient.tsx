@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
+import { track } from '@/lib/tracking'
 
 type PreviewItem = {
   name?: string
@@ -30,6 +31,12 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
       // ignore
     }
   }, [])
+
+  useEffect(() => {
+    if (items) {
+      track('purchase', { orderId, items })
+    }
+  }, [items, orderId])
 
   return (
     <>
