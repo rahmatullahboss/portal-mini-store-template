@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Calendar } from "@/components/ui/calendar"
+import type { DateRange } from "react-day-picker"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -35,14 +36,12 @@ export function DateFilter({
   const [single, setSingle] = React.useState<Date | undefined>(
     initialDate ? new Date(`${initialDate}T00:00:00.000Z`) : new Date()
   )
-  const [range, setRange] = React.useState<{ from?: Date; to?: Date } | undefined>(
-    initialStart || initialEnd
-      ? {
-          from: initialStart ? new Date(`${initialStart}T00:00:00.000Z`) : undefined,
-          to: initialEnd ? new Date(`${initialEnd}T00:00:00.000Z`) : undefined,
-        }
-      : undefined
-  )
+  const [range, setRange] = React.useState<DateRange | undefined>(() => {
+    const from = initialStart ? new Date(`${initialStart}T00:00:00.000Z`) : undefined
+    const to = initialEnd ? new Date(`${initialEnd}T00:00:00.000Z`) : undefined
+    // Only set an initial range when `from` exists; otherwise keep undefined
+    return from ? { from, to } : undefined
+  })
 
   function apply() {
     const params = new URLSearchParams(sp?.toString() || "")
@@ -86,10 +85,13 @@ export function DateFilter({
             </ToggleGroup>
             <Calendar
               mode={mode}
-              selected={mode === "single" ? single : range}
-              onSelect={(val: any) => {
-                if (mode === "single") setSingle(val as Date | undefined)
-                else setRange(val)
+              selected={mode === "single" ? single : (range?.from ? range : undefined)}
+              onSelect={(val: Date | DateRange | undefined) => {
+                if (mode === "single") {
+                  setSingle((val as Date) || undefined)
+                } else {
+                  setRange((val as DateRange) || undefined)
+                }
               }}
               numberOfMonths={mode === "range" ? 2 : 1}
               captionLayout="dropdown"
@@ -110,4 +112,3 @@ export function DateFilter({
 }
 
 export default DateFilter
-
