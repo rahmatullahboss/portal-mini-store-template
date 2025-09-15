@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic'
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams?: { date?: string }
+  searchParams: Promise<{ date?: string }>
 }) {
   const headers = await getHeaders()
   const payloadConfig = await config
@@ -31,7 +31,7 @@ export default async function AdminDashboardPage({
   }
 
     // Determine selected date (default to today in UTC) and compute range [start, nextStart)
-  const paramDate = searchParams?.date
+  const { date: paramDate } = await searchParams
   const toDateOnly = (d: Date) => {
     const year = d.getUTCFullYear()
     const month = String(d.getUTCMonth() + 1).padStart(2, '0')
