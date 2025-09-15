@@ -187,13 +187,13 @@ export default async function HomePage() {
                           </span>
                           <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                         </div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 md:flex-col md:items-stretch md:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
-                          <AddToCartButton item={item} className="flex-shrink-0 md:w-full lg:w-auto" />
+                        <div className="ml-auto flex flex-wrap justify-end gap-1 sm:gap-2 md:flex-col md:items-end md:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+                          <AddToCartButton item={item} className="flex-shrink-0" />
                           <OrderNowButton
                             item={item}
                             isLoggedIn={!!user}
-                            className="flex-shrink-0 px-2 sm:px-4 py-2 text-xs sm:text-sm md:w-full lg:w-auto"
-                            wrapperClassName="flex-shrink-0 md:w-full lg:w-auto"
+                            className="flex-shrink-0 px-2 sm:px-4 py-2 text-xs sm:text-sm"
+                            wrapperClassName="flex-shrink-0"
                           />
                         </div>
                       </CardFooter>
