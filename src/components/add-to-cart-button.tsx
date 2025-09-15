@@ -7,6 +7,7 @@ import { useCart } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
 import type { CartItem } from '@/lib/cart-context'
 import { cn } from '@/lib/utils'
+import { track } from '@/lib/tracking'
 
 interface AddToCartButtonProps {
   item: {
@@ -38,6 +39,8 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
           : (item as any).category,
       image: item.image || (item.imageUrl ? { url: item.imageUrl } : undefined),
     })
+
+    track('addToCart', { id: item.id, name: item.name, price: item.price })
 
     setIsAdded(true)
 
