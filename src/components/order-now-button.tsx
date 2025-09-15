@@ -104,7 +104,9 @@ export function OrderNowButton({
         {loading ? 'Ordering…' : 'Order Now'}
       </Button>
       {error ? (
-        <span className="text-xs text-red-600" role="alert">{error}</span>
+        <span className="text-xs text-red-600" role="alert">
+          {error}
+        </span>
       ) : null}
     </div>
   )
