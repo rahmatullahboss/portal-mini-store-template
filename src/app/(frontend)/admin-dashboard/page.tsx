@@ -1,4 +1,4 @@
-import { headers as getHeaders } from 'next/headers.js'
+﻿import { headers as getHeaders } from 'next/headers.js'
 import Image from 'next/image'
 import { getPayload } from 'payload'
 import React from 'react'
@@ -15,7 +15,11 @@ import { OrderStatusUpdate } from '@/components/lazy-client-components'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams?: { date?: string }
+}) {
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
@@ -26,12 +30,38 @@ export default async function AdminDashboardPage() {
     redirect('/')
   }
 
-  // Fetch all orders
+    // Determine selected date (default to today in UTC) and compute range [start, nextStart)
+  const paramDate = searchParams?.date
+  const toDateOnly = (d: Date) => {
+    const year = d.getUTCFullYear()
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(d.getUTCDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  let selectedDateOnly: string
+  if (paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate)) {
+    selectedDateOnly = paramDate
+  } else {
+    selectedDateOnly = toDateOnly(new Date())
+  }
+
+  const [year, month, day] = selectedDateOnly.split('-').map((v) => Number(v))
+  const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0))
+  const nextStart = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0))
+
+  // Fetch orders for the selected day only
   const orders = await payload.find({
     collection: 'orders',
     depth: 3,
     sort: '-orderDate',
     limit: 50,
+    where: {
+      orderDate: {
+        greater_than_equal: start.toISOString(),
+        less_than: nextStart.toISOString(),
+      },
+    },
   })
 
   // Fetch recent abandoned carts (active + abandoned)
@@ -61,7 +91,7 @@ export default async function AdminDashboardPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Button asChild variant="ghost" className="mb-4">
-            <Link href="/">← Back to Home</Link>
+            <Link href="/">â† Back to Home</Link>
           </Button>
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
         </div>
@@ -72,7 +102,7 @@ export default async function AdminDashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-yellow-700 flex items-center gap-2">
                 <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">⏳</span>
+                  <span className="text-white text-lg">â³</span>
                 </div>
                 Pending
               </CardTitle>
@@ -89,7 +119,7 @@ export default async function AdminDashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-blue-700 flex items-center gap-2">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">🔄</span>
+                  <span className="text-white text-lg">ðŸ”„</span>
                 </div>
                 Processing
               </CardTitle>
@@ -106,7 +136,7 @@ export default async function AdminDashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-purple-700 flex items-center gap-2">
                 <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">📦</span>
+                  <span className="text-white text-lg">ðŸ“¦</span>
                 </div>
                 Shipped
               </CardTitle>
@@ -123,7 +153,7 @@ export default async function AdminDashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-green-700 flex items-center gap-2">
                 <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">✅</span>
+                  <span className="text-white text-lg">âœ…</span>
                 </div>
                 Completed
               </CardTitle>
@@ -140,7 +170,7 @@ export default async function AdminDashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-red-700 flex items-center gap-2">
                 <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">❌</span>
+                  <span className="text-white text-lg">âŒ</span>
                 </div>
                 Cancelled
               </CardTitle>
@@ -157,7 +187,7 @@ export default async function AdminDashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">💰</span>
+                  <span className="text-white text-lg">ðŸ’°</span>
                 </div>
                 Refunded
               </CardTitle>
@@ -178,7 +208,7 @@ export default async function AdminDashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xl">📈</span>
+                  <span className="text-white text-xl">ðŸ“ˆ</span>
                 </div>
                 Order Analytics
               </CardTitle>
@@ -261,7 +291,7 @@ export default async function AdminDashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xl">🛒</span>
+                  <span className="text-white text-xl">ðŸ›’</span>
                 </div>
                 Cart Analytics
               </CardTitle>
@@ -320,7 +350,7 @@ export default async function AdminDashboardPage() {
               {/* Recovery Recommendations */}
               {abandonedCarts.length > 0 && (
                 <div className="mt-4 p-3 bg-amber-100 rounded-lg">
-                  <div className="text-sm font-medium text-amber-800">💡 Recovery Opportunity</div>
+                  <div className="text-sm font-medium text-amber-800">ðŸ’¡ Recovery Opportunity</div>
                   <div className="text-xs text-amber-700 mt-1">
                     {abandonedCarts.length} abandoned carts worth potential recovery
                   </div>
@@ -334,12 +364,15 @@ export default async function AdminDashboardPage() {
 
         {/* Orders Section */}
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">All Orders</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-gray-900">Orders for {selectedDateOnly}</h2>
+            <div className="flex items-center gap-2">{(() => { const cur = new Date(start); const prev = new Date(cur); prev.setUTCDate(cur.getUTCDate() - 1); const next = new Date(cur); next.setUTCDate(cur.getUTCDate() + 1); const today = toDateOnly(new Date()); const prevStr = toDateOnly(prev); const nextStr = toDateOnly(next); return (<><Button asChild variant="outline" size="sm"><Link href={`/admin-dashboard?date=${prevStr}`}>Previous Day</Link></Button><Button asChild variant="outline" size="sm" disabled={nextStr > today}><Link aria-disabled={nextStr > today} href={`/admin-dashboard?date=${nextStr}`}>Next Day</Link></Button></>); })()}</div>
+          </div>
 
           {orders.docs.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center">
-                <p className="text-gray-500">No orders found.</p>
+                <p className="text-gray-500">No orders found for this date.</p>
               </CardContent>
             </Card>
           ) : (
@@ -412,12 +445,12 @@ export default async function AdminDashboardPage() {
                                         : ''
                           }
                         >
-                          {order.status === 'pending' && '⏳ '}
-                          {order.status === 'processing' && '🔄 '}
-                          {order.status === 'shipped' && '📦 '}
-                          {order.status === 'completed' && '✅ '}
-                          {order.status === 'cancelled' && '❌ '}
-                          {order.status === 'refunded' && '💰 '}
+                          {order.status === 'pending' && 'â³ '}
+                          {order.status === 'processing' && 'ðŸ”„ '}
+                          {order.status === 'shipped' && 'ðŸ“¦ '}
+                          {order.status === 'completed' && 'âœ… '}
+                          {order.status === 'cancelled' && 'âŒ '}
+                          {order.status === 'refunded' && 'ðŸ’° '}
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </Badge>
                         <OrderStatusUpdate orderId={order.id} currentStatus={order.status} />
@@ -449,11 +482,11 @@ export default async function AdminDashboardPage() {
                           <div className="flex-1">
                             <h4 className="font-medium">{item.item?.name || 'Unknown Item'}</h4>
                             <p className="text-sm text-gray-600">
-                              Qty: {item.quantity} × ৳{item.item?.price?.toFixed(2) || '0.00'}
+                              Qty: {item.quantity} Ã— à§³{item.item?.price?.toFixed(2) || '0.00'}
                             </p>
                           </div>
                           <div className="text-right font-medium">
-                            ৳{((item.item?.price || 0) * item.quantity).toFixed(2)}
+                            à§³{((item.item?.price || 0) * item.quantity).toFixed(2)}
                           </div>
                         </div>
                       ))}
@@ -488,7 +521,7 @@ export default async function AdminDashboardPage() {
 
                     <div className="text-right">
                       <span className="text-lg font-bold">
-                        Total: ৳{order.totalAmount.toFixed(2)}
+                        Total: à§³{order.totalAmount.toFixed(2)}
                       </span>
                     </div>
                   </CardContent>
@@ -505,20 +538,20 @@ export default async function AdminDashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
               <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg">🛒</span>
+                <span className="text-white text-lg">ðŸ›’</span>
               </div>
               Abandoned Carts
             </h2>
             <div className="flex gap-3">
               <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                🟢 Active: {activeCarts.length}
+                ðŸŸ¢ Active: {activeCarts.length}
               </Badge>
               <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
-                🔴 Abandoned: {abandonedCarts.length}
+                ðŸ”´ Abandoned: {abandonedCarts.length}
               </Badge>
               {abandonedCarts.length > 0 && (
                 <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
-                  💰 Recovery Value: ৳
+                  ðŸ’° Recovery Value: à§³
                   {abandonedCarts
                     .reduce((sum: number, cart: any) => sum + (cart.cartTotal || 0), 0)
                     .toFixed(2)}
@@ -560,22 +593,22 @@ export default async function AdminDashboardPage() {
                             (cart.user
                               ? `${cart.user?.firstName || ''} ${cart.user?.lastName || ''}`.trim()
                               : null) ||
-                            `Session ${String(cart.sessionId).slice(0, 8)}…`}
+                            `Session ${String(cart.sessionId).slice(0, 8)}â€¦`}
                         </CardTitle>
                         <CardDescription className="mt-1 flex items-center gap-4">
                           <span className="flex items-center gap-1">
-                            🕰️ Last activity: {new Date(cart.lastActivityAt).toLocaleString('en-US', { timeZone: 'UTC' })}
+                            ðŸ•°ï¸ Last activity: {new Date(cart.lastActivityAt).toLocaleString('en-US', { timeZone: 'UTC' })}
                           </span>
                           {cart.status === 'abandoned' && (
-                            <span className="text-red-600 font-medium">⚠️ Needs Recovery</span>
+                            <span className="text-red-600 font-medium">âš ï¸ Needs Recovery</span>
                           )}
                         </CardDescription>
                         <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                           <p className="flex items-center gap-1">
-                            📧 {cart.customerEmail || cart.user?.email || '—'}
+                            ðŸ“§ {cart.customerEmail || cart.user?.email || 'â€”'}
                           </p>
                           <p className="flex items-center gap-1">
-                            📱 {cart.customerNumber || cart.user?.customerNumber || '—'}
+                            ðŸ“± {cart.customerNumber || cart.user?.customerNumber || 'â€”'}
                           </p>
                         </div>
                       </div>
@@ -596,8 +629,8 @@ export default async function AdminDashboardPage() {
                                 : ''
                           }
                         >
-                          {cart.status === 'active' && '🟢 '}
-                          {cart.status === 'abandoned' && '🔴 '}
+                          {cart.status === 'active' && 'ðŸŸ¢ '}
+                          {cart.status === 'abandoned' && 'ðŸ”´ '}
                           {cart.status.charAt(0).toUpperCase() + cart.status.slice(1)}
                         </Badge>
                         {cart.recoveredOrder ? (
@@ -605,16 +638,16 @@ export default async function AdminDashboardPage() {
                             <Link
                               href={`/admin/collections/orders/${cart.recoveredOrder?.id || cart.recoveredOrder}`}
                             >
-                              📝 View Order
+                              ðŸ“ View Order
                             </Link>
                           </Button>
                         ) : cart.status === 'abandoned' && cart.cartTotal > 0 ? (
                           <div className="text-right">
                             <div className="text-sm font-medium text-amber-600">
-                              💰 Recovery Value
+                              ðŸ’° Recovery Value
                             </div>
                             <div className="text-lg font-bold text-gray-800">
-                              ৳{Number(cart.cartTotal || 0).toFixed(2)}
+                              à§³{Number(cart.cartTotal || 0).toFixed(2)}
                             </div>
                           </div>
                         ) : null}
@@ -625,7 +658,7 @@ export default async function AdminDashboardPage() {
                     {(cart.items || []).length > 0 ? (
                       <div className="space-y-3">
                         <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                          🛒 Cart Items ({(cart.items || []).length})
+                          ðŸ›’ Cart Items ({(cart.items || []).length})
                         </div>
                         {(cart.items || []).map((line: any, idx: number) => (
                           <div
@@ -646,7 +679,7 @@ export default async function AdminDashboardPage() {
                                 </div>
                               ) : (
                                 <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                  <span className="text-gray-400 text-xl">📦</span>
+                                  <span className="text-gray-400 text-xl">ðŸ“¦</span>
                                 </div>
                               )}
                               <div>
@@ -654,38 +687,38 @@ export default async function AdminDashboardPage() {
                                   {line.item?.name || 'Item'}
                                 </div>
                                 <div className="text-xs text-gray-500 flex items-center gap-1">
-                                  <span>📝 Qty: {line.quantity}</span>
+                                  <span>ðŸ“ Qty: {line.quantity}</span>
                                   {typeof line?.item?.price === 'number' && (
-                                    <span>• ৳{line.item.price.toFixed(2)} each</span>
+                                    <span>â€¢ à§³{line.item.price.toFixed(2)} each</span>
                                   )}
                                 </div>
                               </div>
                             </div>
                             <div className="text-sm font-semibold text-gray-800">
                               {typeof line?.item?.price === 'number'
-                                ? `৳${(line.item.price * (line.quantity || 1)).toFixed(2)}`
-                                : '—'}
+                                ? `à§³${(line.item.price * (line.quantity || 1)).toFixed(2)}`
+                                : 'â€”'}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <div className="text-center py-4 text-gray-500">
-                        <span className="text-2xl">🙅</span>
+                        <span className="text-2xl">ðŸ™…</span>
                         <p className="text-sm mt-1">No items in cart</p>
                       </div>
                     )}
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-600 flex items-center gap-1">
-                        🏷️ Session: {String(cart.sessionId).slice(0, 16)}…
+                        ðŸ·ï¸ Session: {String(cart.sessionId).slice(0, 16)}â€¦
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold text-gray-800">
-                          Total: ৳{Number(cart.cartTotal || 0).toFixed(2)}
+                          Total: à§³{Number(cart.cartTotal || 0).toFixed(2)}
                         </div>
                         {cart.status === 'abandoned' && cart.cartTotal > 0 && (
-                          <div className="text-xs text-red-600 mt-1">⚠️ Revenue at risk</div>
+                          <div className="text-xs text-red-600 mt-1">âš ï¸ Revenue at risk</div>
                         )}
                       </div>
                     </div>
@@ -699,3 +732,9 @@ export default async function AdminDashboardPage() {
     </div>
   )
 }
+
+
+
+
+
+
