@@ -35,6 +35,11 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
   useEffect(() => {
     if (items) {
       track('purchase', { orderId, items })
+      try {
+        sessionStorage.removeItem('last-order-preview')
+      } catch {
+        // ignore
+      }
     }
   }, [items, orderId])
 
