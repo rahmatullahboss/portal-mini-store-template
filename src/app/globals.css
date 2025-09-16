@@ -177,9 +177,9 @@
   background-image: radial-gradient(closest-side, rgba(255, 215, 0, 0.5), rgba(255, 215, 0, 0));
 }
 
-/* Mobile and reduced-motion optimizations */
-@media (prefers-reduced-motion: reduce), (max-width: 768px) {
-  /* Disable heavy animations on mobile to reduce main-thread work */
+/* Reduced-motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable heavy animations when motion should be minimized */
   .animate-pulse,
   .animate-bounce,
   .animate-gradient-x,
@@ -187,16 +187,28 @@
     animation: none !important;
   }
 
-  /* Avoid expensive blur filters on budget/mobile devices */
+  /* Avoid expensive blur filters in low-motion mode */
   .blur-xl {
     filter: none !important;
     backdrop-filter: none !important;
   }
 
-  /* Prevent complex transforms from triggering costly composites */
+  /* Prevent complex transforms when motion is turned down */
   .transform,
   .transition-transform,
   .transition-all {
     transition: opacity 150ms ease-out !important;
   }
 }
+
+/* Lightweight motion tweaks for small screens */
+@media (max-width: 768px) {
+  .animate-gradient-x {
+    animation-duration: 4s;
+  }
+
+  .animate-fade-in {
+    animation-duration: 1.25s;
+  }
+}
+
