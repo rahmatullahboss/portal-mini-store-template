@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import { CartProvider } from '@/lib/cart-context'
 import { SiteFooter } from '@/components/site-footer'
+import { FloatingContactButtons } from '@/components/floating-contact-buttons'
 import '../globals.css'
 import {
   CartSidebar,
@@ -72,6 +73,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         <CartProvider>
           <main>{children}</main>
           <SiteFooter />
+          <FloatingContactButtons />
           {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}
           <CartSidebar />
           <Toaster richColors position="top-center" />
