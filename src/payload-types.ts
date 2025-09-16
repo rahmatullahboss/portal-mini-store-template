@@ -195,6 +195,13 @@ export interface Media {
 export interface Item {
   id: number;
   name: string;
+  /**
+   * Shown on product highlights and cards.
+   */
+  shortDescription?: string | null;
+  /**
+   * Main product copy displayed on the item page.
+   */
   description: string;
   price: number;
   image?: (number | null) | Media;
@@ -454,6 +461,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface ItemsSelect<T extends boolean = true> {
   name?: T;
+  shortDescription?: T;
   description?: T;
   price?: T;
   image?: T;

@@ -39,6 +39,8 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
     return notFound()
   }
 
+  const shortDescription = (item as any).shortDescription || item.description
+
   const categoryLabel =
     typeof (item as any).category === 'object'
       ? ((item as any).category as any)?.name
@@ -112,7 +114,9 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 <span className="text-sm text-gray-600">{reviews.length} Reviews</span>
               </div>
             </div>
-            <p className="text-lg text-gray-700 mt-4">{item.description}</p>
+            <p className="text-lg text-gray-700 mt-4 whitespace-pre-line">
+              {shortDescription}
+            </p>
             <div className="mt-6">
               <span className="text-4xl font-bold text-green-600">৳{item.price.toFixed(2)}</span>
             </div>
@@ -160,8 +164,8 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
             </TabsList>
             <TabsContent value="description">
-              <div className="prose max-w-none">
-                <p className="text-gray-700">{item.description}</p>
+              <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {item.description}
               </div>
             </TabsContent>
             <TabsContent value="reviews">

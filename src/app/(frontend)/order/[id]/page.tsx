@@ -83,7 +83,9 @@ export default async function OrderPage({ params }: OrderPageProps) {
                 <CardTitle className="text-2xl">{item.name}</CardTitle>
                 <Badge variant="secondary">{typeof (item as any).category === 'object' ? ((item as any).category as any)?.name : (item as any).category}</Badge>
               </div>
-              <CardDescription>{item.description}</CardDescription>
+              <CardDescription className="whitespace-pre-line">
+                {item.shortDescription ?? item.description}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-green-600">৳{item.price.toFixed(2)} each</p>

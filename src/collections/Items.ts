@@ -20,9 +20,22 @@ export const Items: CollectionConfig = {
       required: true,
     },
     {
+      name: 'shortDescription',
+      type: 'textarea',
+      required: false,
+      admin: {
+        description: 'Shown on product highlights and cards.',
+        rows: 3,
+      },
+    },
+    {
       name: 'description',
       type: 'textarea',
       required: true,
+      admin: {
+        description: 'Main product copy displayed on the item page.',
+        rows: 8,
+      },
     },
     {
       name: 'price',

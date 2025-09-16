@@ -183,7 +183,7 @@ export default async function HomePage() {
                             <div className="h-0.5 w-12 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                           </div>
                           <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                            {item.description}
+                            {item.shortDescription ?? item.description}
                           </CardDescription>
                         </CardHeader>
                       </Link>
