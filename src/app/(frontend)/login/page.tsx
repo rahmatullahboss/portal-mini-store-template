@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
 
@@ -14,6 +15,7 @@ function LoginForm() {
     email: '',
     password: '',
   })
+  const [rememberMe, setRememberMe] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -55,6 +57,7 @@ function LoginForm() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          rememberMe,
         }),
       })
 
@@ -146,6 +149,16 @@ function LoginForm() {
                 />
               </div>
 
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="remember-me"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                />
+                <label htmlFor="remember-me" className="text-sm text-gray-600 select-none">
+                  Keep me logged in
+                </label>
+              </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Signing in...' : 'Sign in'}
               </Button>
