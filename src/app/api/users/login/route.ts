@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
   const authConfig = usersCollection.config.auth
   const originalExpiration = authConfig.tokenExpiration
-  const originalRemoveToken = authConfig.removeTokenFromResponses
+  const originalRemoveToken = authConfig.removeTokenFromResponses === true
   const effectiveExpiration = rememberMe ? REMEMBER_ME_EXPIRATION_SECONDS : originalExpiration
 
   if (rememberMe) {
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Ensure we receive the token so we can manage the cookie manually
-  authConfig.removeTokenFromResponses = false
+  ;(authConfig as any).removeTokenFromResponses = false
 
   try {
     const result = (await payload.login({
@@ -119,6 +119,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message }, { status })
   } finally {
     authConfig.tokenExpiration = originalExpiration
-    authConfig.removeTokenFromResponses = originalRemoveToken
+    ;(authConfig as any).removeTokenFromResponses = originalRemoveToken
   }
 }
