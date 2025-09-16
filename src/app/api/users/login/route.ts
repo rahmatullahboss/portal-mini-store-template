@@ -1,9 +1,51 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getPayload } from "payload"
 import config from "@/payload.config"
-import { generatePayloadCookie } from "payload/dist/auth/cookies.js"
 
 const REMEMBER_ME_EXPIRATION_SECONDS = 60 * 60 * 24 * 30 // 30 days
+
+function buildAuthCookie({
+  authConfig,
+  cookiePrefix,
+  token,
+  expiresInSeconds,
+}: {
+  authConfig: any
+  cookiePrefix: string
+  token: string
+  expiresInSeconds: number
+}) {
+  const cookieParts: string[] = []
+  const name = `${cookiePrefix}-token`
+  const expires = new Date(Date.now() + expiresInSeconds * 1000)
+  const cookiesConfig = authConfig.cookies || {}
+  const sameSite =
+    typeof cookiesConfig.sameSite === "string"
+      ? cookiesConfig.sameSite
+      : cookiesConfig.sameSite
+        ? "Strict"
+        : undefined
+
+  cookieParts.push(`${name}=${token}`)
+  cookieParts.push(`Expires=${expires.toUTCString()}`)
+
+  if (cookiesConfig.domain) {
+    cookieParts.push(`Domain=${cookiesConfig.domain}`)
+  }
+
+  cookieParts.push("Path=/")
+  cookieParts.push("HttpOnly")
+
+  if (cookiesConfig.secure) {
+    cookieParts.push("Secure")
+  }
+
+  if (sameSite) {
+    cookieParts.push(`SameSite=${sameSite}`)
+  }
+
+  return cookieParts.join("; ")
+}
 
 export async function POST(request: NextRequest) {
   let body: any
@@ -52,16 +94,11 @@ export async function POST(request: NextRequest) {
       throw new Error("Authentication token was not generated")
     }
 
-    const snapshotAuthConfig = {
-      ...authConfig,
-      tokenExpiration: effectiveExpiration,
-      cookies: { ...authConfig.cookies },
-    }
-
-    const tokenCookie = generatePayloadCookie({
-      collectionAuthConfig: snapshotAuthConfig as any,
+    const tokenCookie = buildAuthCookie({
+      authConfig,
       cookiePrefix: payload.config.cookiePrefix,
       token: result.token,
+      expiresInSeconds: effectiveExpiration,
     })
 
     const responseBody: Record<string, unknown> = {
