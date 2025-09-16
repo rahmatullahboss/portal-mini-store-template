@@ -11,11 +11,25 @@ import { CalendarIcon, RotateCcw } from "lucide-react"
 
 type Mode = "single" | "range"
 
-function toDateOnlyUTC(d: Date) {
-  const y = d.getUTCFullYear()
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0")
-  const day = String(d.getUTCDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
+function toDateOnly(d: Date) {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function parseDateOnly(value?: string): Date | undefined {
+  if (!value) return undefined
+  const parts = value.split("-")
+  if (parts.length !== 3) return undefined
+  const [yearStr, monthStr, dayStr] = parts
+  const year = Number(yearStr)
+  const month = Number(monthStr)
+  const day = Number(dayStr)
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return undefined
+  }
+  return new Date(year, month - 1, day)
 }
 
 export function DateFilter({
@@ -34,11 +48,11 @@ export function DateFilter({
 
   const [mode, setMode] = React.useState<Mode>(initialMode)
   const [single, setSingle] = React.useState<Date | undefined>(
-    initialDate ? new Date(`${initialDate}T00:00:00.000Z`) : new Date()
+    parseDateOnly(initialDate) ?? new Date()
   )
   const [range, setRange] = React.useState<DateRange | undefined>(() => {
-    const from = initialStart ? new Date(`${initialStart}T00:00:00.000Z`) : undefined
-    const to = initialEnd ? new Date(`${initialEnd}T00:00:00.000Z`) : undefined
+    const from = parseDateOnly(initialStart)
+    const to = parseDateOnly(initialEnd)
     // Only set an initial range when `from` exists; otherwise keep undefined
     return from ? { from, to } : undefined
   })
@@ -51,10 +65,10 @@ export function DateFilter({
     params.delete("end")
 
     if (mode === "single" && single) {
-      params.set("date", toDateOnlyUTC(single))
+      params.set("date", toDateOnly(single))
     } else if (mode === "range" && range?.from && range?.to) {
-      params.set("start", toDateOnlyUTC(range.from))
-      params.set("end", toDateOnlyUTC(range.to))
+      params.set("start", toDateOnly(range.from))
+      params.set("end", toDateOnly(range.to))
     }
     router.push(`/admin-dashboard?${params.toString()}`)
   }
@@ -64,7 +78,7 @@ export function DateFilter({
     setMode("single")
     setSingle(today)
     const params = new URLSearchParams(sp?.toString() || "")
-    params.delete("start"); params.delete("end"); params.set("date", toDateOnlyUTC(today))
+    params.delete("start"); params.delete("end"); params.set("date", toDateOnly(today))
     router.push(`/admin-dashboard?${params.toString()}`)
   }
 
@@ -96,7 +110,7 @@ export function DateFilter({
                 mode="range"
                 selected={range}
                 onSelect={(val?: DateRange) => setRange(val)}
-                numberOfMonths={2}
+                numberOfMonths={1}
                 captionLayout="dropdown"
               />
             )}
