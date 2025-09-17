@@ -76,6 +76,54 @@ export const Orders: CollectionConfig = {
       },
     },
     {
+      name: 'paymentMethod',
+      type: 'select',
+      label: 'Payment method',
+      required: true,
+      defaultValue: 'cod',
+      options: [
+        { label: 'Cash on Delivery', value: 'cod' },
+        { label: 'bKash', value: 'bkash' },
+        { label: 'Nagad', value: 'nagad' },
+      ],
+    },
+    {
+      name: 'paymentSenderNumber',
+      type: 'text',
+      label: 'Sender wallet number',
+      required: false,
+      admin: {
+        description: 'Wallet number used to send the payment',
+        condition: (data) => data?.paymentMethod === 'bkash' || data?.paymentMethod === 'nagad',
+      },
+      validate: (value, { siblingData }) => {
+        if (siblingData?.paymentMethod === 'bkash' || siblingData?.paymentMethod === 'nagad') {
+          return typeof value === 'string' && value.trim().length > 0
+            ? true
+            : 'Sender wallet number is required for digital payments'
+        }
+        return true
+      },
+    },
+    {
+      name: 'paymentTransactionId',
+      type: 'text',
+      label: 'Transaction ID',
+      required: false,
+      admin: {
+        description: 'Reference ID from the mobile wallet payment',
+        condition: (data) => data?.paymentMethod === 'bkash' || data?.paymentMethod === 'nagad',
+      },
+      validate: (value, { siblingData }) => {
+        if (siblingData?.paymentMethod === 'bkash' || siblingData?.paymentMethod === 'nagad') {
+          return typeof value === 'string' && value.trim().length > 0
+            ? true
+            : 'Transaction ID is required for digital payments'
+        }
+        return true
+      },
+    },
+    {
       name: 'items',
       type: 'array',
       fields: [
@@ -251,6 +299,21 @@ export const Orders: CollectionConfig = {
           const total = Number((doc as any).totalAmount || 0)
           const customerName = String((doc as any).customerName || '')
           const customerEmail = String((doc as any).customerEmail || '')
+          const paymentMethodRaw = String((doc as any).paymentMethod || 'cod')
+          const paymentSenderNumber = String((doc as any).paymentSenderNumber || '')
+          const paymentTransactionId = String((doc as any).paymentTransactionId || '')
+          const formatPaymentLabel = (method: string) => {
+            switch (method) {
+              case 'bkash':
+                return 'bKash'
+              case 'nagad':
+                return 'Nagad'
+              case 'cod':
+              default:
+                return 'Cash on Delivery'
+            }
+          }
+          const paymentLabel = formatPaymentLabel(paymentMethodRaw)
           const orderAdminURL = serverURL ? `${serverURL}/admin/collections/orders/${orderId}` : ''
           const companyName = process.env.EMAIL_DEFAULT_FROM_NAME || 'Online Bazar'
 
@@ -298,6 +361,9 @@ export const Orders: CollectionConfig = {
               </table>
 
               <p style="margin-top:12px;"><strong>মোট মূল্য:</strong> ${fmt(total)}</p>
+              <p style="margin-top:12px;"><strong>পেমেন্ট:</strong> ${paymentLabel}${
+                paymentSenderNumber ? ` (Sender: ${paymentSenderNumber})` : ''
+              }${paymentTransactionId ? `, Txn: ${paymentTransactionId}` : ''}</p>
 
               <h3 style="margin:16px 0 8px 0;">যে ঠিকানায় পাঠানো হবে:</h3>
               <p>${addressLines.map((l: string) => l.replace(/</g, '&lt;').replace(/>/g, '&gt;')).join('<br/>')}</p>
@@ -351,28 +417,34 @@ export const Orders: CollectionConfig = {
           const adminEmail = process.env.ORDER_NOTIFICATIONS_EMAIL || process.env.GMAIL_USER
           if (adminEmail) {
             const adminLines = detailed.map((d) => `- ${d.name} x ${d.quantity}`).join('\n')
-            const adminText = [
-              `New order #${orderId} from ${customerName} <${customerEmail}>`,
-              '',
-              'Order summary:',
-              adminLines,
-              '',
-              `Total: ${total.toFixed(2)}`,
-              orderAdminURL ? `\nAdmin link: ${orderAdminURL}` : '',
-            ].filter(Boolean).join('\n')
+          const adminText = [
+            `New order #${orderId} from ${customerName} <${customerEmail}>`,
+            '',
+            'Order summary:',
+            adminLines,
+            '',
+            `Total: ${total.toFixed(2)}`,
+            `Payment: ${paymentLabel}`,
+            paymentSenderNumber ? `Sender: ${paymentSenderNumber}` : '',
+            paymentTransactionId ? `Txn: ${paymentTransactionId}` : '',
+            orderAdminURL ? `\nAdmin link: ${orderAdminURL}` : '',
+          ].filter(Boolean).join('\n')
 
-            const adminHTML = `
-              <div>
-                <p><strong>New order #${orderId}</strong></p>
-                <p>Customer: ${customerName} &lt;${customerEmail}&gt;</p>
-                <p><strong>Order summary:</strong></p>
-                <ul>
-                  ${detailed.map((d) => `<li>${d.name} x ${d.quantity}</li>`).join('')}
-                </ul>
-                <p><strong>Total:</strong> ${total.toFixed(2)}</p>
-                ${orderAdminURL ? `<p><a href="${orderAdminURL}">Open in Admin</a></p>` : ''}
-              </div>
-            `
+          const adminHTML = `
+            <div>
+              <p><strong>New order #${orderId}</strong></p>
+              <p>Customer: ${customerName} &lt;${customerEmail}&gt;</p>
+              <p><strong>Order summary:</strong></p>
+              <ul>
+                ${detailed.map((d) => `<li>${d.name} x ${d.quantity}</li>`).join('')}
+              </ul>
+              <p><strong>Total:</strong> ${total.toFixed(2)}</p>
+              <p><strong>Payment:</strong> ${paymentLabel}</p>
+              ${paymentSenderNumber ? `<p><strong>Sender:</strong> ${paymentSenderNumber}</p>` : ''}
+              ${paymentTransactionId ? `<p><strong>Transaction:</strong> ${paymentTransactionId}</p>` : ''}
+              ${orderAdminURL ? `<p><a href="${orderAdminURL}">Open in Admin</a></p>` : ''}
+            </div>
+          `
 
             await payload?.sendEmail?.({
               to: adminEmail,

@@ -16,6 +16,19 @@ import { CancelOrderButton } from './CancelOrderButton'
 
 export const dynamic = 'force-dynamic'
 
+const formatPaymentMethod = (method?: string | null) => {
+  switch (method) {
+    case 'bkash':
+      return 'bKash'
+    case 'nagad':
+      return 'Nagad'
+    case 'cod':
+      return 'Cash on Delivery'
+    default:
+      return 'Cash on Delivery'
+  }
+}
+
 export default async function MyOrdersPage({
   searchParams,
 }: {
@@ -175,6 +188,26 @@ export default async function MyOrdersPage({
                     <span className="text-lg font-bold">
                       Total: ৳{order.totalAmount.toFixed(2)}
                     </span>
+                  </div>
+                  <div className="space-y-1 text-sm text-gray-600 mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Payment method</span>
+                      <span>{formatPaymentMethod(order.paymentMethod)}</span>
+                    </div>
+                    {order.paymentSenderNumber && (
+                      <div className="flex items-center justify-between">
+                        <span>Sender number</span>
+                        <span className="font-medium">{order.paymentSenderNumber}</span>
+                      </div>
+                    )}
+                    {order.paymentTransactionId && (
+                      <div className="flex items-center justify-between">
+                        <span>Transaction ID</span>
+                        <span className="font-mono text-xs sm:text-sm break-all">
+                          {order.paymentTransactionId}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {order.status === 'pending' && (
                     <div className="text-right mt-4">
