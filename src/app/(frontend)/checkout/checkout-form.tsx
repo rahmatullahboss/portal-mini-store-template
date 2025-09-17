@@ -14,6 +14,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import type { DeliverySettings } from '@/lib/delivery-settings'
 import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { cn } from '@/lib/utils'
+import {
+  PAYMENT_OPTIONS,
+  type PaymentMethod,
+  isDigitalPaymentMethod,
+} from '@/lib/payment-options'
 
 interface CheckoutFormProps {
   user?: any
@@ -25,7 +30,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [customerNumber, setCustomerNumber] = useState<string>(user?.customerNumber || '')
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash' | 'nagad'>('cod')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod')
   const [paymentSenderNumber, setPaymentSenderNumber] = useState<string>('')
   const [paymentTransactionId, setPaymentTransactionId] = useState<string>('')
   const [firstName, setFirstName] = useState<string>(user?.firstName || '')
@@ -46,12 +51,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const shippingCharge = freeDelivery
     ? 0
     : deliveryZone === 'outside_dhaka'
-      ? settings.outsideDhakaCharge
-      : settings.insideDhakaCharge
+    ? settings.outsideDhakaCharge
+    : settings.insideDhakaCharge
   const total = subtotal + shippingCharge
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
-  const requiresDigitalPaymentDetails = paymentMethod === 'bkash' || paymentMethod === 'nagad'
+  const requiresDigitalPaymentDetails = isDigitalPaymentMethod(paymentMethod)
 
   // Persist guest details for abandoned cart tracking
   React.useEffect(() => {
@@ -439,39 +444,43 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           Choose how you would like to pay. Digital wallet payments require a completed transfer before placing the order.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {([
-            { value: 'cod', label: 'Cash on Delivery', image: '/payment/cash-on-delivery.svg' },
-            { value: 'bkash', label: 'bKash', image: '/payment/bkash.svg' },
-            { value: 'nagad', label: 'Nagad', image: '/payment/nagad.svg' },
-          ] as const).map((option) => (
-              <label
-                key={option.value}
-                className={cn(
-                  'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
-                  paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={option.value}
-                  checked={paymentMethod === option.value}
-                  onChange={() => {
-                    setPaymentMethod(option.value)
-                    if (option.value === 'cod') {
-                      setPaymentSenderNumber('')
-                      setPaymentTransactionId('')
-                    }
-                    setError(null)
-                  }}
-                  className="sr-only"
+          {PAYMENT_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className={cn(
+                'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+                paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+              )}
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value={option.value}
+                checked={paymentMethod === option.value}
+                onChange={() => {
+                  setPaymentMethod(option.value)
+                  if (option.value === 'cod') {
+                    setPaymentSenderNumber('')
+                    setPaymentTransactionId('')
+                  }
+                  setError(null)
+                }}
+                className="sr-only"
+              />
+              <div className="relative w-32 h-16">
+                <Image
+                  src={option.logo.src}
+                  alt={option.logo.alt}
+                  width={option.logo.width}
+                  height={option.logo.height}
+                  className="h-full w-full object-contain"
+                  sizes="128px"
+                  priority={option.value === 'cod'}
                 />
-                <div className="relative w-32 h-16">
-                  <Image src={option.image} alt={option.label} fill className="object-contain" sizes="128px" />
-                </div>
-                <span className="font-medium text-sm">{option.label}</span>
-              </label>
-            ))}
+              </div>
+              <span className="font-medium text-sm">{option.label}</span>
+            </label>
+          ))}
         </div>
 
         {requiresDigitalPaymentDetails ? (
@@ -563,6 +572,3 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     </form>
   )
 }
-
-
-

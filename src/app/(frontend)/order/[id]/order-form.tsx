@@ -10,6 +10,11 @@ import { Separator } from '@/components/ui/separator'
 import type { DeliverySettings } from '@/lib/delivery-settings'
 import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { cn } from '@/lib/utils'
+import {
+  PAYMENT_OPTIONS,
+  type PaymentMethod,
+  isDigitalPaymentMethod,
+} from '@/lib/payment-options'
 
 interface OrderFormProps {
   item: any
@@ -22,7 +27,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [customerNumber, setCustomerNumber] = useState<string>(user?.customerNumber || '')
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash' | 'nagad'>('cod')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod')
   const [paymentSenderNumber, setPaymentSenderNumber] = useState('')
   const [paymentTransactionId, setPaymentTransactionId] = useState('')
   const [firstName, setFirstName] = useState<string>(user?.firstName || '')
@@ -48,7 +53,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const total = subtotal + shippingCharge
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
-  const requiresDigitalPaymentDetails = paymentMethod === 'bkash' || paymentMethod === 'nagad'
+  const requiresDigitalPaymentDetails = isDigitalPaymentMethod(paymentMethod)
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -204,7 +209,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           id="customerNumber"
           value={customerNumber}
           onChange={(e) => setCustomerNumber(e.target.value)}
-          placeholder="e.g. +1 555 123 4567"
+          placeholder="e.g. 01XXXXXXXXX"
           required
         />
       </div>
@@ -303,99 +308,103 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             <div className="font-medium">Outside Dhaka</div>
             <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.outsideDhakaCharge)}</p>
           </label>
-      </div>
-      {freeDelivery ? (
-        <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
-      ) : (
-        <p className="text-xs text-gray-500">
-          Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
-        </p>
-      )}
-    </div>
-
-    {/* Payment Method */}
-    <div className="space-y-3">
-      <h3 className="text-lg font-semibold">Payment method</h3>
-      <p className="text-sm text-gray-500">
-        Choose how you would like to pay. Digital wallet payments require a completed transfer before placing the order.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {([
-          { value: 'cod', label: 'Cash on Delivery', image: '/payment/cash-on-delivery.svg' },
-          { value: 'bkash', label: 'bKash', image: '/payment/bkash.svg' },
-          { value: 'nagad', label: 'Nagad', image: '/payment/nagad.svg' },
-        ] as const).map((option) => (
-          <label
-            key={option.value}
-            className={cn(
-              'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
-              paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
-            )}
-          >
-            <input
-              type="radio"
-              name="paymentMethod"
-              value={option.value}
-              checked={paymentMethod === option.value}
-              onChange={() => {
-                setPaymentMethod(option.value)
-                if (option.value === 'cod') {
-                  setPaymentSenderNumber('')
-                  setPaymentTransactionId('')
-                }
-                setError('')
-              }}
-              className="sr-only"
-            />
-            <div className="relative w-32 h-16">
-              <Image src={option.image} alt={option.label} fill className="object-contain" sizes="128px" />
-            </div>
-            <span className="font-medium text-sm">{option.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {requiresDigitalPaymentDetails ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-gray-700">
-              Sender wallet number
-            </label>
-            <Input
-              id="paymentSenderNumber"
-              name="paymentSenderNumber"
-              type="tel"
-              value={paymentSenderNumber}
-              onChange={(e) => {
-                setPaymentSenderNumber(e.target.value)
-                setError('')
-              }}
-              required={requiresDigitalPaymentDetails}
-              placeholder="e.g. 01XXXXXXXXX"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="paymentTransactionId" className="text-sm font-medium text-gray-700">
-              Transaction ID
-            </label>
-            <Input
-              id="paymentTransactionId"
-              name="paymentTransactionId"
-              type="text"
-              value={paymentTransactionId}
-              onChange={(e) => {
-                setPaymentTransactionId(e.target.value)
-                setError('')
-              }}
-              required={requiresDigitalPaymentDetails}
-              placeholder="e.g. TXN123456789"
-            />
-          </div>
         </div>
-      ) : (
-        <p className="text-xs text-gray-500">You can pay in cash when the delivery arrives.</p>
-      )}
-    </div>
+        {freeDelivery ? (
+          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+          </p>
+        )}
+      </div>
+
+      {/* Payment Method */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Payment method</h3>
+        <p className="text-sm text-gray-500">
+          Choose how you would like to pay. Digital wallet payments require a completed transfer before placing the order.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {PAYMENT_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className={cn(
+                'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+                paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+              )}
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value={option.value}
+                checked={paymentMethod === option.value}
+                onChange={() => {
+                  setPaymentMethod(option.value)
+                  if (option.value === 'cod') {
+                    setPaymentSenderNumber('')
+                    setPaymentTransactionId('')
+                  }
+                  setError('')
+                }}
+                className="sr-only"
+              />
+              <div className="relative w-32 h-16">
+                <Image
+                  src={option.logo.src}
+                  alt={option.logo.alt}
+                  width={option.logo.width}
+                  height={option.logo.height}
+                  className="h-full w-full object-contain"
+                  sizes="128px"
+                  priority={option.value === 'cod'}
+                />
+              </div>
+              <span className="font-medium text-sm">{option.label}</span>
+            </label>
+          ))}
+        </div>
+
+        {requiresDigitalPaymentDetails ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-gray-700">
+                Sender wallet number
+              </label>
+              <Input
+                id="paymentSenderNumber"
+                name="paymentSenderNumber"
+                type="tel"
+                value={paymentSenderNumber}
+                onChange={(e) => {
+                  setPaymentSenderNumber(e.target.value)
+                  setError('')
+                }}
+                required={requiresDigitalPaymentDetails}
+                placeholder="e.g. 01XXXXXXXXX"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="paymentTransactionId" className="text-sm font-medium text-gray-700">
+                Transaction ID
+              </label>
+              <Input
+                id="paymentTransactionId"
+                name="paymentTransactionId"
+                type="text"
+                value={paymentTransactionId}
+                onChange={(e) => {
+                  setPaymentTransactionId(e.target.value)
+                  setError('')
+                }}
+                required={requiresDigitalPaymentDetails}
+                placeholder="e.g. TXN123456789"
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500">You can pay in cash when the delivery arrives.</p>
+        )}
+      </div>
       <Separator />
 
       <div className="space-y-3">
@@ -434,6 +443,3 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </form>
   )
 }
-
-
-

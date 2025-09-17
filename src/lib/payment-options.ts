@@ -1,0 +1,58 @@
+export type PaymentMethod = 'cod' | 'bkash' | 'nagad'
+
+export interface PaymentLogo {
+  src: string
+  alt: string
+  width: number
+  height: number
+}
+
+export interface PaymentOption {
+  value: PaymentMethod
+  label: string
+  logo: PaymentLogo
+}
+
+export const DIGITAL_PAYMENT_METHODS: PaymentMethod[] = ['bkash', 'nagad']
+
+export const isDigitalPaymentMethod = (method: PaymentMethod): boolean =>
+  DIGITAL_PAYMENT_METHODS.includes(method)
+
+export const PAYMENT_OPTIONS: PaymentOption[] = [
+  {
+    value: 'cod',
+    label: 'Cash on Delivery',
+    logo: {
+      src: '/payment/cod.svg',
+      alt: 'Cash on Delivery logo',
+      width: 512,
+      height: 256,
+    },
+  },
+  {
+    value: 'bkash',
+    label: 'bKash',
+    logo: {
+      src: '/payment/bkash.svg',
+      alt: 'bKash logo',
+      width: 512,
+      height: 341,
+    },
+  },
+  {
+    value: 'nagad',
+    label: 'Nagad',
+    logo: {
+      src: '/payment/nagad.svg',
+      alt: 'Nagad logo',
+      width: 512,
+      height: 341,
+    },
+  },
+]
+
+export const PAYMENT_OPTION_MAP: Record<PaymentMethod, PaymentOption> =
+  PAYMENT_OPTIONS.reduce((acc, option) => {
+    acc[option.value] = option
+    return acc
+  }, {} as Record<PaymentMethod, PaymentOption>)
