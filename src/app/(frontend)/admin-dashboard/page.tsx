@@ -46,6 +46,20 @@ export default async function AdminDashboardPage({
   const BDT = '\u09F3'
   const fmtBDT = (n: number) => `${BDT}${n.toFixed(2)}`
 
+  const formatPaymentMethod = (method?: string | null) => {
+    switch (method) {
+      case 'bkash':
+        return 'bKash'
+      case 'nagad':
+        return 'Nagad'
+      case 'cod':
+      default:
+        return 'Cash on Delivery'
+    }
+  }
+
+  const isDigitalPayment = (method?: string | null) => method === 'bkash' || method === 'nagad'
+
   // Determine selected date or date range and compute [start, endExclusive)
   const { date: paramDate, start: startParam, end: endParam } = await searchParams
   const toDateOnly = (d: Date) => {
@@ -477,9 +491,30 @@ export default async function AdminDashboardPage({
 
                     <Separator className="my-4" />
 
-                    {/* Shipping Address */}
-                    {order.shippingAddress ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
+                    <div className={`grid gap-4 my-4 ${order.shippingAddress ? 'sm:grid-cols-2' : ''}`}>
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-1">Payment Details</h4>
+                        <div className="space-y-1 text-sm text-gray-700">
+                          <div>
+                            <span className="font-medium text-gray-800">Method:</span>{' '}
+                            {formatPaymentMethod(order.paymentMethod)}
+                          </div>
+                          {isDigitalPayment(order.paymentMethod) ? (
+                            <>
+                              <div>
+                                <span className="font-medium text-gray-800">Sender Number:</span>{' '}
+                                {order.paymentSenderNumber || 'Not provided'}
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-800">Transaction ID:</span>{' '}
+                                {order.paymentTransactionId || 'Not provided'}
+                              </div>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {order.shippingAddress ? (
                         <div>
                           <h4 className="font-semibold text-gray-800 mb-1">Shipping Address</h4>
                           <p className="text-sm text-gray-700">
@@ -497,8 +532,8 @@ export default async function AdminDashboardPage({
                             {order.shippingAddress.postalCode}, {order.shippingAddress.country}
                           </p>
                         </div>
-                      </div>
-                    ) : null}
+                      ) : null}
+                    </div>
 
                     <Separator className="my-4" />
 
