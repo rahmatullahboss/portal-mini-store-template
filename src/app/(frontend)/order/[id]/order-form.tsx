@@ -14,6 +14,7 @@ import {
   PAYMENT_OPTIONS,
   type PaymentMethod,
   isDigitalPaymentMethod,
+  DIGITAL_PAYMENT_INSTRUCTIONS,
 } from '@/lib/payment-options'
 
 interface OrderFormProps {
@@ -54,6 +55,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
   const requiresDigitalPaymentDetails = isDigitalPaymentMethod(paymentMethod)
+  const digitalPaymentInstruction = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -365,40 +367,47 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
         </div>
 
         {requiresDigitalPaymentDetails ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-gray-700">
-                Sender wallet number
-              </label>
-              <Input
-                id="paymentSenderNumber"
-                name="paymentSenderNumber"
-                type="tel"
-                value={paymentSenderNumber}
-                onChange={(e) => {
-                  setPaymentSenderNumber(e.target.value)
-                  setError('')
-                }}
-                required={requiresDigitalPaymentDetails}
-                placeholder="e.g. 01XXXXXXXXX"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="paymentTransactionId" className="text-sm font-medium text-gray-700">
-                Transaction ID
-              </label>
-              <Input
-                id="paymentTransactionId"
-                name="paymentTransactionId"
-                type="text"
-                value={paymentTransactionId}
-                onChange={(e) => {
-                  setPaymentTransactionId(e.target.value)
-                  setError('')
-                }}
-                required={requiresDigitalPaymentDetails}
-                placeholder="e.g. TXN123456789"
-              />
+          <div className="space-y-4">
+            {digitalPaymentInstruction ? (
+              <Alert className="bg-blue-50 border-blue-200 text-blue-900">
+                <AlertDescription>{digitalPaymentInstruction}</AlertDescription>
+              </Alert>
+            ) : null}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-gray-700">
+                  Sender wallet number
+                </label>
+                <Input
+                  id="paymentSenderNumber"
+                  name="paymentSenderNumber"
+                  type="tel"
+                  value={paymentSenderNumber}
+                  onChange={(e) => {
+                    setPaymentSenderNumber(e.target.value)
+                    setError('')
+                  }}
+                  required={requiresDigitalPaymentDetails}
+                  placeholder="e.g. 01XXXXXXXXX"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="paymentTransactionId" className="text-sm font-medium text-gray-700">
+                  Transaction ID
+                </label>
+                <Input
+                  id="paymentTransactionId"
+                  name="paymentTransactionId"
+                  type="text"
+                  value={paymentTransactionId}
+                  onChange={(e) => {
+                    setPaymentTransactionId(e.target.value)
+                    setError('')
+                  }}
+                  required={requiresDigitalPaymentDetails}
+                  placeholder="e.g. TXN123456789"
+                />
+              </div>
             </div>
           </div>
         ) : (

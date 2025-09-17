@@ -13,6 +13,13 @@ export interface PaymentOption {
   logo: PaymentLogo
 }
 
+export const DIGITAL_PAYMENT_ACCOUNT_NUMBER = '01739-416661'
+
+export const DIGITAL_PAYMENT_INSTRUCTIONS: Partial<Record<PaymentMethod, string>> = {
+  bkash: `Send your payment to our bKash number ${DIGITAL_PAYMENT_ACCOUNT_NUMBER} using "Send Money". After completing the transfer, include your centre number if prompted and provide the sender wallet number and transaction ID in the boxes below so we can verify your payment.`,
+  nagad: `Send your payment to our Nagad number ${DIGITAL_PAYMENT_ACCOUNT_NUMBER} using "Send Money". After completing the transfer, include your centre number if prompted and provide the sender wallet number and transaction ID in the boxes below so we can verify your payment.`,
+}
+
 export const DIGITAL_PAYMENT_METHODS: PaymentMethod[] = ['bkash', 'nagad']
 
 export const isDigitalPaymentMethod = (method: PaymentMethod): boolean =>
