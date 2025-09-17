@@ -35,7 +35,7 @@ const sanitizeEvent = (event: TrackingEvent) => {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}))
-    const events = Array.isArray((body as any)?.events) ? (body as any).events : []
+    const events: TrackingEvent[] = Array.isArray((body as any)?.events) ? ((body as any).events as TrackingEvent[]) : []
 
     if (!events.length) {
       return NextResponse.json({ error: 'No events provided' }, { status: 400 })
@@ -63,3 +63,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to process events' }, { status: 500 })
   }
 }
+

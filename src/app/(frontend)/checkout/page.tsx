@@ -18,13 +18,13 @@ export default async function CheckoutPage() {
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
   const fullUser = user
+    ? await payload.findByID({ collection: 'users', id: (user as any).id }).catch(() => null)
+    : null
   const deliverySettingsResult = await payload
     .find({ collection: 'delivery-settings', limit: 1 })
     .catch(() => null)
   const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
 
-    ? await payload.findByID({ collection: 'users', id: (user as any).id }).catch(() => null)
-    : null
 
   return (
     <div className="min-h-screen bg-gray-50">

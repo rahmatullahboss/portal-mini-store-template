@@ -74,6 +74,7 @@ export interface Config {
     orders: Order;
     reviews: Review;
     'abandoned-carts': AbandonedCart;
+    'delivery-settings': DeliverySetting;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -87,6 +88,7 @@ export interface Config {
     orders: OrdersSelect<false> | OrdersSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'abandoned-carts': AbandonedCartsSelect<false> | AbandonedCartsSelect<true>;
+    'delivery-settings': DeliverySettingsSelect<false> | DeliverySettingsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -133,6 +135,10 @@ export interface User {
    * Primary contact number for orders and updates
    */
   customerNumber?: string | null;
+  /**
+   * Used to compute delivery charges automatically.
+   */
+  deliveryZone: 'inside_dhaka' | 'outside_dhaka';
   role: 'admin' | 'user';
   firstName: string;
   lastName: string;
@@ -256,6 +262,10 @@ export interface Order {
    */
   status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled' | 'refunded';
   totalAmount: number;
+  subtotal: number;
+  shippingCharge: number;
+  deliveryZone: 'inside_dhaka' | 'outside_dhaka';
+  freeDeliveryApplied?: boolean | null;
   orderDate: string;
   /**
    * Shipping address captured at time of order
@@ -324,6 +334,24 @@ export interface AbandonedCart {
   createdAt: string;
 }
 /**
+ * Configure delivery charges and free delivery thresholds.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-settings".
+ */
+export interface DeliverySetting {
+  id: number;
+  label: string;
+  insideDhakaCharge: number;
+  outsideDhakaCharge: number;
+  /**
+   * Orders equal to or above this amount receive free delivery.
+   */
+  freeDeliveryThreshold: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -357,6 +385,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'abandoned-carts';
         value: number | AbandonedCart;
+      } | null)
+    | ({
+        relationTo: 'delivery-settings';
+        value: number | DeliverySetting;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -406,6 +438,7 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   customerNumber?: T;
+  deliveryZone?: T;
   role?: T;
   firstName?: T;
   lastName?: T;
@@ -501,6 +534,10 @@ export interface OrdersSelect<T extends boolean = true> {
       };
   status?: T;
   totalAmount?: T;
+  subtotal?: T;
+  shippingCharge?: T;
+  deliveryZone?: T;
+  freeDeliveryApplied?: T;
   orderDate?: T;
   shippingAddress?:
     | T
@@ -553,6 +590,18 @@ export interface AbandonedCartsSelect<T extends boolean = true> {
   recoveredOrder?: T;
   recoveryEmailSentAt?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-settings_select".
+ */
+export interface DeliverySettingsSelect<T extends boolean = true> {
+  label?: T;
+  insideDhakaCharge?: T;
+  outsideDhakaCharge?: T;
+  freeDeliveryThreshold?: T;
   updatedAt?: T;
   createdAt?: T;
 }

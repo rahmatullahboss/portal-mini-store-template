@@ -67,12 +67,7 @@ export const seed = async ({
     if (!adminExists.docs.length) {
       adminUser = await payload.create({
         collection: 'users',
-        data: {
-          email: 'admin@onlinebazar.com',
-          password: 'admin123',
-          role: 'admin',
-          firstName: 'Admin',
-          lastName: 'User',
+        data: {\n        email: 'admin@onlinebazar.com',\n        password: 'admin123',\n        role: 'admin',\n        firstName: 'Admin',\n        lastName: 'User',\n        deliveryZone: 'inside_dhaka',\n          deliveryZone: 'inside_dhaka',
         },
         req,
       })
@@ -91,13 +86,7 @@ export const seed = async ({
     if (!customerExists.docs.length) {
       customerUser = await payload.create({
         collection: 'users',
-        data: {
-          email: 'customer@example.com',
-          password: 'customer123',
-          role: 'user',
-          firstName: 'রহমত',
-          lastName: 'উল্লাহ',
-          customerNumber: '01739-416661',
+        data: {\n        email: 'customer@example.com',\n        password: 'customer123',\n        role: 'user',\n        firstName: '????',\n        lastName: '??????',\n        customerNumber: '01739-416661',\n        deliveryZone: 'inside_dhaka',\n          deliveryZone: 'inside_dhaka',
         },
         req,
       })
@@ -122,14 +111,8 @@ export const seed = async ({
             user: (customerUser as any).id,
             customerName: 'রহমত উল্লাহ',
             customerEmail: 'customer@example.com',
-            customerNumber: '01739-416661',
-            items: [
-              {
-                item: (createdItems[index] as any).id,
-                quantity: Math.floor(Math.random() * 3) + 1,
-              },
-            ],
-            status: status,
+            customerNumber: '01739-416661',\n          deliveryZone: 'inside_dhaka',
+            items: [\n            {\n              item: (createdItems[index] as any).id,\n              quantity: Math.floor(Math.random() * 3) + 1,\n            },\n          ],\n          status: status,\n          subtotal: Number((createdItems[index] as any).price || 0),\n          shippingCharge: 0,\n          deliveryZone: 'inside_dhaka',\n          freeDeliveryApplied: true,\n          totalAmount: Number((createdItems[index] as any).price || 0),
             totalAmount: createdItems[index].price * (Math.floor(Math.random() * 3) + 1),
             orderDate: new Date(
               Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
@@ -161,3 +144,9 @@ export const seed = async ({
     throw error
   }
 }
+
+
+
+
+
+

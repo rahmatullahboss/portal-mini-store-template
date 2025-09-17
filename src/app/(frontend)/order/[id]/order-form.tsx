@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 interface OrderFormProps {
   item: any
   user?: any
+  deliverySettings?: DeliverySettings
 }
 
 export default function OrderForm({ item, user, deliverySettings }: OrderFormProps) {
@@ -324,5 +325,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </form>
   )
 }
+
 
 

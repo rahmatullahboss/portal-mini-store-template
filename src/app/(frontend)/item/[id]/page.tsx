@@ -119,8 +119,8 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
               {shortDescription}
             </p>
             <div className="mt-6">
-              <span className="text-4xl font-bold text-green-600">৳{item.price.toFixed(2)}</span>
               <span className="text-4xl font-bold text-green-600">Tk {item.price.toFixed(2)}</span>
+            </div>
             <div className="mt-8 flex gap-3">
               <>
                 <AddToCartButton item={item as any} />

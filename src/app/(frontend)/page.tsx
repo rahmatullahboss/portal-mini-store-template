@@ -123,7 +123,6 @@ export default async function HomePage() {
 async function HeaderSection({ authPromise }: HeaderSectionProps) {
   const authResult = await authPromise
   const user = authResult?.user ?? null
-  const userDeliveryZone = (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   return <SiteHeader variant="full" user={user ?? undefined} />
 }
@@ -131,6 +130,7 @@ async function HeaderSection({ authPromise }: HeaderSectionProps) {
 async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSectionProps) {
   const [authResult, items] = await Promise.all([authPromise, itemsPromise])
   const user = authResult?.user ?? null
+  const userDeliveryZone = (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   return (
     <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
@@ -305,3 +305,4 @@ function ProductGridFallback() {
     </div>
   )
 }
+

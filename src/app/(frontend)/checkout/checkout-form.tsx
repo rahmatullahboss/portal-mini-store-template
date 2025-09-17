@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 
 interface CheckoutFormProps {
   user?: any
+  deliverySettings?: DeliverySettings
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettings }) => {
@@ -364,17 +365,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         <h3 className="text-lg font-semibold">Delivery area</h3>
         <p className="text-sm text-gray-500">
           Select where this order will be delivered so we can apply the correct delivery charge.
-        {freeDelivery ? (
-          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
-        ) : (
-          <p className="text-xs text-gray-500">
-            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
-          </p>
-        )}
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label
             className={cn(
-              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+              "border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500",
               deliveryZone === 'inside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
             )}
           >
@@ -391,7 +386,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </label>
           <label
             className={cn(
-              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+              "border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500",
               deliveryZone === 'outside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
             )}
           >
@@ -415,14 +410,112 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </p>
         )}
       </div>
+
       {/* Error Message */}
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
       {/* Customer Number */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Delivery area</h3>
+        <p className="text-sm text-gray-500">
+          Select where this order will be delivered so we can apply the correct delivery charge.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label
+            className={cn(
+              "border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500",
+              deliveryZone === 'inside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="inside_dhaka"
+              checked={deliveryZone === 'inside_dhaka'}
+              onChange={() => setDeliveryZone('inside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Inside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.insideDhakaCharge)}</p>
+          </label>
+          <label
+            className={cn(
+              "border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500",
+              deliveryZone === 'outside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="outside_dhaka"
+              checked={deliveryZone === 'outside_dhaka'}
+              onChange={() => setDeliveryZone('outside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Outside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.outsideDhakaCharge)}</p>
+          </label>
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Delivery area</h3>
+        <p className="text-sm text-gray-500">
+          Select where this order will be delivered so we can apply the correct delivery charge.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label
+            className={cn(
+              "border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500",
+              deliveryZone === 'inside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="inside_dhaka"
+              checked={deliveryZone === 'inside_dhaka'}
+              onChange={() => setDeliveryZone('inside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Inside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.insideDhakaCharge)}</p>
+          </label>
+          <label
+            className={cn(
+              "border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500",
+              deliveryZone === 'outside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="outside_dhaka"
+              checked={deliveryZone === 'outside_dhaka'}
+              onChange={() => setDeliveryZone('outside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Outside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.outsideDhakaCharge)}</p>
+          </label>
+        </div>
+        {freeDelivery ? (
+          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+          </p>
+        )}
+      </div>
+        </div>
+        {freeDelivery ? (
+          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+          </p>
+        )}
+      </div>
       <div className="space-y-2">
         <label htmlFor="customerNumber" className="text-sm font-medium text-gray-700">
           Customer number
@@ -458,5 +551,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     </form>
   )
 }
+
 
 

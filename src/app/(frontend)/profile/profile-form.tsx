@@ -11,6 +11,7 @@ type User = {
   firstName: string
   lastName: string
   customerNumber?: string | null
+  deliveryZone?: 'inside_dhaka' | 'outside_dhaka' | null
   address?: {
     line1?: string | null
     line2?: string | null
@@ -220,4 +221,5 @@ export default function ProfileForm({ user }: { user: User }) {
     </form>
   )
 }
+
 

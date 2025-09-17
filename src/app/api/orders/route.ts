@@ -53,9 +53,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
     }
 
-      return NextResponse.json({ error: 'Invalid total amount' }, { status: 400 })
-    }
-
     // Fetch full user doc if logged in (for fallbacks)
     let fullUser: any = null
     if (user) {

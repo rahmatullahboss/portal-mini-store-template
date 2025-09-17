@@ -68,8 +68,8 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
             </div>
             <p className="text-lg text-gray-700 mt-4">{snack.description}</p>
             <div className="mt-6">
-              <span className="text-4xl font-bold text-green-600">৳{snack.price.toFixed(2)}</span>
               <span className="text-4xl font-bold text-green-600">Tk {snack.price.toFixed(2)}</span>
+            </div>
             <div className="mt-8 flex gap-3">
               <>
                 <AddToCartButton item={snack} />
