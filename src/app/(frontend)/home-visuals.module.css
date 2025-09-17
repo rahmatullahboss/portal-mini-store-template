@@ -7,46 +7,59 @@
   position: absolute;
   inset: auto;
   border-radius: 9999px;
-  filter: blur(180px);
+  filter: blur(var(--hero-blur-min, 180px));
   mix-blend-mode: screen;
   animation: heroPulse 8s ease-in-out infinite alternate;
-  opacity: var(--hero-gradient-opacity, 0.75);
+  opacity: var(--hero-opacity-min, 0.78);
   --hero-translate-x: 0;
   --hero-translate-y: 0;
+  --hero-opacity-min: 0.78;
+  --hero-opacity-max: 0.98;
+  --hero-blur-min: 180px;
+  --hero-blur-max: 240px;
   transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0);
   transform-origin: center;
 }
 
 .heroGradientAmber {
-  --hero-gradient-opacity: 0.9;
+  --hero-opacity-min: 0.86;
+  --hero-opacity-max: 1;
+  --hero-blur-min: 200px;
+  --hero-blur-max: 280px;
   background: radial-gradient(
     circle at center,
-    rgba(251, 191, 36, 0.98) 0%,
-    rgba(251, 191, 36, 0.48) 38%,
-    rgba(251, 191, 36, 0.18) 68%,
-    rgba(251, 191, 36, 0.04) 82%
+    rgba(251, 191, 36, 1) 0%,
+    rgba(251, 191, 36, 0.62) 28%,
+    rgba(251, 191, 36, 0.24) 58%,
+    rgba(251, 191, 36, 0.08) 82%
   );
 }
 
 .heroGradientRose {
-  --hero-gradient-opacity: 0.86;
+  --hero-opacity-min: 0.84;
+  --hero-opacity-max: 0.98;
+  --hero-blur-min: 210px;
+  --hero-blur-max: 290px;
   background: radial-gradient(
     circle at center,
-    rgba(244, 114, 182, 0.95) 0%,
-    rgba(244, 114, 182, 0.42) 40%,
-    rgba(244, 114, 182, 0.16) 68%,
-    rgba(244, 114, 182, 0.05) 82%
+    rgba(244, 114, 182, 0.98) 0%,
+    rgba(244, 114, 182, 0.54) 32%,
+    rgba(244, 114, 182, 0.22) 60%,
+    rgba(244, 114, 182, 0.08) 84%
   );
 }
 
 .heroGradientBlue {
-  --hero-gradient-opacity: 0.78;
+  --hero-opacity-min: 0.82;
+  --hero-opacity-max: 0.96;
+  --hero-blur-min: 190px;
+  --hero-blur-max: 260px;
   background: radial-gradient(
     circle at center,
-    rgba(147, 197, 253, 0.88) 0%,
-    rgba(147, 197, 253, 0.36) 42%,
-    rgba(147, 197, 253, 0.12) 70%,
-    rgba(147, 197, 253, 0.04) 84%
+    rgba(96, 165, 250, 0.94) 0%,
+    rgba(96, 165, 250, 0.46) 36%,
+    rgba(96, 165, 250, 0.18) 64%,
+    rgba(96, 165, 250, 0.06) 86%
   );
 }
 
@@ -96,11 +109,15 @@
   100% {
     transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0)
       scale3d(1, 1, 1);
+    opacity: var(--hero-opacity-min, 0.78);
+    filter: blur(var(--hero-blur-min, 180px));
   }
 
   50% {
     transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0)
-      scale3d(1.05, 1.05, 1);
+      scale3d(1.08, 1.08, 1);
+    opacity: var(--hero-opacity-max, 0.98);
+    filter: blur(var(--hero-blur-max, 240px));
   }
 }
 
