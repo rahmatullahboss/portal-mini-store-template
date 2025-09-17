@@ -141,11 +141,28 @@
   }
 }
 
-.animate-gradient-x {
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.motion-safe\:animate-caret-blink {
+  animation-name: caret-blink;
+  animation-duration: 1s;
+  animation-timing-function: steps(2, start);
+  animation-iteration-count: infinite;
+}
+
+.motion-safe\:animate-gradient-x {
   animation: gradient-x 3s ease infinite;
 }
 
-.animate-fade-in {
+.motion-safe\:animate-fade-in {
   animation: fade-in 1s ease-out;
 }
 
@@ -179,35 +196,25 @@
 
 /* Reduced-motion accessibility */
 @media (prefers-reduced-motion: reduce) {
-  /* Disable heavy animations when motion should be minimized */
-  .animate-pulse,
-  .animate-bounce,
-  .animate-gradient-x,
-  .animate-fade-in {
-    animation: none !important;
+  .motion-reduce\:brand-gradient-static {
+    background-image: linear-gradient(90deg, #b8860b, #daa520, #ffd700);
+    background-size: 200% 200%;
+    background-position: center;
   }
 
-  /* Avoid expensive blur filters in low-motion mode */
-  .blur-xl {
-    filter: none !important;
-    backdrop-filter: none !important;
-  }
-
-  /* Prevent complex transforms when motion is turned down */
-  .transform,
-  .transition-transform,
-  .transition-all {
-    transition: opacity 150ms ease-out !important;
+  .motion-reduce\:fade-in-reset {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
 /* Lightweight motion tweaks for small screens */
 @media (max-width: 768px) {
-  .animate-gradient-x {
+  .motion-safe\:animate-gradient-x {
     animation-duration: 4s;
   }
 
-  .animate-fade-in {
+  .motion-safe\:animate-fade-in {
     animation-duration: 1.25s;
   }
 }
