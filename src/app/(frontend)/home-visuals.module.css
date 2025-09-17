@@ -7,8 +7,8 @@
   position: absolute;
   inset: auto;
   border-radius: 9999px;
-  filter: blur(120px);
-  mix-blend-mode: multiply;
+  filter: blur(180px);
+  mix-blend-mode: screen;
   animation: heroPulse 8s ease-in-out infinite alternate;
   opacity: var(--hero-gradient-opacity, 0.75);
   --hero-translate-x: 0;
@@ -18,32 +18,35 @@
 }
 
 .heroGradientAmber {
-  --hero-gradient-opacity: 0.82;
+  --hero-gradient-opacity: 0.9;
   background: radial-gradient(
     circle at center,
-    rgba(251, 191, 36, 0.9) 0%,
-    rgba(251, 191, 36, 0.32) 45%,
-    rgba(251, 191, 36, 0.08) 70%
+    rgba(251, 191, 36, 0.98) 0%,
+    rgba(251, 191, 36, 0.48) 38%,
+    rgba(251, 191, 36, 0.18) 68%,
+    rgba(251, 191, 36, 0.04) 82%
   );
 }
 
 .heroGradientRose {
-  --hero-gradient-opacity: 0.78;
+  --hero-gradient-opacity: 0.86;
   background: radial-gradient(
     circle at center,
-    rgba(244, 114, 182, 0.85) 0%,
-    rgba(244, 114, 182, 0.28) 45%,
-    rgba(244, 114, 182, 0.06) 65%
+    rgba(244, 114, 182, 0.95) 0%,
+    rgba(244, 114, 182, 0.42) 40%,
+    rgba(244, 114, 182, 0.16) 68%,
+    rgba(244, 114, 182, 0.05) 82%
   );
 }
 
 .heroGradientBlue {
-  --hero-gradient-opacity: 0.65;
+  --hero-gradient-opacity: 0.78;
   background: radial-gradient(
     circle at center,
-    rgba(147, 197, 253, 0.7) 0%,
-    rgba(147, 197, 253, 0.2) 40%,
-    rgba(147, 197, 253, 0.05) 65%
+    rgba(147, 197, 253, 0.88) 0%,
+    rgba(147, 197, 253, 0.36) 42%,
+    rgba(147, 197, 253, 0.12) 70%,
+    rgba(147, 197, 253, 0.04) 84%
   );
 }
 
