@@ -1,6 +1,8 @@
 import React from 'react'
 import Link from 'next/link'
 
+import { ContactEmailLink } from '@/components/contact-email-link'
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-gray-200/60 bg-gray-50/80 backdrop-blur-xl">
@@ -39,7 +41,14 @@ export function SiteFooter() {
             <h4 className="text-sm font-semibold text-gray-900 tracking-wide">Contact</h4>
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
               <li>Phone: <a href="tel:01739416661" className="hover:text-emerald-600">01739-416661</a></li>
-              <li>Email: <a href="mailto:rahmatullahzisan@gmail.com" className="hover:text-emerald-600">rahmatullahzisan@gmail.com</a></li>
+              <li>
+                Email:{' '}
+                <ContactEmailLink className="hover:text-emerald-600" />
+                {' '}
+                <noscript>
+                  <span className="text-gray-600">rahmatullahzisan [at] gmail [dot] com</span>
+                </noscript>
+              </li>
               <li>Facebook: <a href="https://www.facebook.com/onlinebazarbarguna" target="_blank" rel="noreferrer" className="hover:text-emerald-600">@onlinebazarbarguna</a></li>
             </ul>
           </div>

@@ -1,5 +1,7 @@
 import React from 'react'
+
 import { SiteHeader } from '@/components/site-header'
+import { ContactEmailLink } from '@/components/contact-email-link'
 
 export const metadata = {
   title: 'Privacy Policy — Online Bazar',
@@ -73,7 +75,12 @@ export default function PrivacyPage() {
 
         <h2>Contact Us</h2>
         <p>
-          Email: <a href="mailto:rahmatullahzisan@gmail.com">rahmatullahzisan@gmail.com</a><br />
+          Email:{' '}
+          <ContactEmailLink className="hover:text-emerald-600" />{' '}
+          <noscript>
+            <span className="text-gray-600">rahmatullahzisan [at] gmail [dot] com</span>
+          </noscript>
+          <br />
           Phone: <a href="tel:01739416661">01739-416661</a><br />
           Facebook: <a href="https://www.facebook.com/onlinebazarbarguna" target="_blank" rel="noreferrer">@onlinebazarbarguna</a>
         </p>
