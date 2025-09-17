@@ -252,6 +252,9 @@ export interface Order {
    * Customer contact number captured at time of order
    */
   customerNumber: string;
+  paymentMethod: 'cod' | 'bkash' | 'nagad';
+  paymentSenderNumber?: string | null;
+  paymentTransactionId?: string | null;
   items: {
     item: number | Item;
     quantity: number;
@@ -525,6 +528,9 @@ export interface OrdersSelect<T extends boolean = true> {
   customerName?: T;
   customerEmail?: T;
   customerNumber?: T;
+  paymentMethod?: T;
+  paymentSenderNumber?: T;
+  paymentTransactionId?: T;
   items?:
     | T
     | {

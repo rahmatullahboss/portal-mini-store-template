@@ -7,7 +7,7 @@ import Image from 'next/image'
 
 import { useCart } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -25,6 +25,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [customerNumber, setCustomerNumber] = useState<string>(user?.customerNumber || '')
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash' | 'nagad'>('cod')
+  const [paymentSenderNumber, setPaymentSenderNumber] = useState<string>('')
+  const [paymentTransactionId, setPaymentTransactionId] = useState<string>('')
   const [firstName, setFirstName] = useState<string>(user?.firstName || '')
   const [lastName, setLastName] = useState<string>(user?.lastName || '')
   const [email, setEmail] = useState<string>(user?.email || '')
@@ -48,6 +51,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const total = subtotal + shippingCharge
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
+  const requiresDigitalPaymentDetails = paymentMethod === 'bkash' || paymentMethod === 'nagad'
 
   // Persist guest details for abandoned cart tracking
   React.useEffect(() => {
@@ -104,6 +108,17 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       return
     }
 
+    if (requiresDigitalPaymentDetails) {
+      if (!paymentSenderNumber.trim()) {
+        setError('Please provide the sender number used for the payment.')
+        return
+      }
+      if (!paymentTransactionId.trim()) {
+        setError('Please provide the transaction ID from your payment receipt.')
+        return
+      }
+    }
+
     setIsSubmitting(true)
     setError(null)
 
@@ -120,6 +135,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           })),
           customerNumber,
           deliveryZone,
+          paymentMethod,
+          paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+          paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           ...(user
             ? {
                 // Use provided shipping if filled, otherwise API will fall back to user profile
@@ -407,6 +425,94 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         ) : (
           <p className="text-xs text-gray-500">
             Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+          </p>
+        )}
+      </div>
+
+      {/* Payment Method */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Payment method</h3>
+        <p className="text-sm text-gray-500">
+          Choose how you would like to pay. Digital wallet payments require a completed transfer before placing the order.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {([
+            { value: 'cod', label: 'Cash on Delivery', image: '/payment/cash-on-delivery.svg' },
+            { value: 'bkash', label: 'bKash', image: '/payment/bkash.svg' },
+            { value: 'nagad', label: 'Nagad', image: '/payment/nagad.svg' },
+          ] as const).map((option) => (
+              <label
+                key={option.value}
+                className={cn(
+                  'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+                  paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+                )}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={option.value}
+                  checked={paymentMethod === option.value}
+                  onChange={() => {
+                    setPaymentMethod(option.value)
+                    if (option.value === 'cod') {
+                      setPaymentSenderNumber('')
+                      setPaymentTransactionId('')
+                    }
+                    setError(null)
+                  }}
+                  className="sr-only"
+                />
+                <div className="relative w-32 h-16">
+                  <Image src={option.image} alt={option.label} fill className="object-contain" sizes="128px" />
+                </div>
+                <span className="font-medium text-sm">{option.label}</span>
+              </label>
+            ))}
+        </div>
+
+        {requiresDigitalPaymentDetails ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-gray-700">
+                Sender wallet number
+              </label>
+              <input
+                id="paymentSenderNumber"
+                name="paymentSenderNumber"
+                type="tel"
+                value={paymentSenderNumber}
+                onChange={(e) => {
+                  setPaymentSenderNumber(e.target.value)
+                  setError(null)
+                }}
+                required={requiresDigitalPaymentDetails}
+                placeholder="e.g. 01XXXXXXXXX"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="paymentTransactionId" className="text-sm font-medium text-gray-700">
+                Transaction ID
+              </label>
+              <input
+                id="paymentTransactionId"
+                name="paymentTransactionId"
+                type="text"
+                value={paymentTransactionId}
+                onChange={(e) => {
+                  setPaymentTransactionId(e.target.value)
+                  setError(null)
+                }}
+                required={requiresDigitalPaymentDetails}
+                placeholder="e.g. TXN123456789"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500">
+            You can pay in cash when the delivery arrives.
           </p>
         )}
       </div>
