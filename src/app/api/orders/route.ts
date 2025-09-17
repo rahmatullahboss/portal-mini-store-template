@@ -47,7 +47,16 @@ export async function POST(request: NextRequest) {
       body = {}
     }
 
-    const { items, customerNumber, customerName, customerEmail, deliveryZone: deliveryZoneInput } = body
+    const {
+      items,
+      customerNumber,
+      customerName,
+      customerEmail,
+      deliveryZone: deliveryZoneInput,
+      paymentMethod: paymentMethodInput,
+      paymentSenderNumber: paymentSenderNumberInput,
+      paymentTransactionId: paymentTransactionIdInput,
+    } = body
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
@@ -193,6 +202,27 @@ export async function POST(request: NextRequest) {
           : 'other'
 
     // Create the order
+    const parsePaymentMethod = (value: unknown): 'cod' | 'bkash' | 'nagad' | undefined => {
+      if (typeof value !== 'string') return undefined
+      const normalized = value.toLowerCase().trim()
+      if (['cod', 'cash_on_delivery', 'cash'].includes(normalized)) return 'cod'
+      if (['bkash', 'b-kash', 'b kash'].includes(normalized)) return 'bkash'
+      if (['nagad'].includes(normalized)) return 'nagad'
+      return undefined
+    }
+
+    const paymentMethod = parsePaymentMethod(paymentMethodInput) || 'cod'
+    const paymentSenderNumber = typeof paymentSenderNumberInput === 'string' ? paymentSenderNumberInput.trim() : ''
+    const paymentTransactionId =
+      typeof paymentTransactionIdInput === 'string' ? paymentTransactionIdInput.trim() : ''
+
+    if ((paymentMethod === 'bkash' || paymentMethod === 'nagad') && (!paymentSenderNumber || !paymentTransactionId)) {
+      return NextResponse.json(
+        { error: 'Sender number and transaction ID are required for digital wallet payments.' },
+        { status: 400 },
+      )
+    }
+
     const order = await payload.create({
       collection: 'orders',
       data: {
@@ -206,6 +236,9 @@ export async function POST(request: NextRequest) {
         deliveryZone,
         freeDeliveryApplied,
         totalAmount: totalValue,
+        paymentMethod,
+        paymentSenderNumber: paymentSenderNumber || undefined,
+        paymentTransactionId: paymentTransactionId || undefined,
         shippingAddress: {
           line1: shippingAddress.line1,
           line2: shippingAddress.line2 || undefined,
@@ -239,6 +272,7 @@ export async function POST(request: NextRequest) {
           value: purchaseValue,
           shipping: shippingValue,
           free_delivery: freeDeliveryApplied ? 1 : 0,
+          payment_method: paymentMethod,
           items: itemsForAnalytics,
         },
         timestampMicros: Date.now() * 1000,

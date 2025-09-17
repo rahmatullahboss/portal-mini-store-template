@@ -15,6 +15,7 @@ import * as migration_20250913_add_abandoned_carts from './20250913_add_abandone
 import * as migration_20250916_add_short_description_to_items from './20250916_add_short_description_to_items';
 import * as migration_20250917_add_delivery_settings from './20250917_add_delivery_settings';
 import * as migration_20250917_add_delivery_settings_lock_rel from './20250917_add_delivery_settings_lock_rel';
+import * as migration_20250918_add_payment_fields_to_orders from './20250918_add_payment_fields_to_orders';
 
 export const migrations = [
   {
@@ -101,5 +102,10 @@ export const migrations = [
     up: migration_20250917_add_delivery_settings_lock_rel.up,
     down: migration_20250917_add_delivery_settings_lock_rel.down,
     name: '20250917_add_delivery_settings_lock_rel',
+  },
+  {
+    up: migration_20250918_add_payment_fields_to_orders.up,
+    down: migration_20250918_add_payment_fields_to_orders.down,
+    name: '20250918_add_payment_fields_to_orders',
   },
 ];
