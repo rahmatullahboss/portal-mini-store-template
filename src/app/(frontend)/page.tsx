@@ -72,8 +72,6 @@ export default async function HomePage() {
         </Suspense>
       </div>
 
-      <div aria-hidden="true" className="h-20" />
-
       <div className="relative z-10">
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
