@@ -7,6 +7,7 @@ This template comes configured with the bare minimum to get started on anything 
 ### 🌟 Public Features (No Authentication Required)
 - **Browse Products**: View available items with images, descriptions, prices, and categories
 - **Responsive Design**: Fully responsive interface that works on desktop, tablet, and mobile devices
+- **Instant Hero Streaming**: Homepage hero renders immediately while the product grid loads asynchronously with graceful fallbacks
 
 ### 👤 Authenticated User Features
 - **User Registration & Login**: Secure authentication system
@@ -155,6 +156,12 @@ The application is fully responsive with breakpoints:
 - **Desktop**: 1200px+ (full grid layout, side-by-side forms)
 - **Tablet**: 768px-1199px (adapted grid, stacked layouts)
 - **Mobile**: <768px (single column, touch-friendly buttons)
+
+## Streaming & Loading States
+
+- Homepage data fetching for authentication and the product catalog now starts in parallel before any UI rendering.
+- The hero section streams right away, and the product grid resolves inside a `Suspense` boundary with a skeleton layout that prevents layout shift.
+- A matching header skeleton keeps navigation placement stable while user session data resolves.
 
 ## Security Features
 
