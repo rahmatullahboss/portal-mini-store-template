@@ -62,10 +62,10 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100 text-gray-800">
       {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-rose-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-4000"></div>
+      <div className="fixed inset-0 hidden overflow-hidden pointer-events-none sm:block">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-amber-200 mix-blend-multiply blur-xl opacity-30 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-rose-200 mix-blend-multiply blur-xl opacity-30 animate-pulse animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-blue-200 mix-blend-multiply blur-xl opacity-20 animate-pulse animation-delay-4000"></div>
       </div>
 
       <SiteHeader variant="full" user={user} />
@@ -74,11 +74,11 @@ export default async function HomePage() {
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
           {/* Floating Elements */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-20 left-10 w-4 h-4 bg-amber-300 rounded-full opacity-60 animate-bounce animation-delay-1000"></div>
-            <div className="absolute top-40 right-20 w-6 h-6 bg-rose-300 rounded-full opacity-50 animate-bounce animation-delay-2000"></div>
-            <div className="absolute bottom-40 left-20 w-3 h-3 bg-blue-300 rounded-full opacity-60 animate-bounce animation-delay-3000"></div>
-            <div className="absolute bottom-20 right-10 w-5 h-5 bg-amber-200 rounded-full opacity-40 animate-bounce animation-delay-4000"></div>
+          <div className="pointer-events-none absolute inset-0 hidden sm:block">
+            <div className="absolute top-20 left-10 h-4 w-4 rounded-full bg-amber-300 opacity-60 animate-bounce animation-delay-1000"></div>
+            <div className="absolute top-40 right-20 h-6 w-6 rounded-full bg-rose-300 opacity-50 animate-bounce animation-delay-2000"></div>
+            <div className="absolute bottom-40 left-20 h-3 w-3 rounded-full bg-blue-300 opacity-60 animate-bounce animation-delay-3000"></div>
+            <div className="absolute bottom-20 right-10 h-5 w-5 rounded-full bg-amber-200 opacity-40 animate-bounce animation-delay-4000"></div>
           </div>
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
