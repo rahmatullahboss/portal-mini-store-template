@@ -186,6 +186,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             totalAmount: result?.doc?.totalAmount ?? total,
             deliveryZone: result?.doc?.deliveryZone ?? deliveryZone,
             freeDeliveryApplied: result?.doc?.freeDeliveryApplied ?? freeDelivery,
+            paymentMethod,
+            paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+            paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           }),
         )
       } catch {}
