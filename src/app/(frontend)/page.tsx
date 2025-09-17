@@ -72,6 +72,8 @@ export default async function HomePage() {
         </Suspense>
       </div>
 
+      <div aria-hidden="true" className="h-20" />
+
       <div className="relative z-10">
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -154,7 +156,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
             {items.docs.map((item: any, index: number) => (
               <Card
                 key={item.id}
-                className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl"
+                className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl gap-0 p-0"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Enhanced Card Glow Effect */}
@@ -236,7 +238,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
 
 function HeaderFallback() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200/60 bg-white/80 backdrop-blur-none sm:backdrop-blur-2xl">
+    <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-gray-200/60 bg-white/80 backdrop-blur-none sm:backdrop-blur-2xl">
       <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-200 to-rose-200 animate-pulse" />
