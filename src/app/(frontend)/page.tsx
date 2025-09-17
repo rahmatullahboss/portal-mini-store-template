@@ -130,14 +130,14 @@ export default async function HomePage() {
                 {items.docs.map((item: any, index: number) => (
                   <Card
                     key={item.id}
-                    className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white/95 backdrop-blur-xl shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-gpu p-0"
+                    className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-gpu p-0 md:bg-white/95 md:backdrop-blur-xl"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     {/* Enhanced Card Glow Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-100/30 via-rose-100/20 to-blue-100/30 opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+                    <div className="absolute inset-0 hidden md:block md:bg-gradient-to-br md:from-amber-100/30 md:via-rose-100/20 md:to-blue-100/30 md:opacity-0 md:group-hover:opacity-100 md:transition-all md:duration-700"></div>
 
                     {/* Shimmer Effect */}
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+                    <div className="absolute inset-0 hidden motion-safe:md:block motion-safe:md:-translate-x-full motion-safe:md:group-hover:translate-x-full motion-safe:md:transition-transform motion-safe:md:duration-1000 md:bg-gradient-to-r md:from-transparent md:via-white/20 md:to-transparent md:skew-x-12"></div>
 
                     <div className="relative z-10 h-full flex flex-col">
                       <Link href={`/item/${item.id}`} className="block">
@@ -159,13 +159,13 @@ export default async function HomePage() {
                               className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
                             />
                             {/* Image Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <div className="absolute inset-0 hidden md:block md:bg-gradient-to-t md:from-gray-900/30 md:via-transparent md:to-transparent md:opacity-0 md:group-hover:opacity-100 md:transition-opacity md:duration-500"></div>
 
                             {/* Floating Badge */}
                             <div className="absolute top-4 right-4 transform group-hover:scale-110 transition-transform duration-300">
                               <Badge
                                 variant="secondary"
-                                className="bg-white/90 text-gray-700 border border-gray-200/60 backdrop-blur-sm shadow-lg font-medium px-3 py-1"
+                                className="bg-white text-gray-700 border border-gray-200/60 shadow-lg font-medium px-3 py-1 md:bg-white/90 md:backdrop-blur-sm"
                               >
                                 {typeof item.category === 'object'
                                   ? (item.category as any)?.name
@@ -188,7 +188,7 @@ export default async function HomePage() {
                         </CardHeader>
                       </Link>
 
-                      <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm p-4 rounded-b-3xl">
+                      <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-white p-4 rounded-b-3xl md:bg-gradient-to-r md:from-gray-50/80 md:to-white/80 md:backdrop-blur-sm">
                         <div className="space-y-1">
                           <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                             ৳{item.price.toFixed(2)}
