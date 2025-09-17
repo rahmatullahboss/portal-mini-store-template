@@ -22,6 +22,9 @@ type PreviewData = {
   totalAmount?: number
   deliveryZone?: string
   freeDeliveryApplied?: boolean
+  paymentMethod?: 'cod' | 'bkash' | 'nagad'
+  paymentSenderNumber?: string
+  paymentTransactionId?: string
 }
 
 const toPositiveNumber = (value: unknown): number | undefined => {
@@ -54,6 +57,11 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
             typeof parsed?.freeDeliveryApplied === 'boolean'
               ? Boolean(parsed.freeDeliveryApplied)
               : undefined,
+          paymentMethod: parsed?.paymentMethod,
+          paymentSenderNumber:
+            typeof parsed?.paymentSenderNumber === 'string' ? parsed.paymentSenderNumber : undefined,
+          paymentTransactionId:
+            typeof parsed?.paymentTransactionId === 'string' ? parsed.paymentTransactionId : undefined,
         })
       }
     } catch {
@@ -84,6 +92,16 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
   const freeDelivery = preview?.freeDeliveryApplied ?? shipping === 0
   const deliveryZoneLabel =
     preview?.deliveryZone === 'outside_dhaka' ? 'Outside Dhaka' : 'Inside Dhaka'
+  const paymentLabel = (() => {
+    switch (preview?.paymentMethod) {
+      case 'bkash':
+        return 'bKash'
+      case 'nagad':
+        return 'Nagad'
+      default:
+        return 'Cash on Delivery'
+    }
+  })()
 
   return (
     <>
@@ -144,6 +162,22 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
               <span>Total</span>
               <span>{formatCurrency(total)}</span>
             </div>
+            <div className="flex items-center justify-between">
+              <span>Payment method</span>
+              <span>{paymentLabel}</span>
+            </div>
+            {preview?.paymentSenderNumber ? (
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span>Sender number</span>
+                <span className="font-medium">{preview.paymentSenderNumber}</span>
+              </div>
+            ) : null}
+            {preview?.paymentTransactionId ? (
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span>Transaction ID</span>
+                <span className="font-mono break-all">{preview.paymentTransactionId}</span>
+              </div>
+            ) : null}
             {freeDelivery ? (
               <p className="text-xs text-green-600 font-semibold">Free delivery applied for this order.</p>
             ) : (
