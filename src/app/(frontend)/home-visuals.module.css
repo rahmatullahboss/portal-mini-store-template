@@ -50,16 +50,16 @@
 }
 
 .heroGradientBlue {
-  --hero-opacity-min: 0.82;
-  --hero-opacity-max: 0.96;
-  --hero-blur-min: 190px;
-  --hero-blur-max: 260px;
+  --hero-opacity-min: 0.76;
+  --hero-opacity-max: 1;
+  --hero-blur-min: 180px;
+  --hero-blur-max: 320px;
   background: radial-gradient(
     circle at center,
-    rgba(96, 165, 250, 0.94) 0%,
-    rgba(96, 165, 250, 0.46) 36%,
-    rgba(96, 165, 250, 0.18) 64%,
-    rgba(96, 165, 250, 0.06) 86%
+    rgba(96, 165, 250, 1) 0%,
+    rgba(96, 165, 250, 0.68) 30%,
+    rgba(96, 165, 250, 0.26) 62%,
+    rgba(96, 165, 250, 0.08) 88%
   );
 }
 
