@@ -86,99 +86,97 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader variant="full" user={user} />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          <div>
-            {((item.image && typeof item.image === 'object') || item.imageUrl) && (
-              <div className="aspect-square relative rounded-lg overflow-hidden border">
-                <Image
-                  src={
-                    item.image && typeof item.image === 'object' ? item.image.url : item.imageUrl
-                  }
-                  alt={
-                    (item.image && typeof item.image === 'object' ? item.image.alt : undefined) ||
-                    item.name
-                  }
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col justify-center">
-            <h1 className="text-4xl font-bold text-gray-900">{item.name}</h1>
-            <div className="flex items-center gap-3 mt-2">
-              {categoryLabel ? <Badge variant="secondary">{categoryLabel}</Badge> : null}
-              <div className="flex items-center gap-2">
-                <ReviewStars value={ratingAvg} />
-                <span className="text-sm text-gray-600">{reviews.length} Reviews</span>
-              </div>
+      <main className="pt-24 sm:pt-28 lg:pt-32">
+        <div className="container mx-auto px-4 pb-12">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+            <div>
+              {((item.image && typeof item.image === 'object') || item.imageUrl) && (
+                <div className="aspect-square relative rounded-lg overflow-hidden border">
+                  <Image
+                    src={
+                      item.image && typeof item.image === 'object' ? item.image.url : item.imageUrl
+                    }
+                    alt={
+                      (item.image && typeof item.image === 'object' ? item.image.alt : undefined) ||
+                      item.name
+                    }
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
             </div>
-            <p className="text-lg text-gray-700 mt-4 whitespace-pre-line">
-              {shortDescription}
-            </p>
-            <div className="mt-6">
-              <span className="text-4xl font-bold text-green-600">৳{item.price.toFixed(2)}</span>
-            </div>
-            <div className="mt-8 flex gap-3">
-              <>
+            <div className="flex flex-col justify-center">
+              <h1 className="text-4xl font-bold text-gray-900">{item.name}</h1>
+              <div className="flex items-center gap-3 mt-2">
+                {categoryLabel ? <Badge variant="secondary">{categoryLabel}</Badge> : null}
+                <div className="flex items-center gap-2">
+                  <ReviewStars value={ratingAvg} />
+                  <span className="text-sm text-gray-600">{reviews.length} Reviews</span>
+                </div>
+              </div>
+              <p className="text-lg text-gray-700 mt-4 whitespace-pre-line">{shortDescription}</p>
+              <div className="mt-6">
+                <span className="text-4xl font-bold text-green-600">৳{item.price.toFixed(2)}</span>
+              </div>
+              <div className="mt-8 flex gap-3">
                 <AddToCartButton item={item as any} />
                 <OrderNowButton item={item as any} isLoggedIn={!!user} />
-              </>
-            </div>
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
-                <Truck className="text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">Free shipping worldwide</p>
-                  <p className="text-xs text-gray-500">On all orders</p>
+              </div>
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
+                  <Truck className="text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Free shipping worldwide</p>
+                    <p className="text-xs text-gray-500">On all orders</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
+                  <ShieldCheck className="text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">100% Secured Payment</p>
+                    <p className="text-xs text-gray-500">Trusted checkout</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
+                  <ShoppingCart className="text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Top brand products</p>
+                    <p className="text-xs text-gray-500">Quality assured</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
-                <ShieldCheck className="text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">100% Secured Payment</p>
-                  <p className="text-xs text-gray-500">Trusted checkout</p>
-                </div>
+              <div className="mt-4">
+                <Button asChild variant="link">
+                  <Link href="/"> &larr; Back to all items</Link>
+                </Button>
               </div>
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
-                <ShoppingCart className="text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">Top brand products</p>
-                  <p className="text-xs text-gray-500">Quality assured</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4">
-              <Button asChild variant="link">
-                <Link href="/"> &larr; Back to all items</Link>
-              </Button>
             </div>
           </div>
-        </div>
 
-        <div className="mt-10">
-          <Tabs defaultValue="description">
-            <TabsList>
-              <TabsTrigger value="description">Description</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-            </TabsList>
-            <TabsContent value="description">
-              <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-                {item.description}
-              </div>
-            </TabsContent>
-            <TabsContent value="reviews">
-              <ReviewSection
-                itemId={id}
-                canReview={!!canReview}
-                userId={(user as any)?.id || null}
-                initialReviews={reviews as any}
-              />
-            </TabsContent>
-          </Tabs>
+          <div className="mt-10">
+            <Tabs defaultValue="description">
+              <TabsList>
+                <TabsTrigger value="description">Description</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              </TabsList>
+              <TabsContent value="description">
+                <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  {item.description}
+                </div>
+              </TabsContent>
+              <TabsContent value="reviews">
+                <ReviewSection
+                  itemId={id}
+                  canReview={!!canReview}
+                  userId={(user as any)?.id || null}
+                  initialReviews={reviews as any}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

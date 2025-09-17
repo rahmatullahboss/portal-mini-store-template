@@ -7,10 +7,10 @@
   position: absolute;
   inset: auto;
   border-radius: 9999px;
-  filter: blur(60px);
-  mix-blend-mode: multiply;
+  filter: blur(80px);
+  mix-blend-mode: normal;
   animation: heroPulse 8s ease-in-out infinite alternate;
-  opacity: var(--hero-gradient-opacity, 0.3);
+  opacity: var(--hero-gradient-opacity, 0.6);
   --hero-translate-x: 0;
   --hero-translate-y: 0;
   transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0);
@@ -18,18 +18,18 @@
 }
 
 .heroGradientAmber {
-  --hero-gradient-opacity: 0.3;
-  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.35), transparent 65%);
+  --hero-gradient-opacity: 0.68;
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.85), rgba(251, 191, 36, 0.08) 70%);
 }
 
 .heroGradientRose {
-  --hero-gradient-opacity: 0.3;
-  background: radial-gradient(circle at center, rgba(244, 114, 182, 0.3), transparent 60%);
+  --hero-gradient-opacity: 0.64;
+  background: radial-gradient(circle at center, rgba(244, 114, 182, 0.75), rgba(244, 114, 182, 0.06) 65%);
 }
 
 .heroGradientBlue {
-  --hero-gradient-opacity: 0.2;
-  background: radial-gradient(circle at center, rgba(147, 197, 253, 0.25), transparent 60%);
+  --hero-gradient-opacity: 0.52;
+  background: radial-gradient(circle at center, rgba(147, 197, 253, 0.7), rgba(147, 197, 253, 0.05) 65%);
 }
 
 .floatingDots {
