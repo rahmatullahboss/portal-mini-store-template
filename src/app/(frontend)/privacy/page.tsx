@@ -1,12 +1,7 @@
 import React from 'react'
-import dynamic from 'next/dynamic'
 
 import { SiteHeader } from '@/components/site-header'
-
-const ContactEmailLink = dynamic(() => import('@/components/contact-email-link'), {
-  ssr: false,
-  loading: () => <span className="text-gray-600">Email us</span>,
-})
+import { ContactEmailLink } from '@/components/contact-email-link'
 
 export const metadata = {
   title: 'Privacy Policy — Online Bazar',

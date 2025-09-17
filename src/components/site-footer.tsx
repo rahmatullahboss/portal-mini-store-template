@@ -1,13 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 
-const ContactEmailLink = dynamic(() => import('@/components/contact-email-link'), {
-  ssr: false,
-  loading: () => (
-    <span className="text-gray-600">Email us</span>
-  ),
-})
+import { ContactEmailLink } from '@/components/contact-email-link'
 
 export function SiteFooter() {
   return (

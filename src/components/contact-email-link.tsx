@@ -1,27 +1,45 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
 type ContactEmailLinkProps = {
   className?: string
   label?: string
+  loadingLabel?: string
 }
 
 const EMAIL_PARTS = ['rahmatullahzisan', 'gmail', 'com'] as const
 
-export function ContactEmailLink({ className, label }: ContactEmailLinkProps) {
-  const email = useMemo(() => {
-    const [user, domain, tld] = EMAIL_PARTS
-    return `${user}@${domain}.${tld}`
+function buildEmail(parts: typeof EMAIL_PARTS) {
+  const [user, domain, tld] = parts
+  return `${user}@${domain}.${tld}`
+}
+
+export function ContactEmailLink({ className, label, loadingLabel = 'Email us' }: ContactEmailLinkProps) {
+  const [email, setEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    setEmail(buildEmail(EMAIL_PARTS))
   }, [])
 
-  const href = useMemo(() => `mailto:${email}`, [email])
+  if (!email) {
+    return (
+      <span
+        className={cn(
+          'text-gray-600',
+          className,
+        )}
+      >
+        {label ?? loadingLabel}
+      </span>
+    )
+  }
 
   return (
     <a
-      href={href}
+      href={`mailto:${email}`}
       className={cn(
         'transition-colors hover:text-emerald-600 focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50',
         className,
