@@ -11,12 +11,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import type { DeliverySettings } from '@/lib/delivery-settings'
+import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
+import { cn } from '@/lib/utils'
 
 interface CheckoutFormProps {
   user?: any
 }
 
-export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
+export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettings }) => {
   const { state, clearCart, getTotalPrice } = useCart()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,6 +33,19 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
   const [address_state, setAddressState] = useState<string>(user?.address?.state || '')
   const [address_postalCode, setAddressPostalCode] = useState<string>(user?.address?.postalCode || '')
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
+  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
+    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka',
+  )
+  const settings = deliverySettings || DEFAULT_DELIVERY_SETTINGS
+  const subtotal = getTotalPrice()
+  const freeDelivery = subtotal >= settings.freeDeliveryThreshold
+  const shippingCharge = freeDelivery
+    ? 0
+    : deliveryZone === 'outside_dhaka'
+      ? settings.outsideDhakaCharge
+      : settings.insideDhakaCharge
+  const total = subtotal + shippingCharge
+  const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
 
   // Persist guest details for abandoned cart tracking
@@ -51,14 +67,19 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
     const controller = new AbortController()
     const handle = setTimeout(() => {
       try {
-        const total = getTotalPrice()
+        const subtotalValue = subtotal
+        const shippingValue = shippingCharge
+        const totalValue = subtotalValue + shippingValue
         const name = `${firstName} ${lastName}`.trim()
         fetch('/api/cart-activity', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             items: state.items.map((i) => ({ id: i.id, quantity: i.quantity })),
-            total,
+            subtotal: subtotalValue,
+            shipping: shippingValue,
+            total: totalValue,
+            deliveryZone,
             customerEmail: email || undefined,
             customerNumber: customerNumber || undefined,
             customerName: name || undefined,
@@ -72,7 +93,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
       controller.abort()
       clearTimeout(handle)
     }
-  }, [user, state.items, email, customerNumber, firstName, lastName, getTotalPrice])
+  }, [user, state.items, email, customerNumber, firstName, lastName, subtotal, shippingCharge, deliveryZone])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,8 +117,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
             item: ci.id,
             quantity: ci.quantity,
           })),
-          totalAmount: getTotalPrice(),
           customerNumber,
+          deliveryZone,
           ...(user
             ? {
                 // Use provided shipping if filled, otherwise API will fall back to user profile
@@ -141,6 +162,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
           JSON.stringify({
             orderId: result?.doc?.id,
             items: state.items.map((i) => ({ name: i.name, image: i.image })),
+            subtotal: result?.doc?.subtotal ?? subtotal,
+            shippingCharge: result?.doc?.shippingCharge ?? shippingCharge,
+            totalAmount: result?.doc?.totalAmount ?? total,
+            deliveryZone: result?.doc?.deliveryZone ?? deliveryZone,
+            freeDeliveryApplied: result?.doc?.freeDeliveryApplied ?? freeDelivery,
           }),
         )
       } catch {}
@@ -194,26 +220,34 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
                     {item.category}
                   </Badge>
                   <p className="text-sm text-gray-600">
-                    ৳{item.price.toFixed(2)} × {item.quantity}
+                    {formatCurrency(item.price)} x {item.quantity}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">৳{(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold">{formatCurrency(item.price * item.quantity)}</p>
                 </div>
               </div>
             </Card>
           ))}
         </div>
+        <div className="mt-4 space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span>Subtotal</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>
+              Delivery ({deliveryZone === 'outside_dhaka' ? 'Outside Dhaka' : 'Inside Dhaka'})
+            </span>
+            <span>{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+          </div>
+          <Separator />
+          <div className="flex items-center justify-between text-base font-semibold">
+            <span>Total</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+        </div>
       </div>
-
-      <Separator />
-
-      {/* Total */}
-      <div className="flex justify-between items-center text-lg font-semibold">
-        <span>Total:</span>
-        <span className="text-green-600">৳{getTotalPrice().toFixed(2)}</span>
-      </div>
-
       {/* Customer Details (for guests) */}
       {!user ? (
         <div className="space-y-4">
@@ -325,6 +359,62 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
         </div>
       </div>
 
+      {/* Delivery Zone */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Delivery area</h3>
+        <p className="text-sm text-gray-500">
+          Select where this order will be delivered so we can apply the correct delivery charge.
+        {freeDelivery ? (
+          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+          </p>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label
+            className={cn(
+              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+              deliveryZone === 'inside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="inside_dhaka"
+              checked={deliveryZone === 'inside_dhaka'}
+              onChange={() => setDeliveryZone('inside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Inside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.insideDhakaCharge)}</p>
+          </label>
+          <label
+            className={cn(
+              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+              deliveryZone === 'outside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="outside_dhaka"
+              checked={deliveryZone === 'outside_dhaka'}
+              onChange={() => setDeliveryZone('outside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Outside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.outsideDhakaCharge)}</p>
+          </label>
+        </div>
+        {freeDelivery ? (
+          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+          </p>
+        )}
+      </div>
       {/* Error Message */}
       {error && (
         <Alert variant="destructive">
@@ -368,3 +458,5 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user }) => {
     </form>
   )
 }
+
+

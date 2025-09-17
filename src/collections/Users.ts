@@ -40,6 +40,19 @@ export const Users: CollectionConfig = {
       },
     },
     {
+      name: 'deliveryZone',
+      type: 'select',
+      options: [
+        { label: 'Inside Dhaka', value: 'inside_dhaka' },
+        { label: 'Outside Dhaka', value: 'outside_dhaka' },
+      ],
+      required: true,
+      defaultValue: 'inside_dhaka',
+      admin: {
+        description: 'Used to compute delivery charges automatically.',
+      },
+    },
+    {
       name: 'role',
       type: 'select',
       options: [

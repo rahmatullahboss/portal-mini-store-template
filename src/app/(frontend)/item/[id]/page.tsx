@@ -32,6 +32,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
+  const deliveryZone = (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   const item = await getItem(id, payload)
 
@@ -119,11 +120,11 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             </p>
             <div className="mt-6">
               <span className="text-4xl font-bold text-green-600">৳{item.price.toFixed(2)}</span>
-            </div>
+              <span className="text-4xl font-bold text-green-600">Tk {item.price.toFixed(2)}</span>
             <div className="mt-8 flex gap-3">
               <>
                 <AddToCartButton item={item as any} />
-                <OrderNowButton item={item as any} isLoggedIn={!!user} />
+                <OrderNowButton item={item as any} isLoggedIn={!!user} deliveryZone={deliveryZone} />
               </>
             </div>
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">

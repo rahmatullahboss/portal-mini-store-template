@@ -16,17 +16,21 @@ type Item = {
   imageUrl?: string
 }
 
+type OrderNowButtonProps = {
+  item: Item
+  className?: string
+  wrapperClassName?: string
+  isLoggedIn?: boolean
+  deliveryZone?: 'inside_dhaka' | 'outside_dhaka'
+}
+
 export function OrderNowButton({
   item,
   className = '',
   wrapperClassName = '',
   isLoggedIn,
-}: {
-  item: Item
-  className?: string
-  wrapperClassName?: string
-  isLoggedIn?: boolean
-}) {
+  deliveryZone = 'inside_dhaka',
+}: OrderNowButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -36,26 +40,28 @@ export function OrderNowButton({
       setLoading(true)
       setError(null)
 
-      // If not logged in, go collect info first
       if (!isLoggedIn) {
         router.push(`/order/${item.id}`)
         return
       }
 
-      // Logged in: place order immediately using profile info (API falls back to profile)
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: [{ item: item.id, quantity: 1 }],
-          totalAmount: Number(item.price.toFixed(2)),
+          deliveryZone,
         }),
       })
 
       if (res.ok) {
         const data = await res.json().catch(() => null)
-        const oid = (data as any)?.doc?.id
-        // Save a lightweight preview for confirmation pages
+        const orderDoc = (data as any)?.doc || {}
+        const oid = orderDoc?.id
+        const subtotal = Number(orderDoc?.subtotal ?? item.price)
+        const shipping = Number(orderDoc?.shippingCharge ?? 0)
+        const total = Number(orderDoc?.totalAmount ?? subtotal + shipping)
+
         if (item?.name) {
           try {
             sessionStorage.setItem(
@@ -68,17 +74,25 @@ export function OrderNowButton({
                     image: item.image || (item.imageUrl ? { url: item.imageUrl } : undefined),
                   },
                 ],
+                subtotal,
+                shippingCharge: shipping,
+                totalAmount: total,
+                deliveryZone: (orderDoc as any)?.deliveryZone || deliveryZone,
+                freeDeliveryApplied:
+                  typeof (orderDoc as any)?.freeDeliveryApplied === 'boolean'
+                    ? Boolean((orderDoc as any)?.freeDeliveryApplied)
+                    : shipping === 0,
               }),
             )
           } catch {}
         }
+
         router.push(oid ? `/my-orders?success=true&orderId=${oid}` : '/my-orders?success=true')
         return
       }
 
-      // If profile missing number/address, fall back to info page
       const data = await res.json().catch(() => ({}))
-      const message = data?.error || data?.message || 'Additional details required'
+      const message = (data as any)?.error || (data as any)?.message || 'Additional details required'
       setError(message)
       router.push(`/order/${item.id}`)
     } catch (e: any) {
@@ -101,7 +115,7 @@ export function OrderNowButton({
           className,
         )}
       >
-        {loading ? 'Ordering…' : 'Order Now'}
+        {loading ? 'Ordering.' : 'Order Now'}
       </Button>
       {error ? (
         <span className="text-xs text-red-600" role="alert">

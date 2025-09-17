@@ -33,13 +33,14 @@ export default function ProfileForm({ user }: { user: User }) {
     address_state: user.address?.state || '',
     address_postalCode: user.address?.postalCode || '',
     address_country: user.address?.country || '',
+    deliveryZone: user.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka',
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((p) => ({ ...p, [name]: value }))
   }
@@ -58,6 +59,7 @@ export default function ProfileForm({ user }: { user: User }) {
           lastName: formData.lastName,
           email: formData.email,
           customerNumber: formData.customerNumber,
+          deliveryZone: formData.deliveryZone,
           address: {
             line1: formData.address_line1,
             line2: formData.address_line2 || undefined,
@@ -135,6 +137,21 @@ export default function ProfileForm({ user }: { user: User }) {
       </div>
 
       <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-800">Delivery area</h3>
+        <select
+          name="deliveryZone"
+          value={formData.deliveryZone}
+          onChange={onChange}
+          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
+        >
+          <option value="inside_dhaka">Inside Dhaka</option>
+          <option value="outside_dhaka">Outside Dhaka</option>
+        </select>
+        <p className="text-xs text-gray-500">
+          We use this to apply the correct delivery charge by default whenever you place an order.
+        </p>
+      </div>
+      <div className="space-y-3">
         <h3 className="text-sm font-semibold text-gray-800">Shipping address</h3>
         <div className="space-y-2">
           <label htmlFor="address_line1" className="text-sm font-medium text-gray-700">
@@ -203,3 +220,4 @@ export default function ProfileForm({ user }: { user: User }) {
     </form>
   )
 }
+

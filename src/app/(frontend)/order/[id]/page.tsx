@@ -8,6 +8,7 @@ import Link from 'next/link'
 import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 import OrderForm from './order-form'
+import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +37,11 @@ export default async function OrderPage({ params }: OrderPageProps) {
     id,
     depth: 2,
   })
+
+  const deliverySettingsResult = await payload
+    .find({ collection: 'delivery-settings', limit: 1 })
+    .catch(() => null)
+  const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
 
   if (!item || !item.available) {
     return (
@@ -109,7 +115,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
                   </p>
                 </div>
               ) : null}
-              <OrderForm item={item} user={(fullUser as any) || (user as any)} />
+              <OrderForm item={item} user={(fullUser as any) || (user as any)} deliverySettings={deliverySettings} />
             </CardContent>
           </Card>
         </div>
@@ -117,3 +123,5 @@ export default async function OrderPage({ params }: OrderPageProps) {
     </div>
   )
 }
+
+

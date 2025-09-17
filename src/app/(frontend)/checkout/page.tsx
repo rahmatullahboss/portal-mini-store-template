@@ -5,6 +5,7 @@ import Link from 'next/link'
 
 import config from '@/payload.config'
 import { CheckoutForm } from './checkout-form'
+import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SiteHeader } from '@/components/site-header'
@@ -17,6 +18,11 @@ export default async function CheckoutPage() {
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
   const fullUser = user
+  const deliverySettingsResult = await payload
+    .find({ collection: 'delivery-settings', limit: 1 })
+    .catch(() => null)
+  const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
+
     ? await payload.findByID({ collection: 'users', id: (user as any).id }).catch(() => null)
     : null
 
@@ -45,7 +51,7 @@ export default async function CheckoutPage() {
               <CardTitle>Checkout</CardTitle>
             </CardHeader>
             <CardContent>
-              <CheckoutForm user={(fullUser as any) || (user as any)} />
+              <CheckoutForm user={(fullUser as any) || (user as any)} deliverySettings={deliverySettings} />
             </CardContent>
           </Card>
         </div>
@@ -53,3 +59,4 @@ export default async function CheckoutPage() {
     </div>
   )
 }
+

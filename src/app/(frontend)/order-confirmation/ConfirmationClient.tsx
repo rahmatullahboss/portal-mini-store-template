@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -15,40 +15,82 @@ type PreviewItem = {
   image?: { url: string; alt?: string }
 }
 
+type PreviewData = {
+  items: PreviewItem[]
+  subtotal?: number
+  shippingCharge?: number
+  totalAmount?: number
+  deliveryZone?: string
+  freeDeliveryApplied?: boolean
+}
+
+const toPositiveNumber = (value: unknown): number | undefined => {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed < 0) return undefined
+  return parsed
+}
+
+const formatCurrency = (value?: number) => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 'Tk 0.00'
+  return `Tk ${value.toFixed(2)}`
+}
+
 export function ConfirmationClient({ orderId }: { orderId?: string }) {
-  const [items, setItems] = useState<PreviewItem[] | null>(null)
+  const [preview, setPreview] = useState<PreviewData | null>(null)
 
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem('last-order-preview')
       if (raw) {
         const parsed = JSON.parse(raw)
-        if (parsed && Array.isArray(parsed.items)) {
-          setItems(parsed.items)
-        }
+        const items: PreviewItem[] = Array.isArray(parsed?.items) ? parsed.items : []
+        setPreview({
+          items,
+          subtotal: toPositiveNumber(parsed?.subtotal),
+          shippingCharge: toPositiveNumber(parsed?.shippingCharge),
+          totalAmount: toPositiveNumber(parsed?.totalAmount),
+          deliveryZone: typeof parsed?.deliveryZone === 'string' ? parsed.deliveryZone : undefined,
+          freeDeliveryApplied:
+            typeof parsed?.freeDeliveryApplied === 'boolean'
+              ? Boolean(parsed.freeDeliveryApplied)
+              : undefined,
+        })
       }
     } catch {
-      // ignore
+      setPreview({ items: [] })
     }
   }, [])
 
   useEffect(() => {
-    if (items) {
-      track('purchase', { orderId, items })
+    if (preview) {
+      track('purchase', {
+        orderId,
+        items: preview.items,
+        value: preview.totalAmount,
+        shipping: preview.shippingCharge,
+        deliveryZone: preview.deliveryZone,
+        freeDeliveryApplied: preview.freeDeliveryApplied,
+      })
       try {
         sessionStorage.removeItem('last-order-preview')
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
-  }, [items, orderId])
+  }, [preview, orderId])
+
+  const subtotal = useMemo(() => toPositiveNumber(preview?.subtotal) ?? 0, [preview])
+  const shipping = useMemo(() => toPositiveNumber(preview?.shippingCharge) ?? 0, [preview])
+  const total = useMemo(() => toPositiveNumber(preview?.totalAmount) ?? subtotal + shipping, [preview, subtotal, shipping])
+  const items = preview?.items ?? []
+  const freeDelivery = preview?.freeDeliveryApplied ?? shipping === 0
+  const deliveryZoneLabel =
+    preview?.deliveryZone === 'outside_dhaka' ? 'Outside Dhaka' : 'Inside Dhaka'
 
   return (
     <>
       <Alert className="mb-6">
         <AlertDescription>
           <div className="space-y-2">
-            <div className="text-lg font-semibold">Order placed successfully! 🎉</div>
+            <div className="text-lg font-semibold">Order placed successfully! ✅</div>
             {orderId ? (
               <div className="text-sm text-gray-600">Reference: #{String(orderId).slice(-8)}</div>
             ) : null}
@@ -61,10 +103,10 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
           <CardTitle>Order Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          {items && items.length > 0 ? (
+          {items.length > 0 ? (
             <div className="space-y-4">
               {items.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                <div key={`${item.name ?? 'item'}-${idx}`} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                   {item.image?.url ? (
                     <div className="relative w-16 h-16 rounded overflow-hidden border">
                       <Image
@@ -86,7 +128,31 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
               Your order has been placed. You will receive a confirmation email shortly.
             </div>
           )}
+
           <Separator className="my-4" />
+
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span>Subtotal</span>
+              <span>{formatCurrency(subtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Delivery ({deliveryZoneLabel})</span>
+              <span>{freeDelivery ? 'Free' : formatCurrency(shipping)}</span>
+            </div>
+            <div className="flex items-center justify-between text-base font-semibold">
+              <span>Total</span>
+              <span>{formatCurrency(total)}</span>
+            </div>
+            {freeDelivery ? (
+              <p className="text-xs text-green-600 font-semibold">Free delivery applied for this order.</p>
+            ) : (
+              <p className="text-xs text-gray-500">Delivery charge applied based on your selected area.</p>
+            )}
+          </div>
+
+          <Separator className="my-4" />
+
           <div className="flex gap-3">
             <Button asChild>
               <Link href="/">Continue Shopping</Link>
@@ -100,4 +166,3 @@ export function ConfirmationClient({ orderId }: { orderId?: string }) {
     </>
   )
 }
-

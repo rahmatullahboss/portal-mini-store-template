@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import type { DeliverySettings } from '@/lib/delivery-settings'
+import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
+import { cn } from '@/lib/utils'
 
 interface OrderFormProps {
   item: any
   user?: any
 }
 
-export default function OrderForm({ item, user }: OrderFormProps) {
+export default function OrderForm({ item, user, deliverySettings }: OrderFormProps) {
   const [quantity, setQuantity] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -26,9 +29,21 @@ export default function OrderForm({ item, user }: OrderFormProps) {
   const [address_state, setAddressState] = useState<string>(user?.address?.state || '')
   const [address_postalCode, setAddressPostalCode] = useState<string>(user?.address?.postalCode || '')
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
+  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
+    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka',
+  )
+  const settings = deliverySettings || DEFAULT_DELIVERY_SETTINGS
+  const subtotal = Number(item.price) * quantity
+  const freeDelivery = subtotal >= settings.freeDeliveryThreshold
+  const shippingCharge = freeDelivery
+    ? 0
+    : deliveryZone === 'outside_dhaka'
+      ? settings.outsideDhakaCharge
+      : settings.insideDhakaCharge
+  const total = subtotal + shippingCharge
+  const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
 
-  const totalPrice = (item.price * quantity).toFixed(2)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,8 +63,8 @@ export default function OrderForm({ item, user }: OrderFormProps) {
               quantity,
             },
           ],
-          totalAmount: parseFloat(totalPrice),
           customerNumber,
+          deliveryZone,
           ...(user
             ? {
                 // Optional override shipping
@@ -96,6 +111,11 @@ export default function OrderForm({ item, user }: OrderFormProps) {
                   image: item?.image || (item?.imageUrl ? { url: item.imageUrl } : undefined),
                 },
               ],
+              subtotal: (data as any)?.doc?.subtotal ?? subtotal,
+              shippingCharge: (data as any)?.doc?.shippingCharge ?? shippingCharge,
+              totalAmount: (data as any)?.doc?.totalAmount ?? total,
+              deliveryZone: (data as any)?.doc?.deliveryZone ?? deliveryZone,
+              freeDeliveryApplied: (data as any)?.doc?.freeDeliveryApplied ?? freeDelivery,
             }),
           )
         } catch {}
@@ -216,12 +236,82 @@ export default function OrderForm({ item, user }: OrderFormProps) {
         </div>
       </div>
 
+      {/* Delivery Zone */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Delivery area</h3>
+        <p className="text-sm text-gray-500">
+          Choose whether this address is inside or outside Dhaka to calculate delivery charges.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label
+            className={cn(
+              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+              deliveryZone === 'inside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="inside_dhaka"
+              checked={deliveryZone === 'inside_dhaka'}
+              onChange={() => setDeliveryZone('inside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Inside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.insideDhakaCharge)}</p>
+          </label>
+          <label
+            className={cn(
+              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+              deliveryZone === 'outside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+            )}
+          >
+            <input
+              type="radio"
+              name="deliveryZone"
+              value="outside_dhaka"
+              checked={deliveryZone === 'outside_dhaka'}
+              onChange={() => setDeliveryZone('outside_dhaka')}
+              className="sr-only"
+            />
+            <div className="font-medium">Outside Dhaka</div>
+            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.outsideDhakaCharge)}</p>
+          </label>
+        </div>
+        {freeDelivery ? (
+          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+          </p>
+        )}
+      </div>
       <Separator />
 
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Total: ৳{totalPrice}</h3>
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Order total</h3>
+        <div className="space-y-1 text-sm">
+          <div className="flex items-center justify-between">
+            <span>Subtotal</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Delivery ({deliveryZone === 'outside_dhaka' ? 'Outside Dhaka' : 'Inside Dhaka'})</span>
+            <span>{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-base font-semibold">
+          <span>Total</span>
+          <span>{formatCurrency(total)}</span>
+        </div>
+        {freeDelivery ? (
+          <p className="text-xs text-green-600 font-semibold">Free delivery applied for this order.</p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock free delivery.
+          </p>
+        )}
       </div>
-
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -234,3 +324,5 @@ export default function OrderForm({ item, user }: OrderFormProps) {
     </form>
   )
 }
+
+

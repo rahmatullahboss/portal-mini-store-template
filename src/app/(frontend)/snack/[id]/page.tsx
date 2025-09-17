@@ -28,6 +28,7 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
+  const deliveryZone = (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   const snack = await getSnack(id, payload)
 
@@ -68,11 +69,11 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
             <p className="text-lg text-gray-700 mt-4">{snack.description}</p>
             <div className="mt-6">
               <span className="text-4xl font-bold text-green-600">৳{snack.price.toFixed(2)}</span>
-            </div>
+              <span className="text-4xl font-bold text-green-600">Tk {snack.price.toFixed(2)}</span>
             <div className="mt-8 flex gap-3">
               <>
                 <AddToCartButton item={snack} />
-                <OrderNowButton item={snack} isLoggedIn={!!user} />
+                <OrderNowButton item={snack} isLoggedIn={!!user} deliveryZone={deliveryZone} />
               </>
             </div>
             <div className="mt-4">

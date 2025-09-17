@@ -23,6 +23,7 @@ This template comes configured with the bare minimum to get started on anything 
 - **Smart Notifications**: Toast alerts for admin actions with email confirmation
 - **Order Analytics**: Detailed statistics, sales trends, and performance metrics
 - **Inventory Management**: Complete product catalog management through Payload CMS
+- **Delivery Settings**: Configure inside/outside Dhaka delivery charges and the free-delivery threshold directly from Payload.
 
 ## Tech Stack
 
@@ -69,6 +70,11 @@ This template comes configured with the bare minimum to get started on anything 
 - Status tracking (pending/completed/cancelled)
 - Order date tracking
 
+
+### Delivery Settings
+- Single-record collection managed by admins.
+- Fields: inside/outside Dhaka delivery charges and the free-delivery threshold.
+- Checkout and quick-order flows use these values to calculate shipping and trigger free delivery automatically.
 ### Media
 - Image upload and management
 - Alt text for accessibility
@@ -117,6 +123,7 @@ This template comes configured with the bare minimum to get started on anything 
 1. **Create Admin User**: Visit `/admin` to create your first admin user
 2. **Add Products**: Use the admin panel to add items with images
 3. **Test Ordering**: Create a regular user account to test the ordering flow
+4. **Review Delivery Settings**: In Payload admin, open “Delivery Settings” to adjust charges for inside/outside Dhaka and the free-delivery threshold.
 
 ## API Endpoints
 

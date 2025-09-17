@@ -15,6 +15,7 @@ import { Media } from './collections/Media'
 import { Items } from './collections/Items'
 import { Categories } from './collections/Categories'
 import { Orders } from './collections/Orders'
+import { DeliverySettings } from './collections/DeliverySettings'
 import { AbandonedCarts } from './collections/AbandonedCarts'
 import { Reviews } from './collections/Reviews'
 
@@ -96,7 +97,7 @@ export default buildConfig({
   // Allow current deployment URL and localhost for dev
   cors: [getServerSideURL(), 'http://localhost:3000'].filter(Boolean) as string[],
   plugins: storagePlugins,
-  collections: [Users, Media, Items, Categories, Orders, Reviews, AbandonedCarts],
+  collections: [Users, Media, Items, Categories, Orders, Reviews, AbandonedCarts, DeliverySettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -124,3 +125,4 @@ export default buildConfig({
     }),
   }),
 })
+

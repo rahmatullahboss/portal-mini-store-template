@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { extractClientIdFromCookieHeader, sendGaEvent } from '@/lib/server/ga'
+import { DEFAULT_DELIVERY_SETTINGS, normalizeDeliverySettings } from '@/lib/delivery-settings'
+const DEFAULT_CURRENCY = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || process.env.DEFAULT_CURRENCY || 'BDT'
+const resolveDeliveryZone = (value?: unknown): 'inside_dhaka' | 'outside_dhaka' | undefined => {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.toLowerCase().replace(/[\\s-]+/g, '_')
+  if (normalized.includes('outside')) return 'outside_dhaka'
+  if (normalized.includes('inside')) return 'inside_dhaka'
+  if (normalized.includes('dhaka')) return 'inside_dhaka'
+  return undefined
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,14 +47,12 @@ export async function POST(request: NextRequest) {
       body = {}
     }
 
-    const { items, totalAmount, customerNumber, customerName, customerEmail } = body
+    const { items, customerNumber, customerName, customerEmail, deliveryZone: deliveryZoneInput } = body
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
     }
 
-    const totalNum = typeof totalAmount === 'string' ? Number(totalAmount) : Number(totalAmount || 0)
-    if (!totalNum || totalNum <= 0) {
       return NextResponse.json({ error: 'Invalid total amount' }, { status: 400 })
     }
 
@@ -112,19 +121,69 @@ export async function POST(request: NextRequest) {
     if (!normalizedItems.length) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
     }
-
-    // Validate items exist and are available
+    // Validate items exist and collect details for analytics
+    const itemDetails: Array<{ id: number; name: string; price: number; quantity: number; category?: string }> = []
     for (const line of normalizedItems) {
       const itemDoc = await payload.findByID({
         collection: 'items',
         id: (line as any).item,
+        depth: 1,
       })
 
       if (!itemDoc || !itemDoc.available) {
         return NextResponse.json({ error: `Item ${line.item} is not available` }, { status: 400 })
       }
+
+      const price = typeof (itemDoc as any)?.price === 'number' ? (itemDoc as any).price : Number((itemDoc as any)?.price || 0)
+      const category = (() => {
+        const cat = (itemDoc as any)?.category
+        if (!cat) return undefined
+        if (typeof cat === 'object' && 'name' in cat) {
+          return (cat as any).name as string
+        }
+        return undefined
+      })()
+
+      itemDetails.push({
+        id: line.item,
+        name: (itemDoc as any)?.name || `Item ${line.item}`,
+        price: Number.isFinite(price) ? Number(price) : 0,
+        quantity: line.quantity,
+        category,
+      })
     }
 
+
+    const subtotal = itemDetails.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    if (!Number.isFinite(subtotal) || subtotal <= 0) {
+      return NextResponse.json({ error: 'Invalid subtotal calculated for order' }, { status: 400 })
+    }
+
+    const settingsResult = await payload
+      .find({ collection: 'delivery-settings', limit: 1 })
+      .catch(() => null)
+    const deliverySettingsSource = (settingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS
+    const { insideDhakaCharge, outsideDhakaCharge, freeDeliveryThreshold } = normalizeDeliverySettings(deliverySettingsSource)
+    const userDeliveryZone = resolveDeliveryZone((fullUser as any)?.deliveryZone)
+    const requestDeliveryZone = resolveDeliveryZone(deliveryZoneInput)
+    const inferredZoneFromAddress = (() => {
+      const city = String((shippingAddress as any)?.city || '').toLowerCase()
+      if (city.includes('dhaka')) return 'inside_dhaka' as const
+      if (city.length > 0) return 'outside_dhaka' as const
+      return undefined
+    })()
+    const deliveryZone = requestDeliveryZone || userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
+
+    const freeDeliveryApplied = subtotal >= freeDeliveryThreshold
+    const appliedShippingCharge = freeDeliveryApplied
+      ? 0
+      : deliveryZone === 'outside_dhaka'
+        ? outsideDhakaCharge
+        : insideDhakaCharge
+    const shippingBase = Number.isFinite(appliedShippingCharge) ? appliedShippingCharge : 0
+    const shippingChargeValue = Number(Math.max(0, shippingBase).toFixed(2))
+    const subtotalValue = Number(subtotal.toFixed(2))
+    const totalValue = Number((subtotalValue + shippingChargeValue).toFixed(2))
     // Detect device
     const ua = request.headers.get('user-agent') || ''
     const uaLower = ua.toLowerCase()
@@ -145,11 +204,11 @@ export async function POST(request: NextRequest) {
         customerEmail: String(computedCustomerEmail).trim(),
         customerNumber: String(computedCustomerNumber).trim(),
         items: normalizedItems,
-        totalAmount: totalNum,
-        status: 'pending',
-        orderDate: new Date().toISOString(),
-        userAgent: ua || undefined,
-        deviceType,
+        subtotal: subtotalValue,
+        shippingCharge: shippingChargeValue,
+        deliveryZone,
+        freeDeliveryApplied,
+        totalAmount: totalValue,
         shippingAddress: {
           line1: shippingAddress.line1,
           line2: shippingAddress.line2 || undefined,
@@ -161,6 +220,35 @@ export async function POST(request: NextRequest) {
       } as any,
     })
 
+    // Forward purchase event to GA4 (best-effort)
+    try {
+      const clientId = extractClientIdFromCookieHeader(request.headers.get('cookie'))
+      const purchaseValue = totalValue
+      const shippingValue = shippingChargeValue
+      const itemsForAnalytics = itemDetails.map((detail) => ({
+        item_id: String(detail.id),
+        item_name: detail.name,
+        price: Number(Number(detail.price || 0).toFixed(2)),
+        quantity: detail.quantity,
+        item_category: detail.category,
+      }))
+      await sendGaEvent({
+        name: 'purchase',
+        clientId: clientId || undefined,
+        userId: user ? String((user as any).id || (user as any)?.id) : undefined,
+        params: {
+          transaction_id: String((order as any)?.id || ''),
+          currency: DEFAULT_CURRENCY,
+          value: purchaseValue,
+          shipping: shippingValue,
+          free_delivery: freeDeliveryApplied ? 1 : 0,
+          items: itemsForAnalytics,
+        },
+        timestampMicros: Date.now() * 1000,
+      })
+    } catch (analyticsError) {
+      console.warn('Failed to send GA purchase event', analyticsError)
+    }
     // Mark any associated abandoned cart as recovered
     try {
       const sid = request.cookies.get('dyad_cart_sid')?.value
@@ -228,3 +316,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
   }
 }
+
+

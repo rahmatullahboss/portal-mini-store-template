@@ -1,47 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { extractClientIdFromCookieHeader, sendGaEvent } from '@/lib/server/ga'
+
 interface TrackingEvent {
-  name: string
-  params?: Record<string, unknown>
-  clientId?: string
+  name?: unknown
+  params?: unknown
+  clientId?: unknown
+  userId?: unknown
 }
 
-async function sendToGTM(event: TrackingEvent) {
-  const measurementId = process.env.GTM_MEASUREMENT_ID
-  const apiSecret = process.env.GTM_API_SECRET
-  if (!measurementId || !apiSecret) return
-
-  const url = `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`
-  const body = {
-    client_id: event.clientId || 'anonymous',
-    events: [
-      {
-        name: event.name,
-        params: event.params || {},
-      },
-    ],
+const sanitizeEvent = (event: TrackingEvent) => {
+  if (!event || typeof event !== 'object') return null
+  if (typeof event.name !== 'string' || event.name.trim().length === 0) return null
+  const payload: {
+    name: string
+    params?: Record<string, unknown>
+    clientId?: string
+    userId?: string
+  } = {
+    name: event.name.trim(),
   }
-
-  await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  })
+  if (event.params && typeof event.params === 'object' && !Array.isArray(event.params)) {
+    payload.params = event.params as Record<string, unknown>
+  }
+  if (typeof event.clientId === 'string') {
+    payload.clientId = event.clientId
+  }
+  if (typeof event.userId === 'string') {
+    payload.userId = event.userId
+  }
+  return payload
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { events } = (await req.json()) as { events?: TrackingEvent[] }
-    if (!Array.isArray(events) || events.length === 0) {
+    const body = await req.json().catch(() => ({}))
+    const events = Array.isArray((body as any)?.events) ? (body as any).events : []
+
+    if (!events.length) {
       return NextResponse.json({ error: 'No events provided' }, { status: 400 })
     }
 
+    const fallbackClientId = extractClientIdFromCookieHeader(req.headers.get('cookie'))
+
     await Promise.all(
-      events.map(async (event) => {
-        await Promise.all([
-          sendToGTM(event),
-          // Add other platform forwarders here
-        ])
-      }),
+      events
+        .map(sanitizeEvent)
+        .filter((event): event is { name: string; params?: Record<string, unknown>; clientId?: string; userId?: string } => !!event)
+        .map((event) =>
+          sendGaEvent({
+            name: event.name,
+            params: event.params,
+            clientId: event.clientId || fallbackClientId,
+            userId: event.userId,
+          }),
+        ),
     )
 
     return NextResponse.json({ success: true })

@@ -1,5 +1,4 @@
 import React from 'react'
-import Script from 'next/script'
 import type { Metadata } from 'next'
 
 import { CartProvider } from '@/lib/cart-context'
@@ -14,11 +13,11 @@ import {
 } from '@/components/lazy-client-components'
 
 export const metadata: Metadata = {
-  description: 'Online Bazar — a mini store template powered by Payload.',
+  description: 'Online Bazar - a mini store template powered by Payload.',
   title: 'Online Bazar',
   openGraph: {
     title: 'Online Bazar',
-    description: 'Online Bazar — a mini store template powered by Payload.',
+    description: 'Online Bazar - a mini store template powered by Payload.',
     url: process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000',
     siteName: 'Online Bazar',
     images: [
@@ -42,6 +41,11 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     return id ? `${id}.public.blob.vercel-storage.com` : undefined
   })()
   const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS !== 'false'
+  const measurementId =
+    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ||
+    process.env.NEXT_PUBLIC_GTM_MEASUREMENT_ID ||
+    process.env.GA_MEASUREMENT_ID ||
+    process.env.GTM_MEASUREMENT_ID
 
   return (
     <html lang="en">
@@ -57,27 +61,23 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         <link rel="dns-prefetch" href="//images.unsplash.com" />
         {blobHost ? <link rel="dns-prefetch" href={`//${blobHost}`} /> : null}
 
-        {/* Google tag (gtag.js) - kept from your update */}
-        {enableAnalytics && (
+        {/* Google Analytics (gtag.js) */}
+        {measurementId ? (
           <>
-            <Script
-              src="https://www.googletagmanager.com/gtag/js?id=G-Q3LY08VXYN"
-              strategy="afterInteractive"
-            />
-            <Script
-              id="gtag-init"
-              strategy="afterInteractive"
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}></script>
+            <script
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
-                  gtag('config', 'G-Q3LY08VXYN');
+                  gtag('config', '${measurementId}');
+                  window.__GA_MEASUREMENT_ID = '${measurementId}';
                 `,
               }}
             />
           </>
-        )}
+        ) : null}
       </head>
       <body>
         <CartProvider>

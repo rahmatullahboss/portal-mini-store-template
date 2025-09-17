@@ -123,6 +123,7 @@ export default async function HomePage() {
 async function HeaderSection({ authPromise }: HeaderSectionProps) {
   const authResult = await authPromise
   const user = authResult?.user ?? null
+  const userDeliveryZone = (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   return <SiteHeader variant="full" user={user ?? undefined} />
 }
@@ -217,13 +218,13 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                   <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-white p-4 rounded-b-3xl md:bg-gradient-to-r md:from-gray-50/80 md:to-white/80 md:backdrop-blur-sm">
                     <div className="space-y-1">
                       <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                        ৳{item.price.toFixed(2)}
+                        Tk {item.price.toFixed(2)}
                       </span>
                       <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
                     </div>
                     <div className="flex flex-wrap justify-end gap-1 sm:gap-2 md:flex-col md:items-end md:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
                       <AddToCartButton item={item} />
-                      <OrderNowButton item={item} isLoggedIn={!!user} />
+                      <OrderNowButton item={item} isLoggedIn={!!user} deliveryZone={userDeliveryZone} />
                     </div>
                   </CardFooter>
                 </div>
