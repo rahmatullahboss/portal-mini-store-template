@@ -28,76 +28,19 @@ export function OrderNowButton({
   item,
   className = '',
   wrapperClassName = '',
-  isLoggedIn,
-  deliveryZone = 'inside_dhaka',
 }: OrderNowButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleOrder = async () => {
+  const handleOrder = () => {
     try {
       setLoading(true)
       setError(null)
-
-      if (!isLoggedIn) {
-        router.push(`/order/${item.id}`)
-        return
-      }
-
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: [{ item: item.id, quantity: 1 }],
-          deliveryZone,
-        }),
-      })
-
-      if (res.ok) {
-        const data = await res.json().catch(() => null)
-        const orderDoc = (data as any)?.doc || {}
-        const oid = orderDoc?.id
-        const subtotal = Number(orderDoc?.subtotal ?? item.price)
-        const shipping = Number(orderDoc?.shippingCharge ?? 0)
-        const total = Number(orderDoc?.totalAmount ?? subtotal + shipping)
-
-        if (item?.name) {
-          try {
-            sessionStorage.setItem(
-              'last-order-preview',
-              JSON.stringify({
-                orderId: oid,
-                items: [
-                  {
-                    name: item.name,
-                    image: item.image || (item.imageUrl ? { url: item.imageUrl } : undefined),
-                  },
-                ],
-                subtotal,
-                shippingCharge: shipping,
-                totalAmount: total,
-                deliveryZone: (orderDoc as any)?.deliveryZone || deliveryZone,
-                freeDeliveryApplied:
-                  typeof (orderDoc as any)?.freeDeliveryApplied === 'boolean'
-                    ? Boolean((orderDoc as any)?.freeDeliveryApplied)
-                    : shipping === 0,
-              }),
-            )
-          } catch {}
-        }
-
-        router.push(oid ? `/my-orders?success=true&orderId=${oid}` : '/my-orders?success=true')
-        return
-      }
-
-      const data = await res.json().catch(() => ({}))
-      const message = (data as any)?.error || (data as any)?.message || 'Additional details required'
+      router.push(`/order/${item.id}`)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to open checkout'
       setError(message)
-      router.push(`/order/${item.id}`)
-    } catch (e: any) {
-      setError(e?.message || 'Failed to place order')
-      router.push(`/order/${item.id}`)
     } finally {
       setLoading(false)
     }
