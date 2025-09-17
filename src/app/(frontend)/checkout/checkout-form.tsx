@@ -38,13 +38,15 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const [email, setEmail] = useState<string>(user?.email || '')
   const [address_line1, setAddressLine1] = useState<string>(user?.address?.line1 || '')
   const [address_line2, setAddressLine2] = useState<string>(user?.address?.line2 || '')
-  const [address_city, setAddressCity] = useState<string>(user?.address?.city || '')
+  const initialDeliveryZone: 'inside_dhaka' | 'outside_dhaka' =
+    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
+  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(initialDeliveryZone)
+  const [address_city, setAddressCity] = useState<string>(
+    initialDeliveryZone === 'inside_dhaka' ? 'Dhaka' : user?.address?.city || '',
+  )
   const [address_state, setAddressState] = useState<string>(user?.address?.state || '')
   const [address_postalCode, setAddressPostalCode] = useState<string>(user?.address?.postalCode || '')
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
-  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
-    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka',
-  )
   const settings = deliverySettings || DEFAULT_DELIVERY_SETTINGS
   const subtotal = getTotalPrice()
   const freeDelivery = subtotal >= settings.freeDeliveryThreshold
@@ -57,6 +59,13 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
   const requiresDigitalPaymentDetails = isDigitalPaymentMethod(paymentMethod)
+  const isInsideDhaka = deliveryZone === 'inside_dhaka'
+
+  React.useEffect(() => {
+    if (deliveryZone === 'inside_dhaka') {
+      setAddressCity('Dhaka')
+    }
+  }, [deliveryZone])
 
   // Persist guest details for abandoned cart tracking
   React.useEffect(() => {
@@ -342,16 +351,24 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label htmlFor="address_city" className="text-sm font-medium">City</label>
-            <input
-              id="address_city"
-              value={address_city}
-              onChange={(e) => setAddressCity(e.target.value)}
-              required={!user}
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500"
-            />
-          </div>
+            <div className="space-y-1">
+              <label htmlFor="address_city" className="text-sm font-medium">City</label>
+              <input
+                id="address_city"
+                value={address_city}
+                onChange={(e) => setAddressCity(e.target.value)}
+                required={!user}
+                readOnly={isInsideDhaka}
+                aria-readonly={isInsideDhaka}
+                className={cn(
+                  'block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500',
+                  isInsideDhaka ? 'bg-gray-100 cursor-not-allowed text-gray-600' : '',
+                )}
+              />
+              {isInsideDhaka ? (
+                <p className="text-xs text-gray-500">City is fixed to Dhaka for inside Dhaka delivery.</p>
+              ) : null}
+            </div>
           <div className="space-y-1">
             <label htmlFor="address_state" className="text-sm font-medium">State / Region</label>
             <input
@@ -404,7 +421,10 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               name="deliveryZone"
               value="inside_dhaka"
               checked={deliveryZone === 'inside_dhaka'}
-              onChange={() => setDeliveryZone('inside_dhaka')}
+              onChange={() => {
+                setDeliveryZone('inside_dhaka')
+                setAddressCity('Dhaka')
+              }}
               className="sr-only"
             />
             <div className="font-medium">Inside Dhaka</div>
@@ -421,7 +441,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               name="deliveryZone"
               value="outside_dhaka"
               checked={deliveryZone === 'outside_dhaka'}
-              onChange={() => setDeliveryZone('outside_dhaka')}
+              onChange={() => {
+                setDeliveryZone('outside_dhaka')
+                if (address_city === 'Dhaka') {
+                  setAddressCity('')
+                }
+              }}
               className="sr-only"
             />
             <div className="font-medium">Outside Dhaka</div>
