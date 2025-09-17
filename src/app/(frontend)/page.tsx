@@ -63,9 +63,9 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100 text-gray-800">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-rose-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-4000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 motion-safe:animate-pulse motion-reduce:animate-none motion-reduce:filter-none motion-reduce:mix-blend-normal motion-reduce:bg-[radial-gradient(circle_at_center,_rgba(251,191,36,0.35),_transparent_65%)] motion-reduce:opacity-25"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-rose-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 motion-safe:animate-pulse motion-reduce:animate-none motion-reduce:filter-none motion-reduce:mix-blend-normal motion-reduce:bg-[radial-gradient(circle_at_center,_rgba(244,114,182,0.3),_transparent_60%)] motion-reduce:opacity-25 animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 motion-safe:animate-pulse motion-reduce:animate-none motion-reduce:filter-none motion-reduce:mix-blend-normal motion-reduce:bg-[radial-gradient(circle_at_center,_rgba(147,197,253,0.25),_transparent_60%)] motion-reduce:opacity-20 animation-delay-4000"></div>
       </div>
 
       <SiteHeader variant="full" user={user} />
@@ -75,17 +75,17 @@ export default async function HomePage() {
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
           {/* Floating Elements */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-20 left-10 w-4 h-4 bg-amber-300 rounded-full opacity-60 animate-bounce animation-delay-1000"></div>
-            <div className="absolute top-40 right-20 w-6 h-6 bg-rose-300 rounded-full opacity-50 animate-bounce animation-delay-2000"></div>
-            <div className="absolute bottom-40 left-20 w-3 h-3 bg-blue-300 rounded-full opacity-60 animate-bounce animation-delay-3000"></div>
-            <div className="absolute bottom-20 right-10 w-5 h-5 bg-amber-200 rounded-full opacity-40 animate-bounce animation-delay-4000"></div>
+            <div className="absolute top-20 left-10 w-4 h-4 bg-amber-300 rounded-full opacity-60 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-1000"></div>
+            <div className="absolute top-40 right-20 w-6 h-6 bg-rose-300 rounded-full opacity-50 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-2000"></div>
+            <div className="absolute bottom-40 left-20 w-3 h-3 bg-blue-300 rounded-full opacity-60 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-3000"></div>
+            <div className="absolute bottom-20 right-10 w-5 h-5 bg-amber-200 rounded-full opacity-40 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-4000"></div>
           </div>
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-            <div className="space-y-8 animate-fade-in">
+            <div className="space-y-8 motion-safe:animate-fade-in motion-reduce:fade-in-reset">
               <div className="space-y-4">
                 <h2 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter">
-                  <span className="brand-text animate-gradient-x">Online Bazar</span>
+                  <span className="brand-text motion-safe:animate-gradient-x motion-reduce:brand-gradient-static">Online Bazar</span>
                   <br />
                   <span className="text-gray-800">Reimagined</span>
                 </h2>
@@ -99,9 +99,9 @@ export default async function HomePage() {
           </div>
 
           {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0">
             <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
-              <div className="w-1 h-3 bg-gray-500 rounded-full mt-2 animate-pulse"></div>
+              <div className="w-1 h-3 bg-gray-500 rounded-full mt-2 motion-safe:animate-pulse motion-reduce:animate-none"></div>
             </div>
           </div>
         </section>
