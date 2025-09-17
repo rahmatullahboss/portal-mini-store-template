@@ -1,0 +1,98 @@
+.heroBackdrop {
+  pointer-events: none;
+  z-index: 0;
+}
+
+.heroGradient {
+  position: absolute;
+  inset: auto;
+  border-radius: 9999px;
+  filter: blur(60px);
+  mix-blend-mode: multiply;
+  animation: heroPulse 8s ease-in-out infinite alternate;
+  opacity: var(--hero-gradient-opacity, 0.3);
+  --hero-translate-x: 0;
+  --hero-translate-y: 0;
+  transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0);
+  transform-origin: center;
+}
+
+.heroGradientAmber {
+  --hero-gradient-opacity: 0.3;
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.35), transparent 65%);
+}
+
+.heroGradientRose {
+  --hero-gradient-opacity: 0.3;
+  background: radial-gradient(circle at center, rgba(244, 114, 182, 0.3), transparent 60%);
+}
+
+.heroGradientBlue {
+  --hero-gradient-opacity: 0.2;
+  background: radial-gradient(circle at center, rgba(147, 197, 253, 0.25), transparent 60%);
+}
+
+.floatingDots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.floatingDot {
+  position: absolute;
+  border-radius: 9999px;
+  animation: heroBounce 4s ease-in-out infinite;
+  --floating-offset: 0.75rem;
+  transform: translate3d(0, 0, 0);
+  transform-origin: center;
+}
+
+.floatingDotAmber {
+  background-color: rgb(252, 211, 77);
+}
+
+.floatingDotRose {
+  background-color: rgb(244, 178, 205);
+}
+
+.floatingDotBlue {
+  background-color: rgb(191, 219, 254);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroGradient {
+    animation: none;
+    filter: none;
+    mix-blend-mode: normal;
+    transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0);
+  }
+
+  .floatingDot {
+    animation: none;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroPulse {
+  0%,
+  100% {
+    transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0)
+      scale3d(1, 1, 1);
+  }
+
+  50% {
+    transform: translate3d(var(--hero-translate-x), var(--hero-translate-y), 0)
+      scale3d(1.05, 1.05, 1);
+  }
+}
+
+@keyframes heroBounce {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, calc(-1 * var(--floating-offset)), 0);
+  }
+}
