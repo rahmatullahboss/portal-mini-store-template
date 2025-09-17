@@ -58,7 +58,12 @@ export default async function HomePage() {
 
   const itemsPromise = getItemsCached()
   const authPromise = payload.auth({ headers })
-  const heroCenterGradientStyle: CSSProperties = {
+  type CSSPropertiesWithVars = CSSProperties & {
+    '--hero-translate-x'?: string
+    '--hero-translate-y'?: string
+  }
+
+  const heroCenterGradientStyle: CSSPropertiesWithVars = {
     top: '50%',
     left: '50%',
     width: '24rem',
