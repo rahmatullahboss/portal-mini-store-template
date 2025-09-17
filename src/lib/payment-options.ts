@@ -34,7 +34,7 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
     label: 'bKash',
     logo: {
       src: '/payment/bkash.svg',
-      alt: 'bKash logo',
+      alt: 'bKash payment logo',
       width: 512,
       height: 341,
     },
@@ -44,7 +44,7 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
     label: 'Nagad',
     logo: {
       src: '/payment/nagad.svg',
-      alt: 'Nagad logo',
+      alt: 'Nagad payment logo',
       width: 512,
       height: 341,
     },
