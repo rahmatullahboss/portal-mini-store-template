@@ -51,8 +51,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const shippingCharge = freeDelivery
     ? 0
     : deliveryZone === 'outside_dhaka'
-      ? settings.outsideDhakaCharge
-      : settings.insideDhakaCharge
+    ? settings.outsideDhakaCharge
+    : settings.insideDhakaCharge
   const total = subtotal + shippingCharge
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
@@ -448,38 +448,38 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <label
               key={option.value}
               className={cn(
-                  'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
-                  paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={option.value}
-                  checked={paymentMethod === option.value}
-                  onChange={() => {
-                    setPaymentMethod(option.value)
-                    if (option.value === 'cod') {
-                      setPaymentSenderNumber('')
-                      setPaymentTransactionId('')
-                    }
-                    setError(null)
-                  }}
-                  className="sr-only"
+                'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
+                paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+              )}
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value={option.value}
+                checked={paymentMethod === option.value}
+                onChange={() => {
+                  setPaymentMethod(option.value)
+                  if (option.value === 'cod') {
+                    setPaymentSenderNumber('')
+                    setPaymentTransactionId('')
+                  }
+                  setError(null)
+                }}
+                className="sr-only"
+              />
+              <div className="relative w-32 h-16">
+                <Image
+                  src={option.logo.src}
+                  alt={option.logo.alt}
+                  width={option.logo.width}
+                  height={option.logo.height}
+                  className="h-full w-full object-contain"
+                  sizes="128px"
+                  priority={option.value === 'cod'}
                 />
-                <div className="relative w-32 h-16">
-                  <Image
-                    src={option.logo.src}
-                    alt={option.logo.alt}
-                    width={option.logo.width}
-                    height={option.logo.height}
-                    className="h-full w-full object-contain"
-                    sizes="128px"
-                    priority={option.value === 'cod'}
-                  />
-                </div>
-                <span className="font-medium text-sm">{option.label}</span>
-              </label>
+              </div>
+              <span className="font-medium text-sm">{option.label}</span>
+            </label>
           ))}
         </div>
 
@@ -572,6 +572,3 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     </form>
   )
 }
-
-
-
