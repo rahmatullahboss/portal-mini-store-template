@@ -1,4 +1,5 @@
 import React from 'react'
+import Script from 'next/script'
 import type { Metadata } from 'next'
 
 import { CartProvider } from '@/lib/cart-context'
@@ -57,17 +58,26 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         {blobHost ? <link rel="dns-prefetch" href={`//${blobHost}`} /> : null}
 
         {/* Google tag (gtag.js) - kept from your update */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3LY08VXYN"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);} 
-              gtag('js', new Date());
-              gtag('config', 'G-Q3LY08VXYN');
-            `,
-          }}
-        />
+        {enableAnalytics && (
+          <>
+            <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-Q3LY08VXYN"
+              strategy="afterInteractive"
+            />
+            <Script
+              id="gtag-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-Q3LY08VXYN');
+                `,
+              }}
+            />
+          </>
+        )}
       </head>
       <body>
         <CartProvider>
