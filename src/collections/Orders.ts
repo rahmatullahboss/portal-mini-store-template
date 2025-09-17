@@ -96,7 +96,10 @@ export const Orders: CollectionConfig = {
         description: 'Wallet number used to send the payment',
         condition: (data) => data?.paymentMethod === 'bkash' || data?.paymentMethod === 'nagad',
       },
-      validate: (value, { siblingData }) => {
+      validate: (
+        value: unknown,
+        { siblingData }: { siblingData?: { paymentMethod?: 'cod' | 'bkash' | 'nagad' } },
+      ) => {
         if (siblingData?.paymentMethod === 'bkash' || siblingData?.paymentMethod === 'nagad') {
           return typeof value === 'string' && value.trim().length > 0
             ? true
@@ -114,7 +117,10 @@ export const Orders: CollectionConfig = {
         description: 'Reference ID from the mobile wallet payment',
         condition: (data) => data?.paymentMethod === 'bkash' || data?.paymentMethod === 'nagad',
       },
-      validate: (value, { siblingData }) => {
+      validate: (
+        value: unknown,
+        { siblingData }: { siblingData?: { paymentMethod?: 'cod' | 'bkash' | 'nagad' } },
+      ) => {
         if (siblingData?.paymentMethod === 'bkash' || siblingData?.paymentMethod === 'nagad') {
           return typeof value === 'string' && value.trim().length > 0
             ? true

@@ -113,6 +113,8 @@ export const seed = async ({
     // Create sample orders with different statuses
     const sampleOrderStatuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded'] as const
 
+    const paymentMethods: Array<'cod' | 'bkash' | 'nagad'> = ['cod', 'bkash', 'nagad']
+
     const orderPromises = sampleOrderStatuses.map(async (status, index) => {
       if (!createdItems[index]) return null
 
@@ -121,6 +123,10 @@ export const seed = async ({
       const subtotal = Number(selectedItem?.price || 0) * quantity
       const shippingCharge = 0
       const totalAmount = subtotal + shippingCharge
+      const paymentMethod = paymentMethods[index % paymentMethods.length]
+      const paymentSenderNumber =
+        paymentMethod === 'cod' ? undefined : `01739-41${(6661 + index).toString().padStart(4, '0')}`
+      const paymentTransactionId = paymentMethod === 'cod' ? undefined : `TXN-SEED-${index + 1}`
 
       return payload.create({
         collection: 'orders',
@@ -134,6 +140,9 @@ export const seed = async ({
           subtotal,
           shippingCharge,
           totalAmount,
+          paymentMethod,
+          paymentSenderNumber,
+          paymentTransactionId,
           items: [
             {
               item: selectedItem.id,
