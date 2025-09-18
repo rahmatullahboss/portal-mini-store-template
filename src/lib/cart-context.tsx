@@ -163,7 +163,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const hasSyncedServerCartRef = useRef(false)
   const serverSnapshotRef = useRef<Map<string, number>>(new Map())
   const skipNextPersistRef = useRef(false)
-  const isAuthenticatedRef = useRef(false)
+  const isAuthenticatedRef = useRef(true)
   const sessionIdRef = useRef<string | null>(null)
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -230,7 +230,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (hasSyncedServerCartRef.current) return
     hasSyncedServerCartRef.current = true
     try {
-      const response = await fetch('/api/cart', { credentials: 'include' })
+      const sessionQuery = sessionIdRef.current ? `?sessionId=${encodeURIComponent(sessionIdRef.current)}` : ''
+      const response = await fetch(`/api/cart${sessionQuery}`, { credentials: 'include' })
       if (response.status === 401) {
         isAuthenticatedRef.current = false
         hasSyncedServerCartRef.current = false
@@ -249,17 +250,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         serverSnapshotRef.current = new Map()
         return
       }
-      const sessionIdValue = isNonEmptyString(data.sessionId) ? data.sessionId : null
+      const dataRecord = data as Record<string, unknown>
+      const sessionIdValue = isNonEmptyString(dataRecord.sessionId) ? dataRecord.sessionId : null
       sessionIdRef.current = sessionIdValue
-      if (!Array.isArray(data.items)) {
-        serverSnapshotRef.current = new Map()
+      const snapshotCandidate = dataRecord['snapshot']
+      const snapshotRaw = isRecord(snapshotCandidate) ? snapshotCandidate : null
+      const snapshotEntries: [string, number][] = []
+      if (snapshotRaw) {
+        for (const [id, value] of Object.entries(snapshotRaw)) {
+          if (!isNonEmptyString(id)) continue
+          const quantity = Number(value)
+          if (Number.isFinite(quantity) && quantity >= 0) {
+            snapshotEntries.push([id, Math.floor(quantity)])
+          }
+        }
+      }
+      const itemsCandidate = dataRecord['items']
+      if (!Array.isArray(itemsCandidate)) {
+        serverSnapshotRef.current = new Map(snapshotEntries)
         return
       }
-      const incomingItems: CartItem[] = data.items
+      const incomingItems: CartItem[] = itemsCandidate
         .map((item) => normalizeCartItem(item))
         .filter((item): item is CartItem => item !== null)
       if (incomingItems.length === 0) {
-        serverSnapshotRef.current = new Map()
+        serverSnapshotRef.current = new Map(snapshotEntries)
         return
       }
 
@@ -288,7 +303,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         nextSnapshotEntries.push([incoming.id, incoming.quantity])
       }
 
-      serverSnapshotRef.current = new Map(nextSnapshotEntries)
+      const effectiveSnapshotEntries = snapshotEntries.length > 0 ? snapshotEntries : nextSnapshotEntries
+      serverSnapshotRef.current = new Map(effectiveSnapshotEntries)
       dispatch({ type: 'SET_ITEMS', payload: Array.from(mergedMap.values()) })
     } catch (error) {
       console.error('Failed to sync cart from server:', error)
@@ -334,7 +350,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const persistCartToServer = useCallback(
     async (items: CartItem[]) => {
       if (!hasLoadedLocalCart || typeof window === 'undefined') return
-      if (!isAuthenticatedRef.current) return
 
       const currentSnapshot = new Map<string, number>()
       for (const item of items) {
