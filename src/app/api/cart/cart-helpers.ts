@@ -25,11 +25,13 @@ export const toItemId = (value: unknown): number | null => {
   return null
 }
 
-export const resolveUserId = (user: unknown): number | null => {
+export const resolveUserId = (user: unknown): number | string | null => {
   if (!isRecord(user)) return null
   const idRaw = user.id
   if (typeof idRaw === 'number' && Number.isFinite(idRaw)) return idRaw
-  return toItemId(idRaw)
+  if (typeof idRaw === 'string' && idRaw.trim().length > 0) return idRaw.trim()
+  const numeric = toItemId(idRaw)
+  return numeric
 }
 
 const pickCategoryName = (value: unknown): string => {
@@ -222,7 +224,7 @@ export const buildSnapshotMap = (items: SerializedCartItem[]): Record<string, nu
 
 export const findActiveCartForUser = async (
   payload: Payload,
-  userId: number,
+  userId: number | string,
 ): Promise<Record<string, unknown> | null> => {
   const query = await payload.find({
     collection: 'abandoned-carts',
