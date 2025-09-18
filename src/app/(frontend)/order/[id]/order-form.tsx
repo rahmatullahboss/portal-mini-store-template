@@ -387,11 +387,30 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     }
     setError('')
   }
-  const handlePaymentSenderNumberChange = (value: string) => {
-    const digitsOnly = value.replace(/\D/g, '').slice(0, 11)
-    setPaymentSenderNumber(digitsOnly)
-    setError('')
-  }
+  const normalizeSenderNumberInput = React.useCallback((value: string) => {
+    let digitsOnly = value.replace(/\D/g, '')
+
+    if (digitsOnly.startsWith('880') && digitsOnly.length > 11) {
+      digitsOnly = digitsOnly.slice(digitsOnly.length - 11)
+    }
+
+    if (digitsOnly.length > 11) {
+      digitsOnly = digitsOnly.slice(0, 11)
+    }
+
+    return digitsOnly
+  }, [])
+  const handlePaymentSenderNumberChange = React.useCallback(
+    (value: string) => {
+      const normalized = normalizeSenderNumberInput(value)
+      setPaymentSenderNumber(normalized)
+
+      if (error && normalized.length === 11 && /^01\d{9}$/.test(normalized) && error.toLowerCase().includes('sender number')) {
+        setError('')
+      }
+    },
+    [error, normalizeSenderNumberInput],
+  )
   const handlePaymentTransactionIdChange = (value: string) => {
     setPaymentTransactionId(value)
     setError('')
@@ -413,7 +432,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     setError('')
 
     if (requiresDigitalPaymentDetails) {
-      const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
+      const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
       if (!sanitizedSenderNumber) {
         setError('Please provide the sender number used for the payment.')
         setIsSubmitting(false)
@@ -434,7 +453,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     }
 
     try {
-      const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
+      const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {

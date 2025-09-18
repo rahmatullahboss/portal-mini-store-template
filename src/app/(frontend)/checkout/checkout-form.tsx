@@ -374,11 +374,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     }
     setError(null)
   }
-  const handlePaymentSenderNumberChange = (value: string) => {
-    const digitsOnly = value.replace(/\D/g, '').slice(0, 11)
-    setPaymentSenderNumber(digitsOnly)
-    setError(null)
-  }
   const handlePaymentTransactionIdChange = (value: string) => {
     setPaymentTransactionId(value)
     setError(null)
@@ -439,6 +434,35 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     }
   }, [user, state.items, email, customerNumber, firstName, lastName, subtotal, shippingCharge, deliveryZone])
 
+  const normalizeSenderNumberInput = React.useCallback(
+    (value: string) => {
+      let digitsOnly = value.replace(/\D/g, '')
+
+      if (digitsOnly.startsWith('880') && digitsOnly.length > 11) {
+        digitsOnly = digitsOnly.slice(digitsOnly.length - 11)
+      }
+
+      if (digitsOnly.length > 11) {
+        digitsOnly = digitsOnly.slice(0, 11)
+      }
+
+      return digitsOnly
+    },
+    [],
+  )
+
+  const handlePaymentSenderNumberChange = React.useCallback(
+    (value: string) => {
+      const normalized = normalizeSenderNumberInput(value)
+      setPaymentSenderNumber(normalized)
+
+      if (error && normalized.length === 11 && /^01\d{9}$/.test(normalized) && error.toLowerCase().includes('sender number')) {
+        setError(null)
+      }
+    },
+    [error, normalizeSenderNumberInput],
+  )
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -448,7 +472,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     }
 
     if (requiresDigitalPaymentDetails) {
-      const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
+      const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
       if (!sanitizedSenderNumber) {
         setError('Please provide the sender number used for the payment.')
         return
@@ -466,7 +490,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     setIsSubmitting(true)
     setError(null)
 
-    const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
+    const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
 
     try {
       const response = await fetch('/api/orders', {
