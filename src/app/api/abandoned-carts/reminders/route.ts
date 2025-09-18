@@ -101,7 +101,14 @@ const buildEmailContent = (
   const checkoutUrl = serverURL ? `${serverURL}/checkout` : ''
   const items = Array.isArray(cart.items) ? cart.items : []
 
-  const detailedItems = items
+  type DetailedItem = {
+    name: string
+    quantity: number
+    unitPrice?: number
+    lineTotal?: number
+  }
+
+  const detailedItems: DetailedItem[] = items
     .map((entry) => {
       const quantityRaw = Number((entry as any)?.quantity)
       const quantity = Number.isFinite(quantityRaw) && quantityRaw > 0 ? Math.floor(quantityRaw) : 0
@@ -123,19 +130,22 @@ const buildEmailContent = (
       } else if (typeof itemRef === 'string') {
         name = itemRef
       }
-      return {
+      const detailedItem: DetailedItem = {
         name,
         quantity,
-        unitPrice,
-        lineTotal: typeof unitPrice === 'number' ? unitPrice * quantity : undefined,
       }
+
+      if (typeof unitPrice === 'number') {
+        detailedItem.unitPrice = unitPrice
+        const lineTotal = unitPrice * quantity
+        if (Number.isFinite(lineTotal) && lineTotal > 0) {
+          detailedItem.lineTotal = lineTotal
+        }
+      }
+
+      return detailedItem
     })
-    .filter((entry): entry is {
-      name: string
-      quantity: number
-      unitPrice?: number
-      lineTotal?: number
-    } => entry !== null)
+    .filter((entry): entry is DetailedItem => entry !== null)
 
   const fallbackTotal = typeof cart.cartTotal === 'number' ? cart.cartTotal : undefined
   const computedTotal = detailedItems.reduce((sum, item) => sum + (item.lineTotal ?? 0), 0)
