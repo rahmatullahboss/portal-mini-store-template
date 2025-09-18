@@ -8,10 +8,15 @@ type PayloadWhere = PayloadFindArgs[0] extends { where?: infer W } ? NonNullable
 
 type AbandonedCartDoc = {
   id?: string | number
+  sessionId?: string | null
   customerEmail?: string | null
+  customerName?: string | null
+  customerNumber?: string | null
   cartTotal?: number | null
   subtotal?: number | null
-  status?: string | null
+  shipping?: number | null
+  deliveryZone?: 'inside_dhaka' | 'outside_dhaka' | null
+  status?: 'active' | 'abandoned' | 'recovered'
   items?: Array<{
     item?:
       | {
@@ -36,9 +41,15 @@ type AbandonedCartDoc = {
   }> | null
   lastActivityAt?: string | Date | null
   abandonedAt?: string | Date | null
+  recoveredAt?: string | Date | null
+  recoveredOrder?: unknown
+  recoveryEmailSentAt?: string | Date | null
   firstReminderSentAt?: string | Date | null
   secondReminderSentAt?: string | Date | null
   finalReminderSentAt?: string | Date | null
+  finalDiscountCode?: string | null
+  finalDiscountExpiresAt?: string | Date | null
+  notes?: string | null
 }
 
 type NormalisedItem = {
