@@ -329,6 +329,7 @@ export interface AbandonedCart {
     | null;
   cartTotal?: number | null;
   status: 'active' | 'abandoned' | 'recovered';
+  reminderStage?: number | null;
   lastActivityAt: string;
   recoveredOrder?: (number | null) | Order;
   recoveryEmailSentAt?: string | null;
@@ -592,6 +593,7 @@ export interface AbandonedCartsSelect<T extends boolean = true> {
       };
   cartTotal?: T;
   status?: T;
+  reminderStage?: T;
   lastActivityAt?: T;
   recoveredOrder?: T;
   recoveryEmailSentAt?: T;

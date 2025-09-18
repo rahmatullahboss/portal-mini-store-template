@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
       customerNumber: null,
       recoveredOrder: null,
       recoveryEmailSentAt: null,
+      reminderStage: 0,
       notes: null,
     }
 

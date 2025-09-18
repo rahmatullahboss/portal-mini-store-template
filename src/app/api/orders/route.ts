@@ -311,6 +311,8 @@ export async function POST(request: NextRequest) {
             data: {
               status: 'recovered',
               recoveredOrder: (order as any).id,
+              reminderStage: 3,
+              recoveryEmailSentAt: new Date().toISOString(),
             } as any,
           })
         }
