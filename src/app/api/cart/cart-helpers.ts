@@ -29,7 +29,12 @@ export const resolveUserId = (user: unknown): number | string | null => {
   if (!isRecord(user)) return null
   const idRaw = user.id
   if (typeof idRaw === 'number' && Number.isFinite(idRaw)) return idRaw
-  if (typeof idRaw === 'string' && idRaw.trim().length > 0) return idRaw.trim()
+  if (typeof idRaw === 'string') {
+    const trimmed = idRaw.trim()
+    if (trimmed.length === 0) return null
+    const numeric = toItemId(trimmed)
+    return numeric ?? trimmed
+  }
   const numeric = toItemId(idRaw)
   return numeric
 }
