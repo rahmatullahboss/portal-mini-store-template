@@ -14,6 +14,9 @@ export function LogoutButton() {
       })
 
       if (response.ok) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('dyad-auth-changed'))
+        }
         router.push('/')
         router.refresh()
       } else {
