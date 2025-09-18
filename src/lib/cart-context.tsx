@@ -25,7 +25,6 @@ type CartAction =
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
   | { type: 'CLEAR_CART' }
   | { type: 'SET_ITEMS'; payload: CartItem[] }
-  | { type: 'MERGE_ITEMS'; payload: CartItem[] }
   | { type: 'TOGGLE_CART' }
   | { type: 'OPEN_CART' }
   | { type: 'CLOSE_CART' }
@@ -120,29 +119,6 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         ...state,
         items: action.payload,
       }
-    case 'MERGE_ITEMS': {
-      const mergedMap = new Map<string, CartItem>()
-      for (const item of state.items) {
-        mergedMap.set(item.id, item)
-      }
-      for (const incoming of action.payload) {
-        if (!incoming || !incoming.id) continue
-        const existing = mergedMap.get(incoming.id)
-        if (existing) {
-          mergedMap.set(incoming.id, {
-            ...existing,
-            ...incoming,
-            quantity: Math.max(existing.quantity, incoming.quantity),
-          })
-        } else {
-          mergedMap.set(incoming.id, incoming)
-        }
-      }
-      return {
-        ...state,
-        items: Array.from(mergedMap.values()),
-      }
-    }
     case 'TOGGLE_CART':
       return {
         ...state,
@@ -185,6 +161,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   })
   const [hasLoadedLocalCart, setHasLoadedLocalCart] = useState(false)
   const hasSyncedServerCartRef = useRef(false)
+  const serverSnapshotRef = useRef<Map<string, number>>(new Map())
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -198,6 +175,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .map((item) => normalizeCartItem(item))
             .filter((item): item is CartItem => item !== null)
           dispatch({ type: 'SET_ITEMS', payload: sanitizedItems })
+          const snapshotCandidate = (parsed as Record<string, unknown>)['serverSnapshot']
+          const snapshotRaw = isRecord(snapshotCandidate) ? snapshotCandidate : null
+          if (snapshotRaw) {
+            const entries: [string, number][] = []
+            for (const [id, value] of Object.entries(snapshotRaw)) {
+              if (!isNonEmptyString(id)) continue
+              const quantity = Number(value)
+              if (Number.isFinite(quantity) && quantity >= 0) {
+                entries.push([id, quantity])
+              }
+            }
+            serverSnapshotRef.current = new Map(entries)
+          } else {
+            serverSnapshotRef.current = new Map()
+          }
         }
       }
     } catch (error) {
@@ -211,7 +203,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!hasLoadedLocalCart || typeof window === 'undefined') return
     try {
-      localStorage.setItem('dyad-cart', JSON.stringify({ items: state.items }))
+      const serverSnapshot = Object.fromEntries(serverSnapshotRef.current.entries())
+      localStorage.setItem('dyad-cart', JSON.stringify({ items: state.items, serverSnapshot }))
     } catch (error) {
       console.error('Failed to persist cart to localStorage:', error)
     }
@@ -229,20 +222,45 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return
       }
       const data = (await response.json().catch(() => null)) as unknown
-      if (!isRecord(data) || !Array.isArray(data.items) || data.items.length === 0) {
+      if (!isRecord(data) || !Array.isArray(data.items)) {
+        serverSnapshotRef.current = new Map()
         return
       }
       const incomingItems: CartItem[] = data.items
         .map((item) => normalizeCartItem(item))
         .filter((item): item is CartItem => item !== null)
-      if (incomingItems.length > 0) {
-        dispatch({ type: 'MERGE_ITEMS', payload: incomingItems })
+      if (incomingItems.length === 0) {
+        serverSnapshotRef.current = new Map()
+        return
       }
+
+      const existingMap = new Map(state.items.map((item) => [item.id, item] as const))
+      const mergedMap = new Map(existingMap)
+      const previousSnapshot = new Map(serverSnapshotRef.current)
+      const nextSnapshotEntries: [string, number][] = []
+
+      for (const incoming of incomingItems) {
+        if (!incoming?.id) continue
+        const existing = existingMap.get(incoming.id)
+        const previousServerQuantity = previousSnapshot.get(incoming.id) ?? 0
+        const existingQuantity = existing?.quantity ?? 0
+        const guestContribution = Math.max(existingQuantity - previousServerQuantity, 0)
+        const mergedQuantity = incoming.quantity + guestContribution
+        mergedMap.set(incoming.id, {
+          ...(existing ?? incoming),
+          ...incoming,
+          quantity: mergedQuantity,
+        })
+        nextSnapshotEntries.push([incoming.id, incoming.quantity])
+      }
+
+      serverSnapshotRef.current = new Map(nextSnapshotEntries)
+      dispatch({ type: 'SET_ITEMS', payload: Array.from(mergedMap.values()) })
     } catch (error) {
       console.error('Failed to sync cart from server:', error)
       hasSyncedServerCartRef.current = false
     }
-  }, [hasLoadedLocalCart])
+  }, [hasLoadedLocalCart, state.items])
 
   useEffect(() => {
     if (!hasLoadedLocalCart) return
@@ -307,6 +325,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const clearCart = () => {
+    serverSnapshotRef.current = new Map()
     dispatch({ type: 'CLEAR_CART' })
   }
 
