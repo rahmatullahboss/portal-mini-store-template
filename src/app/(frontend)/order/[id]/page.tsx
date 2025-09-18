@@ -63,6 +63,15 @@ export default async function OrderPage({ params }: OrderPageProps) {
     )
   }
 
+  const categoryLabel =
+    typeof (item as any).category === 'object' ? ((item as any).category as any)?.name : (item as any).category
+  const imageSrc =
+    item.image && typeof item.image === 'object'
+      ? item.image.url
+      : (item as any)?.imageUrl
+  const imageAlt =
+    (item.image && typeof item.image === 'object' && item.image.alt) || item.name || 'Selected item'
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
@@ -71,47 +80,58 @@ export default async function OrderPage({ params }: OrderPageProps) {
           <Link href="/">← Back to Items</Link>
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Item Details */}
+        <div className="mx-auto flex max-w-3xl flex-col gap-6">
           <Card className="overflow-hidden">
-            {item.image && typeof item.image === 'object' && item.image.url && (
-              <div className="aspect-video relative">
-                <Image
-                  src={item.image.url}
-                  alt={item.image.alt || item.name}
-                  fill
-                  className="object-cover"
-                />
+            {imageSrc ? (
+              <div className="relative aspect-[4/3]">
+                <Image src={imageSrc} alt={imageAlt} fill className="object-cover" />
               </div>
-            )}
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">{item.name}</CardTitle>
-                <Badge variant="secondary">{typeof (item as any).category === 'object' ? ((item as any).category as any)?.name : (item as any).category}</Badge>
+            ) : null}
+            <CardHeader className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-2">
+                  <CardTitle className="text-2xl text-gray-900">{item.name}</CardTitle>
+                  <CardDescription className="whitespace-pre-line text-base text-gray-600">
+                    {item.shortDescription ?? item.description ?? 'Review the item details before placing your order.'}
+                  </CardDescription>
+                </div>
+                {categoryLabel ? <Badge variant="secondary">{categoryLabel}</Badge> : null}
               </div>
-              <CardDescription className="whitespace-pre-line">
-                {item.shortDescription ?? item.description}
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600">৳{item.price.toFixed(2)} each</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-sm text-gray-600">Price</p>
+                  <p className="text-2xl font-semibold text-gray-900">৳{item.price.toFixed(2)}</p>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-sm text-gray-600">Status</p>
+                  <p className="text-base font-medium text-green-700">Available for order</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Order Form */}
           <Card>
             <CardHeader>
-              <CardTitle>Place Your Order</CardTitle>
+              <CardTitle>Checkout</CardTitle>
+              <CardDescription>Provide your contact and delivery details to place the order.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               {!user ? (
-                <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
                   <p className="font-medium">Guest checkout</p>
                   <p className="mt-1">
-                    You can order this item without an account. We’ll ask for your contact and shipping details.
-                    Want to save your details?{' '}
-                    <Link className="underline font-medium" href="/register">Create an account</Link>{' '}
-                    or <Link className="underline font-medium" href="/login">sign in</Link>.
+                    You can order this item without an account. We’ll ask for your contact and shipping details. Want to save
+                    your details for next time?{' '}
+                    <Link className="font-medium underline" href="/register">
+                      Create an account
+                    </Link>{' '}
+                    or{' '}
+                    <Link className="font-medium underline" href="/login">
+                      sign in
+                    </Link>
+                    .
                   </p>
                 </div>
               ) : null}
