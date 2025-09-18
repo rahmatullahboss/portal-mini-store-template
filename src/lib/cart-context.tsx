@@ -132,7 +132,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           mergedMap.set(incoming.id, {
             ...existing,
             ...incoming,
-            quantity: existing.quantity + incoming.quantity,
+            quantity: Math.max(existing.quantity, incoming.quantity),
           })
         } else {
           mergedMap.set(incoming.id, incoming)
