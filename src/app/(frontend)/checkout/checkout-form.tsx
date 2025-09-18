@@ -68,7 +68,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const isInsideDhaka = deliveryZone === 'inside_dhaka'
   const formId = React.useId()
   const inputClasses =
-    'block w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm text-slate-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:ring-offset-0'
+    'block w-full rounded-xl border border-stone-200 bg-white/85 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400/70 focus:ring-offset-0'
   const SectionCard = ({
     title,
     description,
@@ -80,10 +80,10 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     children: React.ReactNode
     className?: string
   }) => (
-    <div className={cn('rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-sm shadow-slate-200/60', className)}>
+    <div className={cn('rounded-2xl border border-amber-100/70 bg-white/85 p-6 shadow-sm shadow-amber-200/40', className)}>
       <div>
-        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-        {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+        <h3 className="text-lg font-semibold text-stone-900">{title}</h3>
+        {description ? <p className="mt-1 text-sm text-stone-500">{description}</p> : null}
       </div>
       <div className="mt-5 space-y-5">{children}</div>
     </div>
@@ -91,17 +91,17 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const OrderSummaryCard = ({ className, layout }: { className?: string; layout: 'desktop' | 'mobile' }) => (
     <div
       className={cn(
-        'rounded-[26px] border border-slate-200/80 bg-white/90 p-6 shadow-xl shadow-slate-200/70 backdrop-blur-sm',
+        'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/60 backdrop-blur-sm',
         layout === 'desktop' ? 'lg:sticky lg:top-28' : '',
         className,
       )}
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Review your cart</h3>
-          <p className="text-sm text-slate-500">Double-check the details before you place your order.</p>
+          <h3 className="text-lg font-semibold text-stone-900">Review your cart</h3>
+          <p className="text-sm text-stone-500">Double-check the details before you place your order.</p>
         </div>
-        <Badge variant="secondary" className="ml-auto h-7 rounded-full bg-blue-50 px-3 text-xs font-medium text-blue-600">
+        <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
           Secure checkout
         </Badge>
       </div>
@@ -109,10 +109,10 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         {state.items.map((item) => (
           <div
             key={item.id}
-            className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white/80 p-4 shadow-sm shadow-slate-200/60"
+            className="flex items-start gap-4 rounded-2xl border border-amber-50 bg-white/85 p-4 shadow-sm shadow-amber-200/40"
           >
             {item.image ? (
-              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-amber-100 bg-amber-50">
                 <Image
                   src={item.image.url}
                   alt={item.image.alt || item.name}
@@ -124,43 +124,43 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             ) : null}
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <h4 className="truncate text-sm font-semibold text-slate-900">{item.name}</h4>
+                <h4 className="truncate text-sm font-semibold text-stone-900">{item.name}</h4>
                 {item.category ? (
-                  <Badge className="hidden rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 sm:inline-flex">
+                  <Badge className="hidden rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 sm:inline-flex">
                     {item.category}
                   </Badge>
                 ) : null}
               </div>
-              <p className="text-xs text-slate-500">{formatCurrency(item.price)} each</p>
+              <p className="text-xs text-stone-500">{formatCurrency(item.price)} each</p>
             </div>
             <div className="flex flex-col items-end gap-3 text-right">
-              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-2 py-1 shadow-sm">
+              <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-2 py-1 shadow-sm">
                 <button
                   type="button"
                   onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                   disabled={item.quantity <= 1}
                   aria-label={`Decrease quantity of ${item.name}`}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="min-w-[2ch] text-sm font-semibold text-slate-900">{item.quantity}</span>
+                <span className="min-w-[2ch] text-sm font-semibold text-stone-900">{item.quantity}</span>
                 <button
                   type="button"
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                   aria-label={`Increase quantity of ${item.name}`}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
-              <p className="text-sm font-semibold text-slate-900">{formatCurrency(item.price * item.quantity)}</p>
+              <p className="text-sm font-semibold text-stone-900">{formatCurrency(item.price * item.quantity)}</p>
             </div>
           </div>
         ))}
       </div>
       <div className="mt-6 space-y-3">
-        <label htmlFor={`discount-${layout}`} className="text-sm font-semibold text-slate-700">
+        <label htmlFor={`discount-${layout}`} className="text-sm font-semibold text-stone-700">
           Discount code
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -170,41 +170,46 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             value={discountCode}
             onChange={(e) => setDiscountCode(e.target.value)}
             placeholder="Enter promo code"
-            className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/70"
+            className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400/70"
           />
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl border-blue-200 bg-blue-50 text-blue-600 shadow-sm transition hover:bg-blue-100"
+            className="rounded-xl border-amber-200 bg-amber-50 text-amber-700 shadow-sm transition hover:bg-amber-100"
           >
             Apply
           </Button>
         </div>
-        <p className="text-xs text-slate-500">Promotions are applied before taxes and shipping charges.</p>
+        <p className="text-xs text-stone-500">Promotions are applied before taxes and shipping charges.</p>
       </div>
       <Separator className="my-6" />
-      <div className="space-y-3 text-sm text-slate-600">
+      <div className="space-y-3 text-sm text-stone-600">
         <div className="flex items-center justify-between">
           <span>Subtotal</span>
-          <span className="font-medium text-slate-900">{formatCurrency(subtotal)}</span>
+          <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
         </div>
         <div className="flex items-center justify-between">
           <span>
             Shipping {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}
           </span>
-          <span className="font-medium text-slate-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+          <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
         </div>
-        <div className="flex items-center justify-between text-base font-semibold text-slate-900">
+        <div className="flex items-center justify-between text-base font-semibold text-stone-900">
           <span>Total</span>
           <span>{formatCurrency(total)}</span>
         </div>
       </div>
       <div className="mt-6 space-y-3">
-        <Button type="submit" form={formId} size="lg" className="w-full">
+        <Button
+          type="submit"
+          form={formId}
+          size="lg"
+          className="w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2"
+        >
           {isSubmitting ? 'Processing…' : 'Pay now'}
         </Button>
-        <div className="flex items-start gap-2 text-xs text-slate-500">
-          <ShieldCheck className="mt-0.5 h-4 w-4 text-blue-500" />
+        <div className="flex items-start gap-2 text-xs text-stone-500">
+          <ShieldCheck className="mt-0.5 h-4 w-4 text-amber-500" />
           <span>Secure checkout • Your payment details are encrypted end-to-end.</span>
         </div>
       </div>
@@ -387,20 +392,20 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         <form
           id={formId}
           onSubmit={handleSubmit}
-          className="space-y-8 rounded-[28px] border border-white/70 bg-white/80 p-6 shadow-2xl shadow-blue-100/40 backdrop-blur lg:p-10"
+          className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
         >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">Step 02</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900 lg:text-3xl">Shipping information</h2>
-            <p className="mt-2 max-w-xl text-sm text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500">Step 02</p>
+            <h2 className="mt-2 text-2xl font-semibold text-stone-900 lg:text-3xl">Shipping information</h2>
+            <p className="mt-2 max-w-xl text-sm text-stone-500">
               Provide your delivery details to complete this order.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-slate-100/80 p-1 text-sm font-medium text-slate-600">
+          <div className="flex items-center gap-2 rounded-full bg-amber-50/80 p-1 text-sm font-medium text-stone-600">
             <button
               type="button"
-              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-blue-600 shadow-sm shadow-blue-100 ring-1 ring-blue-200"
+              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-amber-600 shadow-sm shadow-amber-100 ring-1 ring-amber-200"
             >
               <Truck className="h-4 w-4" />
               Delivery
@@ -408,11 +413,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <button
               type="button"
               disabled
-              className="flex items-center gap-2 rounded-full px-4 py-2 text-slate-400 transition disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-full px-4 py-2 text-stone-400 transition disabled:cursor-not-allowed"
             >
               <Store className="h-4 w-4" />
               Pick up
-              <Badge className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              <Badge className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
                 Soon
               </Badge>
             </button>
@@ -420,7 +425,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         </div>
 
         {!user ? (
-          <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-5 text-sm text-blue-900 shadow-sm shadow-blue-100/50">
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
             <p className="font-semibold">Guest checkout</p>
             <p className="mt-2">
               You can place an order without creating an account. Save your details for next time by{' '}
@@ -444,7 +449,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium text-slate-600">
+                  <label htmlFor="firstName" className="text-sm font-medium text-stone-600">
                     First name
                   </label>
                   <input
@@ -457,7 +462,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium text-slate-600">
+                  <label htmlFor="lastName" className="text-sm font-medium text-stone-600">
                     Last name
                   </label>
                   <input
@@ -471,7 +476,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                 </div>
               </div>
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-slate-600">
+                <label htmlFor="email" className="text-sm font-medium text-stone-600">
                   Email address
                 </label>
                 <input
@@ -485,14 +490,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               </div>
             </>
           ) : (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-stone-500">
               We’ll send order updates to{' '}
-              <span className="font-medium text-slate-700">{user.email}</span>. Update the phone number below if you’d like us to
+              <span className="font-medium text-stone-700">{user.email}</span>. Update the phone number below if you’d like us to
               reach someone else for delivery.
             </p>
           )}
           <div className="space-y-2">
-            <label htmlFor="customerNumber" className="text-sm font-medium text-slate-600">
+            <label htmlFor="customerNumber" className="text-sm font-medium text-stone-600">
               Phone number
             </label>
             <input
@@ -505,10 +510,10 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               placeholder="e.g. +8801XXXXXXXXX"
               className={inputClasses}
             />
-            <p className="text-xs text-slate-500">We’ll use this number to coordinate your delivery.</p>
+            <p className="text-xs text-stone-500">We’ll use this number to coordinate your delivery.</p>
           </div>
           {user ? (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-stone-400">
               Order will be placed for {user.firstName} {user.lastName}.
             </p>
           ) : null}
@@ -519,7 +524,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           description="Enter the address where you’d like your order delivered."
         >
           <div className="space-y-2">
-            <label htmlFor="address_line1" className="text-sm font-medium text-slate-600">
+            <label htmlFor="address_line1" className="text-sm font-medium text-stone-600">
               Address line 1
             </label>
             <input
@@ -532,8 +537,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="address_line2" className="text-sm font-medium text-slate-600">
-              Address line 2 <span className="text-slate-400">(optional)</span>
+            <label htmlFor="address_line2" className="text-sm font-medium text-stone-600">
+              Address line 2 <span className="text-stone-400">(optional)</span>
             </label>
             <input
               id="address_line2"
@@ -545,7 +550,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="address_city" className="text-sm font-medium text-slate-600">
+              <label htmlFor="address_city" className="text-sm font-medium text-stone-600">
                 City
               </label>
               <input
@@ -557,15 +562,15 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                 aria-readonly={isInsideDhaka}
                 className={cn(
                   inputClasses,
-                  isInsideDhaka ? 'cursor-not-allowed bg-slate-100 text-slate-600' : '',
+                  isInsideDhaka ? 'cursor-not-allowed bg-stone-100 text-stone-600' : '',
                 )}
               />
               {isInsideDhaka ? (
-                <p className="text-xs text-slate-500">City is fixed to Dhaka for inside Dhaka delivery.</p>
+                <p className="text-xs text-stone-500">City is fixed to Dhaka for inside Dhaka delivery.</p>
               ) : null}
             </div>
             <div className="space-y-2">
-              <label htmlFor="address_state" className="text-sm font-medium text-slate-600">
+              <label htmlFor="address_state" className="text-sm font-medium text-stone-600">
                 State / region
               </label>
               <input
@@ -578,7 +583,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="address_postalCode" className="text-sm font-medium text-slate-600">
+              <label htmlFor="address_postalCode" className="text-sm font-medium text-stone-600">
                 Postal code
               </label>
               <input
@@ -590,7 +595,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="address_country" className="text-sm font-medium text-slate-600">
+              <label htmlFor="address_country" className="text-sm font-medium text-stone-600">
                 Country
               </label>
               <input
@@ -611,8 +616,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           <div className="grid gap-3 sm:grid-cols-2">
             <label
               className={cn(
-                'flex cursor-pointer flex-col gap-2 rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm transition hover:border-blue-200 hover:shadow-blue-100 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:ring-offset-0',
-                deliveryZone === 'inside_dhaka' ? 'border-blue-500/70 shadow-blue-100 ring-2 ring-blue-200' : '',
+                'flex cursor-pointer flex-col gap-2 rounded-2xl border border-stone-200 bg-white/85 p-4 shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+                deliveryZone === 'inside_dhaka' ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
               )}
             >
               <input
@@ -627,19 +632,19 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                 className="sr-only"
               />
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-900">Inside Dhaka</span>
+                <span className="text-sm font-semibold text-stone-900">Inside Dhaka</span>
                 {deliveryZone === 'inside_dhaka' ? (
-                  <Badge className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">Selected</Badge>
+                  <Badge className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">Selected</Badge>
                 ) : null}
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-stone-500">
                 Delivery charge {formatCurrency(settings.insideDhakaCharge)}
               </p>
             </label>
             <label
               className={cn(
-                'flex cursor-pointer flex-col gap-2 rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm transition hover:border-blue-200 hover:shadow-blue-100 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:ring-offset-0',
-                deliveryZone === 'outside_dhaka' ? 'border-blue-500/70 shadow-blue-100 ring-2 ring-blue-200' : '',
+                'flex cursor-pointer flex-col gap-2 rounded-2xl border border-stone-200 bg-white/85 p-4 shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+                deliveryZone === 'outside_dhaka' ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
               )}
             >
               <input
@@ -656,12 +661,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                 className="sr-only"
               />
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-900">Outside Dhaka</span>
+                <span className="text-sm font-semibold text-stone-900">Outside Dhaka</span>
                 {deliveryZone === 'outside_dhaka' ? (
-                  <Badge className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">Selected</Badge>
+                  <Badge className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">Selected</Badge>
                 ) : null}
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-stone-500">
                 Delivery charge {formatCurrency(settings.outsideDhakaCharge)}
               </p>
             </label>
@@ -691,7 +696,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         <SectionCard
           title="Payment method"
           description="Choose how you would like to pay for this order."
-          className="rounded-[26px] border-slate-200/80 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur-sm"
+          className="rounded-[26px] border-amber-100/80 bg-white/90 shadow-xl shadow-amber-200/60 backdrop-blur-sm"
         >
           <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-sm font-medium text-amber-900 shadow-sm shadow-amber-100">
             Digital wallet payments have a flat delivery charge of{' '}
@@ -703,8 +708,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               <label
                 key={option.value}
                 className={cn(
-                  'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 p-4 text-center shadow-sm transition hover:border-blue-200 hover:shadow-blue-100 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:ring-offset-0',
-                  paymentMethod === option.value ? 'border-blue-500/70 shadow-blue-100 ring-2 ring-blue-200' : '',
+                  'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+                  paymentMethod === option.value ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
                 )}
               >
                 <input
@@ -734,14 +739,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     priority={option.value === 'cod'}
                   />
                 </div>
-                <span className="text-sm font-medium text-slate-700">{option.label}</span>
+                <span className="text-sm font-medium text-stone-700">{option.label}</span>
               </label>
             ))}
           </div>
           {requiresDigitalPaymentDetails ? (
-            <div className="space-y-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-5 text-blue-900 shadow-sm shadow-blue-100">
+            <div className="space-y-5 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-amber-900 shadow-sm shadow-amber-100">
               {digitalPaymentInstructions?.length ? (
-                <Alert className="border-transparent bg-transparent p-0 text-blue-900">
+                <Alert className="border-transparent bg-transparent p-0 text-amber-900">
                   <AlertDescription>
                     <ul className="list-disc space-y-1 pl-5 text-sm">
                       {digitalPaymentInstructions.map((instruction, index) => (
@@ -753,7 +758,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               ) : null}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-slate-600">
+                  <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-stone-600">
                     Sender wallet number
                   </label>
                   <input
@@ -772,7 +777,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="paymentTransactionId" className="text-sm font-medium text-slate-600">
+                  <label htmlFor="paymentTransactionId" className="text-sm font-medium text-stone-600">
                     Transaction ID
                   </label>
                   <input
@@ -793,7 +798,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-500">Pay with cash when your delivery arrives.</p>
+            <p className="text-xs text-stone-500">Pay with cash when your delivery arrives.</p>
           )}
         </SectionCard>
       </div>
