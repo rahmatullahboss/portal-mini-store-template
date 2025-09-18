@@ -77,6 +77,27 @@ export const AbandonedCarts: CollectionConfig = {
       min: 0,
     },
     {
+      name: 'subtotal',
+      type: 'number',
+      required: false,
+      min: 0,
+    },
+    {
+      name: 'shipping',
+      type: 'number',
+      required: false,
+      min: 0,
+    },
+    {
+      name: 'deliveryZone',
+      type: 'select',
+      options: [
+        { label: 'Inside Dhaka', value: 'inside_dhaka' },
+        { label: 'Outside Dhaka', value: 'outside_dhaka' },
+      ],
+      required: false,
+    },
+    {
       name: 'status',
       type: 'select',
       options: [
@@ -94,13 +115,48 @@ export const AbandonedCarts: CollectionConfig = {
       defaultValue: () => new Date(),
     },
     {
+      name: 'abandonedAt',
+      type: 'date',
+      required: false,
+    },
+    {
       name: 'recoveredOrder',
       type: 'relationship',
       relationTo: 'orders',
       required: false,
     },
     {
+      name: 'recoveredAt',
+      type: 'date',
+      required: false,
+    },
+    {
       name: 'recoveryEmailSentAt',
+      type: 'date',
+      required: false,
+    },
+    {
+      name: 'firstReminderSentAt',
+      type: 'date',
+      required: false,
+    },
+    {
+      name: 'secondReminderSentAt',
+      type: 'date',
+      required: false,
+    },
+    {
+      name: 'finalReminderSentAt',
+      type: 'date',
+      required: false,
+    },
+    {
+      name: 'finalDiscountCode',
+      type: 'text',
+      required: false,
+    },
+    {
+      name: 'finalDiscountExpiresAt',
       type: 'date',
       required: false,
     },

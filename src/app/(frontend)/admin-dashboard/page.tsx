@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
 import { OrderStatusUpdate } from '@/components/lazy-client-components'
 import { DateFilter } from './DateFilter'
+import { RunAbandonedCartWorkflowButton } from './RunAbandonedCartWorkflowButton'
 import {
   ArrowLeft,
   Clock,
@@ -304,13 +305,14 @@ export default async function AdminDashboardPage({
 
           {/* Cart Analytics */}
           <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200">
-            <CardHeader>
+            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
                   <ShoppingCart className="text-white w-6 h-6" />
                 </div>
                 Cart Analytics
               </CardTitle>
+              <RunAbandonedCartWorkflowButton />
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-6">

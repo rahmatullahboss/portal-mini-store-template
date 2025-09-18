@@ -12,6 +12,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const items: IncomingItem[] = Array.isArray(body?.items) ? body.items : []
     const total = typeof body?.total === 'number' ? Number(body.total) : undefined
+    const subtotal = typeof body?.subtotal === 'number' ? Number(body.subtotal) : undefined
+    const shipping = typeof body?.shipping === 'number' ? Number(body.shipping) : undefined
+    const deliveryZoneRaw = typeof body?.deliveryZone === 'string' ? body.deliveryZone : undefined
+    const deliveryZone =
+      deliveryZoneRaw === 'inside_dhaka' || deliveryZoneRaw === 'outside_dhaka' ? deliveryZoneRaw : undefined
     const customerEmail = typeof body?.customerEmail === 'string' ? body.customerEmail : undefined
     const customerName = typeof body?.customerName === 'string' ? body.customerName : undefined
     const customerNumber = typeof body?.customerNumber === 'string' ? body.customerNumber : undefined
@@ -60,7 +65,10 @@ export async function POST(request: NextRequest) {
       })
       .filter((row): row is { item: number; quantity: number } => !!row)
 
-    const isZeroCart = (typeof total === 'number' && total <= 0) || sanitizedItems.length === 0
+    const isZeroCart =
+      (typeof total === 'number' && total <= 0) ||
+      (typeof subtotal === 'number' && subtotal <= 0 && typeof total !== 'number') ||
+      sanitizedItems.length === 0
     if (isZeroCart) {
       if (existing?.docs?.[0]) {
         await payload.delete({
@@ -86,9 +94,20 @@ export async function POST(request: NextRequest) {
       ...((customerName || userName) ? { customerName: customerName || userName } : {}),
       ...((customerNumber || userNumber) ? { customerNumber: customerNumber || userNumber } : {}),
       ...(sanitizedItems.length ? { items: sanitizedItems } : {}),
+      ...(typeof subtotal === 'number' ? { subtotal } : {}),
+      ...(typeof shipping === 'number' ? { shipping } : {}),
+      ...(deliveryZone ? { deliveryZone } : {}),
       ...(typeof total === 'number' ? { cartTotal: total } : {}),
       status: 'active',
       lastActivityAt: now,
+      abandonedAt: null,
+      firstReminderSentAt: null,
+      secondReminderSentAt: null,
+      finalReminderSentAt: null,
+      recoveryEmailSentAt: null,
+      recoveredAt: null,
+      finalDiscountExpiresAt: null,
+      finalDiscountCode: null,
     }
 
     let doc

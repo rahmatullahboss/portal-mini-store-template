@@ -1,93 +1,396 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
-import config from '@/payload.config'
+
+import config, { getServerSideURL } from '@/payload.config'
+
+const DEFAULT_TTL_MINUTES = Number(process.env.ABANDONED_CART_TTL_MINUTES || 60)
+const MIN_TTL_MINUTES = 5
+const FIRST_REMINDER_DELAY_MINUTES = Number(process.env.ABANDONED_CART_FIRST_DELAY_MINUTES || 0)
+const SECOND_REMINDER_DELAY_HOURS = Number(process.env.ABANDONED_CART_SECOND_DELAY_HOURS || 24)
+const FINAL_REMINDER_DELAY_HOURS = Number(process.env.ABANDONED_CART_FINAL_DELAY_HOURS || 72)
+const FINAL_DISCOUNT_PERCENT = Number(process.env.ABANDONED_CART_DISCOUNT_PERCENT || 5)
+const FINAL_DISCOUNT_CODE = process.env.ABANDONED_CART_DISCOUNT_CODE || 'SAVE5'
+const FINAL_DISCOUNT_DURATION_HOURS = Number(process.env.ABANDONED_CART_DISCOUNT_DURATION_HOURS || 24)
+const MAX_BATCH = 100
+
+const resolveStorefrontURL = () => {
+  const candidates = [
+    process.env.ABANDONED_CART_CTA_URL,
+    process.env.NEXT_PUBLIC_SERVER_URL,
+    process.env.SERVER_URL,
+    (() => {
+      try {
+        const url = getServerSideURL()
+        if (typeof url === 'string' && url && url !== 'undefined') {
+          return url
+        }
+      } catch {}
+      return undefined
+    })(),
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+  ].filter((value): value is string => typeof value === 'string' && value.length > 0)
+
+  return candidates[0] || 'http://localhost:3000'
+}
+
+const STOREFRONT_URL = resolveStorefrontURL()
+
+const formatCurrency = (amount?: number | null) => {
+  if (typeof amount !== 'number' || Number.isNaN(amount)) return 'Tk 0.00'
+  return `Tk ${amount.toFixed(2)}`
+}
+
+const toDate = (value: unknown): Date | null => {
+  if (typeof value === 'string') {
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
+  }
+  if (value instanceof Date) return value
+  return null
+}
+
+const hasCartValue = (cart: Record<string, any>) => {
+  if (!cart) return false
+  const total = typeof cart.cartTotal === 'number' ? cart.cartTotal : undefined
+  const subtotal = typeof cart.subtotal === 'number' ? cart.subtotal : undefined
+  if (typeof total === 'number' && total > 0) return true
+  if (typeof subtotal === 'number' && subtotal > 0) return true
+  if (Array.isArray(cart.items)) {
+    const hasQty = cart.items.some((line: any) => Number(line?.quantity) > 0)
+    if (hasQty) return true
+  }
+  return false
+}
+
+const normaliseItems = (cart: Record<string, any>) => {
+  const items = Array.isArray(cart.items) ? cart.items : []
+  return items
+    .map((line: any) => {
+      const item = line?.item
+      const product = item && typeof item === 'object' ? item : null
+      const id = product?.id || line?.item
+      if (!id) return null
+      const quantity = Number(line?.quantity)
+      const safeQty = Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1
+      const priceRaw = Number(product?.price ?? line?.price)
+      const price = Number.isFinite(priceRaw) && priceRaw >= 0 ? priceRaw : undefined
+      const imageValue = product?.image
+      let imageUrl: string | undefined
+      if (imageValue && typeof imageValue === 'object' && typeof imageValue.url === 'string') {
+        imageUrl = imageValue.url
+      }
+      return {
+        id: String(id),
+        name: typeof product?.name === 'string' ? product.name : line?.name || 'পণ্য',
+        quantity: safeQty,
+        price,
+        category:
+          typeof product?.category === 'string'
+            ? product.category
+            : typeof product?.category?.name === 'string'
+              ? product.category.name
+              : '',
+        imageUrl,
+      }
+    })
+    .filter((value): value is {
+      id: string
+      name: string
+      quantity: number
+      price?: number
+      category?: string
+      imageUrl?: string
+    } => !!value)
+}
+
+const renderItemsHTML = (items: ReturnType<typeof normaliseItems>) => {
+  if (!items.length) return ''
+  const rows = items
+    .map((item) => {
+      const price = typeof item.price === 'number' ? `Tk ${(item.price * item.quantity).toFixed(2)}` : ''
+      return `
+        <tr>
+          <td style="padding:8px 0; font-weight:600;">${item.name}</td>
+          <td style="padding:8px 0; text-align:center;">${item.quantity}</td>
+          <td style="padding:8px 0; text-align:right;">${price}</td>
+        </tr>
+      `
+    })
+    .join('')
+  return `
+    <table role="presentation" width="100%" style="margin-top:16px; border-collapse:collapse;">
+      <thead>
+        <tr style="text-align:left; border-bottom:1px solid #e5e7eb;">
+          <th style="padding-bottom:8px;">পণ্য</th>
+          <th style="padding-bottom:8px; text-align:center;">পরিমাণ</th>
+          <th style="padding-bottom:8px; text-align:right;">মোট</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `
+}
+
+const buildCTAButton = (label: string) => `
+  <a
+    href="${STOREFRONT_URL}/checkout"
+    style="display:inline-block; padding:12px 24px; background-color:#2563eb; color:#ffffff; border-radius:6px; text-decoration:none; font-weight:600;"
+  >
+    ${label}
+  </a>
+`
+
+const sendEmail = async (
+  payload: any,
+  cart: Record<string, any>,
+  stage: 'first' | 'second' | 'final',
+) => {
+  const email = cart.customerEmail
+  if (typeof email !== 'string' || !email) return false
+  const items = normaliseItems(cart)
+  const total = typeof cart.cartTotal === 'number' ? cart.cartTotal : undefined
+  const subtotal = typeof cart.subtotal === 'number' ? cart.subtotal : undefined
+
+  let subject = 'আপনার কার্টে থাকা পণ্যগুলো অপেক্ষা করছে'
+  let intro = 'আপনি আপনার কার্টে কিছু পণ্য রেখে গেছেন। অর্ডার সম্পন্ন করতে মাত্র এক ধাপ বাকি!'
+  let extra = ''
+  if (stage === 'second') {
+    subject = 'আপনার পছন্দের পণ্যগুলো সীমিত স্টকে আছে'
+    intro = 'আপনার নির্বাচিত পণ্যগুলো এখনও কার্টে আছে, তবে স্টক দ্রুত শেষ হয়ে যেতে পারে। এখনই অর্ডার নিশ্চিত করুন।'
+    extra = '<p style="margin:16px 0 0;">কোনো সমস্যায় পড়লে আমাদের সাপোর্ট টিমকে জানান, আমরা সাহায্য করতে প্রস্তুত।</p>'
+  }
+  if (stage === 'final') {
+    subject = '৫% বিশেষ ছাড়ে এখনই অর্ডার সম্পন্ন করুন'
+    intro = `শেষ সুযোগ! সীমিত সময়ের জন্য ${FINAL_DISCOUNT_PERCENT}% বিশেষ ছাড় পাচ্ছেন। নিচের কুপনটি ব্যবহার করুন এবং আজই অর্ডার করুন।`
+    const expiresAt = new Date(Date.now() + FINAL_DISCOUNT_DURATION_HOURS * 60 * 60 * 1000)
+    extra = `
+      <p style="margin:16px 0 0; font-weight:600;">কুপন কোড: <span style="background:#fef3c7; padding:4px 8px; border-radius:4px;">${FINAL_DISCOUNT_CODE}</span></p>
+      <p style="margin:8px 0 0; color:#dc2626;">এই অফারটি ${expiresAt.toLocaleString('bn-BD')} পর্যন্ত প্রযোজ্য।</p>
+    `
+  }
+
+  const totalText = total ?? subtotal
+  const totalFragment = typeof totalText === 'number' ? `<p style="margin:16px 0 0; font-weight:600;">আনুমানিক মোট: ${formatCurrency(totalText)}</p>` : ''
+  const html = `
+    <div style="font-family:Helvetica,Arial,sans-serif; background:#f9fafb; padding:24px;">
+      <div style="max-width:520px; margin:0 auto; background:#ffffff; padding:24px; border-radius:12px;">
+        <h2 style="margin:0 0 12px; color:#111827;">${subject}</h2>
+        <p style="margin:0 0 16px; color:#374151;">${intro}</p>
+        ${totalFragment}
+        ${renderItemsHTML(items)}
+        <div style="margin:24px 0;">${buildCTAButton('অর্ডার সম্পন্ন করুন')}</div>
+        ${extra}
+        <p style="margin:24px 0 0; font-size:14px; color:#6b7280;">যদি আপনি ইতোমধ্যে অর্ডার সম্পন্ন করে থাকেন, অনুগ্রহ করে এই ইমেইলটি উপেক্ষা করুন।</p>
+      </div>
+    </div>
+  `
+
+  const textLines = [
+    subject,
+    '',
+    intro,
+    '',
+    items.map((item) => `${item.name} x ${item.quantity}`).join('\n'),
+    '',
+    typeof totalText === 'number' ? `মোট: ${formatCurrency(totalText)}` : undefined,
+    stage === 'final' ? `কুপন কোড: ${FINAL_DISCOUNT_CODE}` : undefined,
+    'আপনার অর্ডার সম্পন্ন করতে ভিজিট করুন: ' + `${STOREFRONT_URL}/checkout`,
+  ].filter(Boolean)
+
+  await payload.sendEmail?.({
+    to: email,
+    subject,
+    html,
+    text: textLines.join('\n'),
+  })
+
+  return true
+}
+
+const runWorkflow = async (payload: any, ttlMinutes: number) => {
+  const ttl = Math.max(MIN_TTL_MINUTES, ttlMinutes || DEFAULT_TTL_MINUTES)
+  const now = new Date()
+  const inactivityCutoff = new Date(now.getTime() - ttl * 60 * 1000).toISOString()
+
+  const candidates = await payload.find({
+    collection: 'abandoned-carts',
+    limit: MAX_BATCH,
+    depth: 2,
+    where: {
+      and: [
+        { status: { equals: 'active' } },
+        { customerEmail: { exists: true } },
+        { lastActivityAt: { less_than: inactivityCutoff } },
+      ],
+    },
+  })
+
+  let marked = 0
+  for (const doc of candidates.docs || []) {
+    if (!hasCartValue(doc)) continue
+    const id = (doc as any).id
+    const abandonedAtDate = toDate((doc as any).lastActivityAt) || new Date()
+    const abandonedAt = abandonedAtDate.toISOString()
+    try {
+      await payload.update({
+        collection: 'abandoned-carts',
+        id,
+        data: {
+          status: 'abandoned',
+          abandonedAt,
+          firstReminderSentAt: null,
+          secondReminderSentAt: null,
+          finalReminderSentAt: null,
+          finalDiscountExpiresAt: null,
+          finalDiscountCode: null,
+        },
+      })
+      marked++
+    } catch (error) {
+      console.error('Failed to mark abandoned cart', id, error)
+    }
+  }
+
+  const sendStage = async (
+    stage: 'first' | 'second' | 'final',
+    predicate: (cart: Record<string, any>) => boolean,
+    fields: Record<string, any>,
+  ) => {
+    const stageFilters =
+      stage === 'first'
+        ? [{ firstReminderSentAt: { equals: null } }]
+        : stage === 'second'
+          ? [
+              { firstReminderSentAt: { exists: true } },
+              { secondReminderSentAt: { equals: null } },
+            ]
+          : [
+              { secondReminderSentAt: { exists: true } },
+              { finalReminderSentAt: { equals: null } },
+            ]
+
+    const res = await payload.find({
+      collection: 'abandoned-carts',
+      limit: MAX_BATCH,
+      depth: 2,
+      where: {
+        and: [{ status: { equals: 'abandoned' } }, { customerEmail: { exists: true } }, ...stageFilters],
+      },
+    })
+
+    let sent = 0
+    for (const cart of res.docs || []) {
+      if (!hasCartValue(cart)) continue
+      if (stage === 'first' && cart.firstReminderSentAt) continue
+      if (stage === 'second' && (!cart.firstReminderSentAt || cart.secondReminderSentAt)) continue
+      if (stage === 'final' && (!cart.secondReminderSentAt || cart.finalReminderSentAt)) continue
+      if (!predicate(cart)) continue
+      const ok = await sendEmail(payload, cart, stage).catch((error) => {
+        console.error(`Failed to send ${stage} reminder for cart`, (cart as any).id, error)
+        return false
+      })
+      if (!ok) continue
+      try {
+        await payload.update({
+          collection: 'abandoned-carts',
+          id: (cart as any).id,
+          data: fields,
+        })
+        sent++
+      } catch (error) {
+        console.error('Failed to update reminder timestamps', (cart as any).id, error)
+      }
+    }
+    return sent
+  }
+
+  const firstDelayMs = FIRST_REMINDER_DELAY_MINUTES * 60 * 1000
+  const secondDelayMs = SECOND_REMINDER_DELAY_HOURS * 60 * 60 * 1000
+  const finalDelayMs = FINAL_REMINDER_DELAY_HOURS * 60 * 60 * 1000
+
+  const firstSent = await sendStage(
+    'first',
+    (cart) => {
+      const abandonedAt = toDate(cart.abandonedAt) || toDate(cart.lastActivityAt)
+      if (!abandonedAt) return false
+      return now.getTime() - abandonedAt.getTime() >= firstDelayMs
+    },
+    { firstReminderSentAt: now.toISOString(), recoveryEmailSentAt: now.toISOString() },
+  )
+
+  const secondSent = await sendStage(
+    'second',
+    (cart) => {
+      const abandonedAt = toDate(cart.abandonedAt) || toDate(cart.lastActivityAt)
+      if (!abandonedAt) return false
+      return now.getTime() - abandonedAt.getTime() >= secondDelayMs
+    },
+    { secondReminderSentAt: now.toISOString(), recoveryEmailSentAt: now.toISOString() },
+  )
+
+  const finalSent = await sendStage(
+    'final',
+    (cart) => {
+      const abandonedAt = toDate(cart.abandonedAt) || toDate(cart.lastActivityAt)
+      if (!abandonedAt) return false
+      return now.getTime() - abandonedAt.getTime() >= finalDelayMs
+    },
+    {
+      finalReminderSentAt: now.toISOString(),
+      recoveryEmailSentAt: now.toISOString(),
+      finalDiscountCode: FINAL_DISCOUNT_CODE,
+      finalDiscountExpiresAt: new Date(
+        now.getTime() + FINAL_DISCOUNT_DURATION_HOURS * 60 * 60 * 1000,
+      ).toISOString(),
+    },
+  )
+
+  return {
+    marked,
+    firstSent,
+    secondSent,
+    finalSent,
+    cutoff: inactivityCutoff,
+  }
+}
+
+const buildUnauthorizedResponse = () => NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
 export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config: await config })
     const { user } = await payload.auth({ headers: request.headers })
-
     if (!user || (user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return buildUnauthorizedResponse()
     }
 
     const url = new URL(request.url)
-    const ttlMinutes = Number(url.searchParams.get('ttlMinutes') || 60)
-    const cutoff = new Date(Date.now() - Math.max(5, ttlMinutes) * 60 * 1000).toISOString()
-
-    const res = await payload.find({
-      collection: 'abandoned-carts',
-      limit: 500,
-      where: {
-        and: [
-          { status: { not_equals: 'recovered' } },
-          { lastActivityAt: { less_than: cutoff } },
-        ],
-      },
-    })
-
-    let updated = 0
-    for (const doc of res.docs || []) {
-      try {
-        await payload.update({
-          collection: 'abandoned-carts',
-          id: (doc as any).id,
-          data: { status: 'abandoned' },
-        })
-        updated++
-      } catch {}
-    }
-
-    return NextResponse.json({ success: true, updated, cutoff })
+    const ttlMinutes = Number(url.searchParams.get('ttlMinutes') || DEFAULT_TTL_MINUTES)
+    const summary = await runWorkflow(payload, ttlMinutes)
+    return NextResponse.json({ success: true, ...summary, via: 'admin' })
   } catch (e) {
     console.error('Mark abandoned error:', e)
-    return NextResponse.json({ error: 'Failed to mark carts' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to process abandoned carts' }, { status: 500 })
   }
 }
 
-// GET handler for Vercel Cron or secret-triggered runs
 export async function GET(request: NextRequest) {
   try {
     const payload = await getPayload({ config: await config })
-
-    // Allow if either (a) called by Vercel Cron (x-vercel-cron header) OR (b) secret matches
     const isVercelCron = !!request.headers.get('x-vercel-cron')
     const url = new URL(request.url)
     const providedSecret = url.searchParams.get('secret') || request.headers.get('x-cron-secret')
     const secretOK = !!process.env.CRON_SECRET && providedSecret === process.env.CRON_SECRET
     if (!isVercelCron && !secretOK) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return buildUnauthorizedResponse()
     }
 
-    const ttlMinutes = Number(url.searchParams.get('ttlMinutes') || 60)
-    const cutoff = new Date(Date.now() - Math.max(5, ttlMinutes) * 60 * 1000).toISOString()
-
-    const res = await payload.find({
-      collection: 'abandoned-carts',
-      limit: 500,
-      where: {
-        and: [
-          { status: { not_equals: 'recovered' } },
-          { lastActivityAt: { less_than: cutoff } },
-        ],
-      },
-    })
-
-    let updated = 0
-    for (const doc of res.docs || []) {
-      try {
-        await payload.update({
-          collection: 'abandoned-carts',
-          id: (doc as any).id,
-          data: { status: 'abandoned' },
-        })
-        updated++
-      } catch {}
-    }
-
-    return NextResponse.json({ success: true, updated, cutoff, via: isVercelCron ? 'vercel-cron' : 'secret' })
+    const ttlMinutes = Number(url.searchParams.get('ttlMinutes') || DEFAULT_TTL_MINUTES)
+    const summary = await runWorkflow(payload, ttlMinutes)
+    return NextResponse.json({ success: true, ...summary, via: isVercelCron ? 'vercel-cron' : 'secret' })
   } catch (e) {
     console.error('Mark abandoned (GET) error:', e)
-    return NextResponse.json({ error: 'Failed to mark carts' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to process abandoned carts' }, { status: 500 })
   }
 }
