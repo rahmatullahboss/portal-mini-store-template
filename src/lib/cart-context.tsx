@@ -32,13 +32,24 @@ type CartAction =
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
+const normalizeItemId = (value: unknown): string | null => {
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value)
+  }
+  return null
+}
+
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0
 
 const normalizeCartItem = (value: unknown): CartItem | null => {
   if (!isRecord(value)) return null
 
-  if (!isNonEmptyString(value.id) || !isNonEmptyString(value.name)) {
+  const normalizedId = normalizeItemId(value.id)
+  if (!normalizedId || !isNonEmptyString(value.name)) {
     return null
   }
 
@@ -65,7 +76,7 @@ const normalizeCartItem = (value: unknown): CartItem | null => {
       : undefined
 
   return {
-    id: value.id,
+    id: normalizedId,
     name: value.name,
     price,
     quantity,
@@ -139,11 +150,13 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
   }
 }
 
+type CartItemInput = Omit<CartItem, 'quantity'> & { id: string | number }
+
 interface CartContextType {
   state: CartState
-  addItem: (item: Omit<CartItem, 'quantity'>) => void
-  removeItem: (id: string) => void
-  updateQuantity: (id: string, quantity: number) => void
+  addItem: (item: CartItemInput) => void
+  removeItem: (id: string | number) => void
+  updateQuantity: (id: string | number, quantity: number) => void
   clearCart: () => void
   toggleCart: () => void
   openCart: () => void
@@ -478,16 +491,29 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearTimeout(handle)
   }, [state.items])
 
-  const addItem = (item: Omit<CartItem, 'quantity'>) => {
-    dispatch({ type: 'ADD_ITEM', payload: item })
+  const addItem = (item: CartItemInput) => {
+    const normalizedId = normalizeItemId(item.id)
+    if (!normalizedId) return
+
+    dispatch({
+      type: 'ADD_ITEM',
+      payload: {
+        ...item,
+        id: normalizedId,
+      },
+    })
   }
 
-  const removeItem = (id: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: id })
+  const removeItem = (id: string | number) => {
+    const normalizedId = normalizeItemId(id)
+    if (!normalizedId) return
+    dispatch({ type: 'REMOVE_ITEM', payload: normalizedId })
   }
 
-  const updateQuantity = (id: string, quantity: number) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } })
+  const updateQuantity = (id: string | number, quantity: number) => {
+    const normalizedId = normalizeItemId(id)
+    if (!normalizedId) return
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { id: normalizedId, quantity } })
   }
 
   const clearCart = () => {
