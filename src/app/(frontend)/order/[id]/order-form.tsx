@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Minus, Plus, ShieldCheck, Truck } from 'lucide-react'
@@ -18,6 +18,317 @@ import {
   isDigitalPaymentMethod,
   DIGITAL_PAYMENT_INSTRUCTIONS,
 } from '@/lib/payment-options'
+
+interface SectionCardProps {
+  title: string
+  description?: string
+  children: React.ReactNode
+  className?: string
+}
+
+const SectionCard: React.FC<SectionCardProps> = ({ title, description, children, className }) => (
+  <div className={cn('rounded-3xl border border-amber-100/70 bg-white/85 p-6 shadow-sm shadow-amber-200/40', className)}>
+    <div className="space-y-1">
+      <h3 className="text-lg font-semibold text-stone-900">{title}</h3>
+      {description ? <p className="text-sm text-stone-500">{description}</p> : null}
+    </div>
+    <div className="mt-5 space-y-5">{children}</div>
+  </div>
+)
+
+interface ProductOverviewCardProps {
+  item: any
+}
+
+const ProductOverviewCard: React.FC<ProductOverviewCardProps> = ({ item }) => (
+  <div className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-2">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">Product overview</p>
+        <h2 className="text-2xl font-semibold text-stone-900">{item.name}</h2>
+        <p className="text-sm text-stone-500">Review the product details before confirming your order.</p>
+      </div>
+      {typeof (item as any).category === 'object' || (item as any).category ? (
+        <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
+          {typeof (item as any).category === 'object'
+            ? ((item as any).category as any)?.name
+            : (item as any).category}
+        </Badge>
+      ) : null}
+    </div>
+    {item.image && typeof item.image === 'object' && item.image.url ? (
+      <div className="relative mt-6 h-56 overflow-hidden rounded-3xl border border-amber-100 bg-amber-50">
+        <Image
+          src={item.image.url}
+          alt={item.image.alt || item.name}
+          fill
+          className="object-cover"
+          sizes="(min-width: 1024px) 384px, 100vw"
+        />
+      </div>
+    ) : null}
+    <div className="mt-6 space-y-3 text-sm text-stone-600">
+      {item.shortDescription || item.description ? (
+        <p className="text-base text-stone-600">
+          {(item.shortDescription as string) || (item.description as string)}
+        </p>
+      ) : null}
+      <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-sm text-amber-700">
+        <span className="font-medium">Unit price</span>
+        <span className="text-base font-semibold text-rose-600">৳{Number(item.price).toFixed(2)}</span>
+      </div>
+    </div>
+  </div>
+)
+
+interface SummaryPanelProps {
+  quantity: number
+  onDecreaseQuantity: () => void
+  onIncreaseQuantity: () => void
+  subtotal: number
+  shippingCharge: number
+  total: number
+  freeDelivery: boolean
+  deliveryZone: 'inside_dhaka' | 'outside_dhaka'
+  formatCurrency: (value: number) => string
+  settings: DeliverySettings
+  paymentMethod: PaymentMethod
+  onSelectPaymentMethod: (method: PaymentMethod) => void
+  requiresDigitalPaymentDetails: boolean
+  digitalPaymentInstructions?: string[]
+  paymentSenderNumber: string
+  onPaymentSenderNumberChange: (value: string) => void
+  paymentTransactionId: string
+  onPaymentTransactionIdChange: (value: string) => void
+  inputClasses: string
+  isSubmitting: boolean
+  senderNumberId: string
+  transactionId: string
+}
+
+const SummaryPanel: React.FC<SummaryPanelProps> = ({
+  quantity,
+  onDecreaseQuantity,
+  onIncreaseQuantity,
+  subtotal,
+  shippingCharge,
+  total,
+  freeDelivery,
+  deliveryZone,
+  formatCurrency,
+  settings,
+  paymentMethod,
+  onSelectPaymentMethod,
+  requiresDigitalPaymentDetails,
+  digitalPaymentInstructions,
+  paymentSenderNumber,
+  onPaymentSenderNumberChange,
+  paymentTransactionId,
+  onPaymentTransactionIdChange,
+  inputClasses,
+  isSubmitting,
+  senderNumberId,
+  transactionId,
+}) => (
+  <div className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h3 className="text-lg font-semibold text-stone-900">Review your order</h3>
+        <p className="text-sm text-stone-500">Confirm the quantity, payment method, and totals before placing your order.</p>
+      </div>
+      <div className="flex flex-col items-end gap-2 text-right">
+        <Badge className="h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">Secure checkout</Badge>
+      </div>
+    </div>
+
+    <div className="mt-5 flex flex-col gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-1 text-sm text-stone-600">
+        <p className="text-sm font-semibold text-stone-900">Quantity</p>
+        <p>Adjust how many units you would like to order.</p>
+      </div>
+      <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm">
+        <button
+          type="button"
+          onClick={onDecreaseQuantity}
+          disabled={quantity <= 1}
+          aria-label="Decrease quantity"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
+        >
+          <Minus className="h-4 w-4" />
+        </button>
+        <span className="min-w-[2ch] text-base font-semibold text-stone-900">{quantity}</span>
+        <button
+          type="button"
+          onClick={onIncreaseQuantity}
+          aria-label="Increase quantity"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+
+    <div className="mt-5 space-y-3 rounded-3xl border border-amber-50 bg-white/75 p-5 shadow-inner shadow-amber-200/40">
+      <div className="flex items-center justify-between text-sm text-stone-600">
+        <span>Subtotal</span>
+        <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
+      </div>
+      <div className="flex items-center justify-between text-sm text-stone-600">
+        <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
+        <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+      </div>
+      <div className="flex items-center justify-between text-base font-semibold text-stone-900">
+        <span>Total due</span>
+        <span>{formatCurrency(total)}</span>
+      </div>
+      {freeDelivery ? (
+        <p className="text-xs font-semibold text-emerald-600">Congratulations! Free delivery is applied to this order.</p>
+      ) : (
+        <p className="text-xs text-stone-500">
+          Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
+        </p>
+      )}
+    </div>
+
+    <Separator className="my-6" />
+
+    <div className="space-y-5">
+      <div>
+        <h4 className="text-base font-semibold text-stone-900">Payment method</h4>
+        <p className="text-xs text-stone-500">Select a payment option to complete your order.</p>
+      </div>
+      <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-xs font-medium text-amber-900 shadow-sm shadow-amber-100">
+        Digital wallet payments have a flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {PAYMENT_OPTIONS.map((option) => (
+          <label
+            key={option.value}
+            className={cn(
+              'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+              paymentMethod === option.value ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
+            )}
+          >
+            <input
+              type="radio"
+              name="paymentMethod"
+              value={option.value}
+              checked={paymentMethod === option.value}
+              onChange={() => onSelectPaymentMethod(option.value)}
+              className="sr-only"
+            />
+            <div className="relative h-16 w-32">
+              <Image
+                src={option.logo.src}
+                alt={option.logo.alt}
+                width={option.logo.width}
+                height={option.logo.height}
+                className="h-full w-full object-contain"
+                sizes="128px"
+                priority={option.value === 'cod'}
+              />
+            </div>
+            <span className="text-sm font-medium text-stone-700">{option.label}</span>
+          </label>
+        ))}
+      </div>
+      {requiresDigitalPaymentDetails ? (
+        <div className="space-y-5 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-amber-900 shadow-sm shadow-amber-100">
+          {digitalPaymentInstructions?.length ? (
+            <Alert className="border-transparent bg-transparent p-0 text-amber-900">
+              <AlertDescription>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {digitalPaymentInstructions.map((instruction, index) => (
+                    <li key={`digital-instruction-${index}`}>{instruction}</li>
+                  ))}
+                  <li>
+                    Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+                  </li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+          ) : null}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor={senderNumberId} className="text-sm font-medium text-stone-600">
+                Sender wallet number
+              </label>
+              <input
+                id={senderNumberId}
+                name="paymentSenderNumber"
+                type="tel"
+                value={paymentSenderNumber}
+                onChange={(e) => onPaymentSenderNumberChange(e.target.value)}
+                required={requiresDigitalPaymentDetails}
+                placeholder="e.g. 01XXXXXXXXX"
+                inputMode="numeric"
+                pattern="[0-9]{11}"
+                maxLength={11}
+                className={inputClasses}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor={transactionId} className="text-sm font-medium text-stone-600">
+                Transaction ID
+              </label>
+              <input
+                id={transactionId}
+                name="paymentTransactionId"
+                value={paymentTransactionId}
+                onChange={(e) => onPaymentTransactionIdChange(e.target.value)}
+                required={requiresDigitalPaymentDetails}
+                placeholder="e.g. TXN123456789"
+                className={inputClasses}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-stone-500">You can pay in cash when the delivery arrives.</p>
+      )}
+    </div>
+
+    <div className="mt-5 flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
+      <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
+      <p>Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the delivery.</p>
+    </div>
+
+    <Button
+      type="submit"
+      disabled={isSubmitting}
+      className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
+    >
+      {isSubmitting ? 'Placing Order…' : 'Confirm order'}
+    </Button>
+  </div>
+)
+
+const NeedHelpCard: React.FC = () => (
+  <div className="rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50">
+    <h3 className="text-base font-semibold text-stone-900">Need help?</h3>
+    <p className="mt-2 leading-relaxed">
+      Give us a call or send us a message if you have any questions about this product or your order. Our friendly team is ready to talk over the phone or chat on your favourite messaging app.
+    </p>
+    <div className="mt-4 flex flex-col gap-2 text-sm font-semibold text-amber-700">
+      <a
+        href="tel:01639590392"
+        className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm transition hover:bg-amber-100"
+      >
+        <span aria-hidden>📞</span>
+        Call us: 01639-590392
+      </a>
+      <a
+        href="https://www.m.me/onlinebazarbarguna"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 rounded-full bg-[#0084FF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0073E6]"
+      >
+        <span aria-hidden>💬</span>
+        Message us on Messenger
+      </a>
+    </div>
+  </div>
+)
 
 interface OrderFormProps {
   item: any
@@ -38,13 +349,15 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const [email, setEmail] = useState<string>(user?.email || '')
   const [address_line1, setAddressLine1] = useState<string>(user?.address?.line1 || '')
   const [address_line2, setAddressLine2] = useState<string>(user?.address?.line2 || '')
-  const [address_city, setAddressCity] = useState<string>(user?.address?.city || '')
+  const initialDeliveryZone: 'inside_dhaka' | 'outside_dhaka' =
+    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
+  const [address_city, setAddressCity] = useState<string>(
+    initialDeliveryZone === 'inside_dhaka' ? 'Dhaka' : user?.address?.city || '',
+  )
   const [address_state, setAddressState] = useState<string>(user?.address?.state || '')
   const [address_postalCode, setAddressPostalCode] = useState<string>(user?.address?.postalCode || '')
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
-  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
-    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka',
-  )
+  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(initialDeliveryZone)
   const settings = deliverySettings || DEFAULT_DELIVERY_SETTINGS
   const subtotal = Number(item.price) * quantity
   const freeDelivery = subtotal >= settings.freeDeliveryThreshold
@@ -61,298 +374,57 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const router = useRouter()
   const requiresDigitalPaymentDetails = isDigitalPayment
   const digitalPaymentInstructions = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
+  const senderNumberId = 'order-paymentSenderNumber'
+  const transactionId = 'order-paymentTransactionId'
+  const isInsideDhaka = deliveryZone === 'inside_dhaka'
+  const handleDecreaseQuantity = () => setQuantity((prev) => Math.max(1, prev - 1))
+  const handleIncreaseQuantity = () => setQuantity((prev) => prev + 1)
+  const handlePaymentMethodChange = (method: PaymentMethod) => {
+    setPaymentMethod(method)
+    if (method === 'cod') {
+      setPaymentSenderNumber('')
+      setPaymentTransactionId('')
+    }
+    setError('')
+  }
+  const normalizeSenderNumberInput = React.useCallback((value: string) => {
+    let digitsOnly = value.replace(/\D/g, '')
+
+    if (digitsOnly.startsWith('880') && digitsOnly.length > 11) {
+      digitsOnly = digitsOnly.slice(digitsOnly.length - 11)
+    }
+
+    if (digitsOnly.length > 11) {
+      digitsOnly = digitsOnly.slice(0, 11)
+    }
+
+    return digitsOnly
+  }, [])
+  const handlePaymentSenderNumberChange = React.useCallback(
+    (value: string) => {
+      const normalized = normalizeSenderNumberInput(value)
+      setPaymentSenderNumber(normalized)
+
+      if (error && normalized.length === 11 && error.toLowerCase().includes('sender number')) {
+        setError('')
+      }
+    },
+    [error, normalizeSenderNumberInput],
+  )
+  const handlePaymentTransactionIdChange = (value: string) => {
+    setPaymentTransactionId(value)
+    setError('')
+  }
 
   const labelClasses = 'text-sm font-medium text-stone-700'
   const inputClasses =
     'block w-full rounded-xl border border-stone-200 bg-white/85 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400/70 focus:ring-offset-0'
 
-  const SectionCard = ({
-    title,
-    description,
-    children,
-    className,
-  }: {
-    title: string
-    description?: string
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <div className={cn('rounded-3xl border border-amber-100/70 bg-white/85 p-6 shadow-sm shadow-amber-200/40', className)}>
-      <div className="space-y-1">
-        <h3 className="text-lg font-semibold text-stone-900">{title}</h3>
-        {description ? <p className="text-sm text-stone-500">{description}</p> : null}
-      </div>
-      <div className="mt-5 space-y-5">{children}</div>
-    </div>
-  )
-
-  const ProductOverviewCard = () => (
-    <div className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">Product overview</p>
-          <h2 className="text-2xl font-semibold text-stone-900">{item.name}</h2>
-          <p className="text-sm text-stone-500">Review the product details before confirming your order.</p>
-        </div>
-        {typeof (item as any).category === 'object' || (item as any).category ? (
-          <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
-            {typeof (item as any).category === 'object'
-              ? ((item as any).category as any)?.name
-              : (item as any).category}
-          </Badge>
-        ) : null}
-      </div>
-      {item.image && typeof item.image === 'object' && item.image.url ? (
-        <div className="relative mt-6 h-56 overflow-hidden rounded-3xl border border-amber-100 bg-amber-50">
-          <Image
-            src={item.image.url}
-            alt={item.image.alt || item.name}
-            fill
-            className="object-cover"
-            sizes="(min-width: 1024px) 384px, 100vw"
-          />
-        </div>
-      ) : null}
-      <div className="mt-6 space-y-3 text-sm text-stone-600">
-        {item.shortDescription || item.description ? (
-          <p className="text-base text-stone-600">
-            {(item.shortDescription as string) || (item.description as string)}
-          </p>
-        ) : null}
-        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-sm text-amber-700">
-          <span className="font-medium">Unit price</span>
-          <span className="text-base font-semibold text-rose-600">৳{Number(item.price).toFixed(2)}</span>
-        </div>
-      </div>
-    </div>
-  )
-
-  const SummaryPanel = ({ layout }: { layout: 'mobile' | 'desktop' }) => {
-    const isDesktop = layout === 'desktop'
-    const senderNumberId = `order-paymentSenderNumber-${layout}`
-    const transactionId = `order-paymentTransactionId-${layout}`
-
-    return (
-      <div
-        className={cn(
-          'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50',
-          isDesktop ? 'hidden lg:block' : 'lg:hidden',
-        )}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-stone-900">Review your order</h3>
-            <p className="text-sm text-stone-500">Confirm the quantity, payment method, and totals before placing your order.</p>
-          </div>
-          <div className="flex flex-col items-end gap-2 text-right">
-            <Badge className="h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">Secure checkout</Badge>
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-col gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1 text-sm text-stone-600">
-            <p className="text-sm font-semibold text-stone-900">Quantity</p>
-            <p>Adjust how many units you would like to order.</p>
-          </div>
-          <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-              aria-label="Decrease quantity"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-            <span className="min-w-[2ch] text-base font-semibold text-stone-900">{quantity}</span>
-            <button
-              type="button"
-              onClick={() => setQuantity(quantity + 1)}
-              aria-label="Increase quantity"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-3 rounded-3xl border border-amber-50 bg-white/75 p-5 shadow-inner shadow-amber-200/40">
-          <div className="flex items-center justify-between text-sm text-stone-600">
-            <span>Subtotal</span>
-            <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm text-stone-600">
-            <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
-            <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
-          </div>
-          <div className="flex items-center justify-between text-base font-semibold text-stone-900">
-            <span>Total due</span>
-            <span>{formatCurrency(total)}</span>
-          </div>
-          {freeDelivery ? (
-            <p className="text-xs font-semibold text-emerald-600">Congratulations! Free delivery is applied to this order.</p>
-          ) : (
-            <p className="text-xs text-stone-500">
-              Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
-            </p>
-          )}
-        </div>
-
-        <Separator className="my-6" />
-
-        <div className="space-y-5">
-          <div>
-            <h4 className="text-base font-semibold text-stone-900">Payment method</h4>
-            <p className="text-xs text-stone-500">Select a payment option to complete your order.</p>
-          </div>
-          <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-xs font-medium text-amber-900 shadow-sm shadow-amber-100">
-            Digital wallet payments have a flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {PAYMENT_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className={cn(
-                  'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
-                  paymentMethod === option.value ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={option.value}
-                  checked={paymentMethod === option.value}
-                  onChange={() => {
-                    setPaymentMethod(option.value)
-                    if (option.value === 'cod') {
-                      setPaymentSenderNumber('')
-                      setPaymentTransactionId('')
-                    }
-                    setError('')
-                  }}
-                  className="sr-only"
-                  form="order-form"
-                />
-                <div className="relative h-16 w-32">
-                  <Image
-                    src={option.logo.src}
-                    alt={option.logo.alt}
-                    width={option.logo.width}
-                    height={option.logo.height}
-                    className="h-full w-full object-contain"
-                    sizes="128px"
-                    priority={option.value === 'cod'}
-                  />
-                </div>
-                <span className="text-sm font-medium text-stone-700">{option.label}</span>
-              </label>
-            ))}
-          </div>
-          {requiresDigitalPaymentDetails ? (
-            <div className="space-y-5 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-amber-900 shadow-sm shadow-amber-100">
-              {digitalPaymentInstructions?.length ? (
-                <Alert className="border-transparent bg-transparent p-0 text-amber-900">
-                  <AlertDescription>
-                    <ul className="list-disc space-y-1 pl-5 text-sm">
-                      {digitalPaymentInstructions.map((instruction, index) => (
-                        <li key={`${layout}-digital-instruction-${index}`}>{instruction}</li>
-                      ))}
-                      <li>
-                        Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
-                      </li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label htmlFor={senderNumberId} className="text-sm font-medium text-stone-600">
-                    Sender wallet number
-                  </label>
-                  <input
-                    id={senderNumberId}
-                    name="paymentSenderNumber"
-                    type="tel"
-                    value={paymentSenderNumber}
-                    onChange={(e) => {
-                      setPaymentSenderNumber(e.target.value)
-                      setError('')
-                    }}
-                    required={requiresDigitalPaymentDetails}
-                    placeholder="e.g. 01XXXXXXXXX"
-                    className={inputClasses}
-                    form="order-form"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor={transactionId} className="text-sm font-medium text-stone-600">
-                    Transaction ID
-                  </label>
-                  <input
-                    id={transactionId}
-                    name="paymentTransactionId"
-                    value={paymentTransactionId}
-                    onChange={(e) => {
-                      setPaymentTransactionId(e.target.value)
-                      setError('')
-                    }}
-                    required={requiresDigitalPaymentDetails}
-                    placeholder="e.g. TXN123456789"
-                    className={inputClasses}
-                    form="order-form"
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-xs text-stone-500">You can pay in cash when the delivery arrives.</p>
-          )}
-        </div>
-
-        <div className="mt-5 flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
-          <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
-          <p>Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the delivery.</p>
-        </div>
-
-        <Button
-          type="submit"
-          form="order-form"
-          disabled={isSubmitting}
-          className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
-        >
-          {isSubmitting ? 'Placing Order…' : 'Confirm order'}
-        </Button>
-      </div>
-    )
-  }
-
-  const NeedHelpCard = () => (
-    <div className="rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50">
-      <h3 className="text-base font-semibold text-stone-900">Need help?</h3>
-      <p className="mt-2 leading-relaxed">
-        Give us a call or send us a message if you have any questions about this product or your order. Our friendly team is ready
-        to talk over the phone or chat on your favourite messaging app.
-      </p>
-      <div className="mt-4 flex flex-col gap-2 text-sm font-semibold text-amber-700">
-        <a
-          href="tel:01639590392"
-          className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm transition hover:bg-amber-100"
-        >
-          <span aria-hidden>📞</span>
-          Call us: 01639-590392
-        </a>
-        <a
-          href="https://www.m.me/onlinebazarbarguna"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-full bg-[#0084FF] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0073E6]"
-        >
-          <span aria-hidden>💬</span>
-          Message us on Messenger
-        </a>
-      </div>
-    </div>
-  )
+  useEffect(() => {
+    if (deliveryZone === 'inside_dhaka') {
+      setAddressCity((prev) => (prev.trim().toLowerCase() === 'dhaka' ? prev : 'Dhaka'))
+    }
+  }, [deliveryZone])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -360,8 +432,15 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     setError('')
 
     if (requiresDigitalPaymentDetails) {
-      if (!paymentSenderNumber.trim()) {
+      const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
+      if (!sanitizedSenderNumber) {
         setError('Please provide the sender number used for the payment.')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (sanitizedSenderNumber.length !== 11) {
+        setError('Please enter an 11-digit sender number before submitting your payment details.')
         setIsSubmitting(false)
         return
       }
@@ -374,6 +453,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     }
 
     try {
+      const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -389,7 +469,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           customerNumber,
           deliveryZone,
           paymentMethod,
-          paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+          paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
           paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           ...(user
             ? {
@@ -438,7 +518,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
               shippingCharge: (data as any)?.doc?.shippingCharge ?? shippingCharge,
               totalAmount: (data as any)?.doc?.totalAmount ?? total,
               paymentMethod,
-              paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+              paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
               paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
               deliveryZone: (data as any)?.doc?.deliveryZone ?? deliveryZone,
               freeDeliveryApplied: (data as any)?.doc?.freeDeliveryApplied ?? freeDelivery,
@@ -462,13 +542,12 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]"
+    >
       <div className="space-y-8">
-        <form
-          id="order-form"
-          onSubmit={handleSubmit}
-          className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
-        >
+        <div className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10">
           {!user ? (
             <div className="rounded-3xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
               <p className="font-semibold">Guest checkout</p>
@@ -587,8 +666,16 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     value={address_city}
                     onChange={(e) => setAddressCity(e.target.value)}
                     required={!user}
-                    className={inputClasses}
+                    readOnly={isInsideDhaka}
+                    aria-readonly={isInsideDhaka}
+                    className={cn(
+                      inputClasses,
+                      isInsideDhaka ? 'cursor-not-allowed bg-stone-100 text-stone-600' : '',
+                    )}
                   />
+                  {isInsideDhaka ? (
+                    <p className="text-xs text-stone-500">City is fixed to Dhaka for inside Dhaka delivery.</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="address_state" className={labelClasses}>
@@ -700,20 +787,41 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
           <NeedHelpCard />
 
-          <SummaryPanel layout="mobile" />
-
           {error ? (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
-        </form>
+        </div>
       </div>
 
-      <div className="space-y-6 self-start lg:sticky lg:top-32">
-        <ProductOverviewCard />
-        <SummaryPanel layout="desktop" />
+      <div className="space-y-6 self-start lg:sticky lg:top-32 mt-8 lg:mt-0">
+        <ProductOverviewCard item={item} />
+        <SummaryPanel
+          quantity={quantity}
+          onDecreaseQuantity={handleDecreaseQuantity}
+          onIncreaseQuantity={handleIncreaseQuantity}
+          subtotal={subtotal}
+          shippingCharge={shippingCharge}
+          total={total}
+          freeDelivery={freeDelivery}
+          deliveryZone={deliveryZone}
+          formatCurrency={formatCurrency}
+          settings={settings}
+          paymentMethod={paymentMethod}
+          onSelectPaymentMethod={handlePaymentMethodChange}
+          requiresDigitalPaymentDetails={requiresDigitalPaymentDetails}
+          digitalPaymentInstructions={digitalPaymentInstructions}
+          paymentSenderNumber={paymentSenderNumber}
+          onPaymentSenderNumberChange={handlePaymentSenderNumberChange}
+          paymentTransactionId={paymentTransactionId}
+          onPaymentTransactionIdChange={handlePaymentTransactionIdChange}
+          inputClasses={inputClasses}
+          isSubmitting={isSubmitting}
+          senderNumberId={senderNumberId}
+          transactionId={transactionId}
+        />
       </div>
-    </div>
+    </form>
   )
 }

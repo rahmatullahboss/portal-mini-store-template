@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 
-import { useCart } from '@/lib/cart-context'
+import { useCart, type CartItem } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -20,6 +20,302 @@ import {
   isDigitalPaymentMethod,
   DIGITAL_PAYMENT_INSTRUCTIONS,
 } from '@/lib/payment-options'
+
+interface SectionCardProps {
+  title: string
+  description?: string
+  children: React.ReactNode
+  className?: string
+}
+
+const SectionCard: React.FC<SectionCardProps> = ({ title, description, children, className }) => (
+  <div className={cn('rounded-2xl border border-amber-100/70 bg-white/85 p-6 shadow-sm shadow-amber-200/40', className)}>
+    <div>
+      <h3 className="text-lg font-semibold text-stone-900">{title}</h3>
+      {description ? <p className="mt-1 text-sm text-stone-500">{description}</p> : null}
+    </div>
+    <div className="mt-5 space-y-5">{children}</div>
+  </div>
+)
+
+interface OrderSummaryCardProps {
+  className?: string
+  items: CartItem[]
+  discountCode: string
+  onDiscountCodeChange: (value: string) => void
+  subtotal: number
+  shippingCharge: number
+  total: number
+  freeDelivery: boolean
+  deliveryZone: 'inside_dhaka' | 'outside_dhaka'
+  formatCurrency: (value: number) => string
+  onUpdateQuantity: (id: string | number, quantity: number) => void
+  paymentMethod: PaymentMethod
+  onSelectPaymentMethod: (method: PaymentMethod) => void
+  requiresDigitalPaymentDetails: boolean
+  digitalPaymentInstructions?: string[]
+  paymentSenderNumber: string
+  onPaymentSenderNumberChange: (value: string) => void
+  paymentTransactionId: string
+  onPaymentTransactionIdChange: (value: string) => void
+  inputClasses: string
+  settings: DeliverySettings
+  discountFieldId: string
+  senderNumberId: string
+  transactionId: string
+  isSubmitting: boolean
+}
+
+const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
+  className,
+  items,
+  discountCode,
+  onDiscountCodeChange,
+  subtotal,
+  shippingCharge,
+  total,
+  freeDelivery,
+  deliveryZone,
+  formatCurrency,
+  onUpdateQuantity,
+  paymentMethod,
+  onSelectPaymentMethod,
+  requiresDigitalPaymentDetails,
+  digitalPaymentInstructions,
+  paymentSenderNumber,
+  onPaymentSenderNumberChange,
+  paymentTransactionId,
+  onPaymentTransactionIdChange,
+  inputClasses,
+  settings,
+  discountFieldId,
+  senderNumberId,
+  transactionId,
+  isSubmitting,
+}) => (
+  <div
+    className={cn(
+      'w-full rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/60 backdrop-blur-sm',
+      'lg:sticky lg:top-28',
+      className,
+    )}
+  >
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h3 className="text-lg font-semibold text-stone-900">Review your cart</h3>
+        <p className="text-sm text-stone-500">Double-check the details before you place your order.</p>
+      </div>
+      <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
+        Secure checkout
+      </Badge>
+    </div>
+    <div className="mt-5 space-y-4">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-start gap-4 rounded-2xl border border-amber-50 bg-white/85 p-4 shadow-sm shadow-amber-200/40"
+        >
+          {item.image ? (
+            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-amber-100 bg-amber-50">
+              <Image
+                src={item.image.url}
+                alt={item.image.alt || item.name}
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            </div>
+          ) : null}
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <h4 className="truncate text-sm font-semibold text-stone-900">{item.name}</h4>
+              {item.category ? (
+                <Badge className="hidden rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 sm:inline-flex">
+                  {item.category}
+                </Badge>
+              ) : null}
+            </div>
+            <p className="text-xs text-stone-500">{formatCurrency(item.price)} each</p>
+          </div>
+          <div className="flex flex-col items-end gap-3 text-right">
+            <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-2 py-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                disabled={item.quantity <= 1}
+                aria-label={`Decrease quantity of ${item.name}`}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <span className="min-w-[2ch] text-sm font-semibold text-stone-900">{item.quantity}</span>
+              <button
+                type="button"
+                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                aria-label={`Increase quantity of ${item.name}`}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-sm font-semibold text-stone-900">{formatCurrency(item.price * item.quantity)}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+    <div className="mt-6 space-y-3">
+      <label htmlFor={discountFieldId} className="text-sm font-semibold text-stone-700">
+        Discount code
+      </label>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <input
+          id={discountFieldId}
+          type="text"
+          value={discountCode}
+          onChange={(e) => onDiscountCodeChange(e.target.value)}
+          placeholder="Enter promo code"
+          className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400/70"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-xl border-amber-200 bg-amber-50 text-amber-700 shadow-sm transition hover:bg-amber-100"
+        >
+          Apply
+        </Button>
+      </div>
+      <p className="text-xs text-stone-500">Promotions are applied before taxes and shipping charges.</p>
+    </div>
+    <Separator className="my-6" />
+    <div className="space-y-3 text-sm text-stone-600">
+      <div className="flex items-center justify-between">
+        <span>Subtotal</span>
+        <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
+      </div>
+      <div className="flex items-center justify-between">
+        <span>
+          Shipping {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}
+        </span>
+        <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+      </div>
+      <div className="flex items-center justify-between text-base font-semibold text-stone-900">
+        <span>Total</span>
+        <span>{formatCurrency(total)}</span>
+      </div>
+    </div>
+    <Separator className="my-6" />
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <div>
+          <h4 className="text-base font-semibold text-stone-900">Payment method</h4>
+          <p className="text-xs text-stone-500">Choose how you would like to pay for this order.</p>
+        </div>
+        <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-xs font-medium text-amber-900 shadow-sm shadow-amber-100">
+          Digital wallet payments have a flat delivery charge of{' '}
+          <span className="font-semibold">{formatCurrency(settings.digitalPaymentDeliveryCharge)}</span> when the subtotal is below{' '}
+          <span className="font-semibold">{formatCurrency(settings.freeDeliveryThreshold)}</span>.
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {PAYMENT_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className={cn(
+                'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+                paymentMethod === option.value ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
+              )}
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value={option.value}
+                checked={paymentMethod === option.value}
+                onChange={() => onSelectPaymentMethod(option.value)}
+                className="sr-only"
+              />
+              <div className="relative h-16 w-32">
+                <Image
+                  src={option.logo.src}
+                  alt={option.logo.alt}
+                  width={option.logo.width}
+                  height={option.logo.height}
+                  className="h-full w-full object-contain"
+                  sizes="128px"
+                  priority={option.value === 'cod'}
+                />
+              </div>
+              <span className="text-sm font-medium text-stone-700">{option.label}</span>
+            </label>
+          ))}
+        </div>
+        {requiresDigitalPaymentDetails ? (
+          <div className="space-y-5 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-amber-900 shadow-sm shadow-amber-100">
+            {digitalPaymentInstructions?.length ? (
+              <Alert className="border-transparent bg-transparent p-0 text-amber-900">
+                <AlertDescription>
+                  <ul className="list-disc space-y-1 pl-5 text-sm">
+                    {digitalPaymentInstructions.map((instruction, index) => (
+                      <li key={`instruction-${index}`}>{instruction}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor={senderNumberId} className="text-sm font-medium text-stone-600">
+                  Sender wallet number
+                </label>
+                <input
+                  id={senderNumberId}
+                  name="paymentSenderNumber"
+                  type="tel"
+                  value={paymentSenderNumber}
+                  onChange={(e) => onPaymentSenderNumberChange(e.target.value)}
+                  required={requiresDigitalPaymentDetails}
+                  placeholder="e.g. 01XXXXXXXXX"
+                  inputMode="numeric"
+                  pattern="[0-9]{11}"
+                  maxLength={11}
+                  className={inputClasses}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor={transactionId} className="text-sm font-medium text-stone-600">
+                  Transaction ID
+                </label>
+                <input
+                  id={transactionId}
+                  name="paymentTransactionId"
+                  type="text"
+                  value={paymentTransactionId}
+                  onChange={(e) => onPaymentTransactionIdChange(e.target.value)}
+                  required={requiresDigitalPaymentDetails}
+                  placeholder="e.g. TXN123456789"
+                  className={inputClasses}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-stone-500">Pay with cash when your delivery arrives.</p>
+        )}
+      </div>
+    </div>
+    <div className="space-y-3">
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2"
+      >
+        {isSubmitting ? 'Processing…' : 'Confirm order'}
+      </Button>
+      <div className="flex items-start gap-2 text-xs text-stone-500">
+        <ShieldCheck className="mt-0.5 h-4 w-4 text-amber-500" />
+        <span>Secure checkout • Your payment details are encrypted end-to-end.</span>
+      </div>
+    </div>
+  </div>
+)
 
 interface CheckoutFormProps {
   user?: any
@@ -66,275 +362,28 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const requiresDigitalPaymentDetails = isDigitalPayment
   const digitalPaymentInstructions = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
   const isInsideDhaka = deliveryZone === 'inside_dhaka'
-  const formId = React.useId()
+  const discountFieldId = React.useId()
+  const senderNumberId = 'checkout-paymentSenderNumber'
+  const transactionId = 'checkout-paymentTransactionId'
+  const handleDiscountCodeChange = (value: string) => setDiscountCode(value)
+  const handlePaymentMethodChange = (method: PaymentMethod) => {
+    setPaymentMethod(method)
+    if (method === 'cod') {
+      setPaymentSenderNumber('')
+      setPaymentTransactionId('')
+    }
+    setError(null)
+  }
+  const handlePaymentTransactionIdChange = (value: string) => {
+    setPaymentTransactionId(value)
+    setError(null)
+  }
   const inputClasses =
     'block w-full rounded-xl border border-stone-200 bg-white/85 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400/70 focus:ring-offset-0'
-  const SectionCard = ({
-    title,
-    description,
-    children,
-    className,
-  }: {
-    title: string
-    description?: string
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <div className={cn('rounded-2xl border border-amber-100/70 bg-white/85 p-6 shadow-sm shadow-amber-200/40', className)}>
-      <div>
-        <h3 className="text-lg font-semibold text-stone-900">{title}</h3>
-        {description ? <p className="mt-1 text-sm text-stone-500">{description}</p> : null}
-      </div>
-      <div className="mt-5 space-y-5">{children}</div>
-    </div>
-  )
-  const OrderSummaryCard = ({ className, layout }: { className?: string; layout: 'desktop' | 'mobile' }) => {
-    const senderNumberId = `paymentSenderNumber-${layout}`
-    const transactionId = `paymentTransactionId-${layout}`
-
-    return (
-      <div
-        className={cn(
-          'w-full rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/60 backdrop-blur-sm',
-          layout === 'desktop' ? 'lg:sticky lg:top-28' : '',
-          className,
-        )}
-      >
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-stone-900">Review your cart</h3>
-            <p className="text-sm text-stone-500">Double-check the details before you place your order.</p>
-          </div>
-          <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
-            Secure checkout
-          </Badge>
-        </div>
-        <div className="mt-5 space-y-4">
-          {state.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-start gap-4 rounded-2xl border border-amber-50 bg-white/85 p-4 shadow-sm shadow-amber-200/40"
-            >
-              {item.image ? (
-                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-amber-100 bg-amber-50">
-                  <Image
-                    src={item.image.url}
-                    alt={item.image.alt || item.name}
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : null}
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="truncate text-sm font-semibold text-stone-900">{item.name}</h4>
-                  {item.category ? (
-                    <Badge className="hidden rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 sm:inline-flex">
-                      {item.category}
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="text-xs text-stone-500">{formatCurrency(item.price)} each</p>
-              </div>
-              <div className="flex flex-col items-end gap-3 text-right">
-                <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-2 py-1 shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                    disabled={item.quantity <= 1}
-                    aria-label={`Decrease quantity of ${item.name}`}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="min-w-[2ch] text-sm font-semibold text-stone-900">{item.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    aria-label={`Increase quantity of ${item.name}`}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-                <p className="text-sm font-semibold text-stone-900">{formatCurrency(item.price * item.quantity)}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-6 space-y-3">
-          <label htmlFor={`discount-${layout}`} className="text-sm font-semibold text-stone-700">
-            Discount code
-          </label>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              id={`discount-${layout}`}
-              type="text"
-              value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value)}
-              placeholder="Enter promo code"
-              className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400/70"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-xl border-amber-200 bg-amber-50 text-amber-700 shadow-sm transition hover:bg-amber-100"
-            >
-              Apply
-            </Button>
-          </div>
-          <p className="text-xs text-stone-500">Promotions are applied before taxes and shipping charges.</p>
-        </div>
-        <Separator className="my-6" />
-        <div className="space-y-3 text-sm text-stone-600">
-          <div className="flex items-center justify-between">
-            <span>Subtotal</span>
-            <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>
-              Shipping {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}
-            </span>
-            <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
-          </div>
-          <div className="flex items-center justify-between text-base font-semibold text-stone-900">
-            <span>Total</span>
-            <span>{formatCurrency(total)}</span>
-          </div>
-        </div>
-        <Separator className="my-6" />
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <div>
-              <h4 className="text-base font-semibold text-stone-900">Payment method</h4>
-              <p className="text-xs text-stone-500">Choose how you would like to pay for this order.</p>
-            </div>
-            <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-xs font-medium text-amber-900 shadow-sm shadow-amber-100">
-              Digital wallet payments have a flat delivery charge of{' '}
-              <span className="font-semibold">{formatCurrency(settings.digitalPaymentDeliveryCharge)}</span> when the subtotal is below{' '}
-              <span className="font-semibold">{formatCurrency(settings.freeDeliveryThreshold)}</span>.
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {PAYMENT_OPTIONS.map((option) => (
-                <label
-                  key={option.value}
-                  className={cn(
-                    'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
-                    paymentMethod === option.value ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={option.value}
-                    checked={paymentMethod === option.value}
-                    onChange={() => {
-                      setPaymentMethod(option.value)
-                      if (option.value === 'cod') {
-                        setPaymentSenderNumber('')
-                        setPaymentTransactionId('')
-                      }
-                      setError(null)
-                    }}
-                    className="sr-only"
-                    form={formId}
-                  />
-                  <div className="relative h-16 w-32">
-                    <Image
-                      src={option.logo.src}
-                      alt={option.logo.alt}
-                      width={option.logo.width}
-                      height={option.logo.height}
-                      className="h-full w-full object-contain"
-                      sizes="128px"
-                      priority={option.value === 'cod'}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-stone-700">{option.label}</span>
-                </label>
-              ))}
-            </div>
-            {requiresDigitalPaymentDetails ? (
-              <div className="space-y-5 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-amber-900 shadow-sm shadow-amber-100">
-                {digitalPaymentInstructions?.length ? (
-                  <Alert className="border-transparent bg-transparent p-0 text-amber-900">
-                    <AlertDescription>
-                      <ul className="list-disc space-y-1 pl-5 text-sm">
-                        {digitalPaymentInstructions.map((instruction, index) => (
-                          <li key={`${layout}-instruction-${index}`}>{instruction}</li>
-                        ))}
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label htmlFor={senderNumberId} className="text-sm font-medium text-stone-600">
-                      Sender wallet number
-                    </label>
-                    <input
-                      id={senderNumberId}
-                      name="paymentSenderNumber"
-                      type="tel"
-                      value={paymentSenderNumber}
-                      onChange={(e) => {
-                        setPaymentSenderNumber(e.target.value)
-                        setError(null)
-                      }}
-                      required={requiresDigitalPaymentDetails}
-                      placeholder="e.g. 01XXXXXXXXX"
-                      className={inputClasses}
-                      form={formId}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor={transactionId} className="text-sm font-medium text-stone-600">
-                      Transaction ID
-                    </label>
-                    <input
-                      id={transactionId}
-                      name="paymentTransactionId"
-                      type="text"
-                      value={paymentTransactionId}
-                      onChange={(e) => {
-                        setPaymentTransactionId(e.target.value)
-                        setError(null)
-                      }}
-                      required={requiresDigitalPaymentDetails}
-                      placeholder="e.g. TXN123456789"
-                      className={inputClasses}
-                      form={formId}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-stone-500">Pay with cash when your delivery arrives.</p>
-            )}
-          </div>
-        </div>
-        <div className="space-y-3">
-          <Button
-            type="submit"
-            form={formId}
-            size="lg"
-            className="w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2"
-          >
-            {isSubmitting ? 'Processing…' : 'Confirm order'}
-          </Button>
-          <div className="flex items-start gap-2 text-xs text-stone-500">
-            <ShieldCheck className="mt-0.5 h-4 w-4 text-amber-500" />
-            <span>Secure checkout • Your payment details are encrypted end-to-end.</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   React.useEffect(() => {
     if (deliveryZone === 'inside_dhaka') {
-      setAddressCity('Dhaka')
+      setAddressCity((prev) => (prev.trim().toLowerCase() === 'dhaka' ? prev : 'Dhaka'))
     }
   }, [deliveryZone])
 
@@ -385,6 +434,35 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     }
   }, [user, state.items, email, customerNumber, firstName, lastName, subtotal, shippingCharge, deliveryZone])
 
+  const normalizeSenderNumberInput = React.useCallback(
+    (value: string) => {
+      let digitsOnly = value.replace(/\D/g, '')
+
+      if (digitsOnly.startsWith('880') && digitsOnly.length > 11) {
+        digitsOnly = digitsOnly.slice(digitsOnly.length - 11)
+      }
+
+      if (digitsOnly.length > 11) {
+        digitsOnly = digitsOnly.slice(0, 11)
+      }
+
+      return digitsOnly
+    },
+    [],
+  )
+
+  const handlePaymentSenderNumberChange = React.useCallback(
+    (value: string) => {
+      const normalized = normalizeSenderNumberInput(value)
+      setPaymentSenderNumber(normalized)
+
+      if (error && normalized.length === 11 && error.toLowerCase().includes('sender number')) {
+        setError(null)
+      }
+    },
+    [error, normalizeSenderNumberInput],
+  )
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -394,8 +472,13 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     }
 
     if (requiresDigitalPaymentDetails) {
-      if (!paymentSenderNumber.trim()) {
+      const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
+      if (!sanitizedSenderNumber) {
         setError('Please provide the sender number used for the payment.')
+        return
+      }
+      if (sanitizedSenderNumber.length !== 11) {
+        setError('Please enter an 11-digit sender number before submitting your payment details.')
         return
       }
       if (!paymentTransactionId.trim()) {
@@ -406,6 +489,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
 
     setIsSubmitting(true)
     setError(null)
+
+    const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
 
     try {
       const response = await fetch('/api/orders', {
@@ -421,7 +506,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           customerNumber,
           deliveryZone,
           paymentMethod,
-          paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+          paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
           paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           ...(user
             ? {
@@ -472,7 +557,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             deliveryZone: result?.doc?.deliveryZone ?? deliveryZone,
             freeDeliveryApplied: result?.doc?.freeDeliveryApplied ?? freeDelivery,
             paymentMethod,
-            paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+            paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
             paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           }),
         )
@@ -503,13 +588,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   }
 
   return (
-    <div className="grid w-full max-w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid w-full max-w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]"
+    >
       <div className="min-w-0 space-y-8">
-        <form
-          id={formId}
-          onSubmit={handleSubmit}
-          className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
-        >
+        <div className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500">Step 02</p>
@@ -806,12 +890,36 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-        </form>
-        <OrderSummaryCard className="lg:hidden" layout="mobile" />
+        </div>
       </div>
-      <div className="min-w-0 space-y-6">
-        <OrderSummaryCard className="hidden lg:block" layout="desktop" />
+      <div className="min-w-0 space-y-6 lg:space-y-6 mt-8 lg:mt-0">
+        <OrderSummaryCard
+          items={state.items}
+          discountCode={discountCode}
+          onDiscountCodeChange={handleDiscountCodeChange}
+          subtotal={subtotal}
+          shippingCharge={shippingCharge}
+          total={total}
+          freeDelivery={freeDelivery}
+          deliveryZone={deliveryZone}
+          formatCurrency={formatCurrency}
+          onUpdateQuantity={updateQuantity}
+          paymentMethod={paymentMethod}
+          onSelectPaymentMethod={handlePaymentMethodChange}
+          requiresDigitalPaymentDetails={requiresDigitalPaymentDetails}
+          digitalPaymentInstructions={digitalPaymentInstructions}
+          paymentSenderNumber={paymentSenderNumber}
+          onPaymentSenderNumberChange={handlePaymentSenderNumberChange}
+          paymentTransactionId={paymentTransactionId}
+          onPaymentTransactionIdChange={handlePaymentTransactionIdChange}
+          inputClasses={inputClasses}
+          settings={settings}
+          discountFieldId={discountFieldId}
+          senderNumberId={senderNumberId}
+          transactionId={transactionId}
+          isSubmitting={isSubmitting}
+        />
       </div>
-    </div>
+    </form>
   )
 }
