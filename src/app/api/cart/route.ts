@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 
+import type { AbandonedCart } from '@/payload-types'
+
 import config from '@/payload.config'
 import {
   buildQuantityMapFromIncoming,
@@ -83,13 +85,21 @@ export async function POST(request: NextRequest) {
     const cookieSession = request.cookies.get('dyad_cart_sid')?.value
     const sessionId = existingSession ?? payloadSessionId ?? cookieSession ?? generateSessionId()
 
-    const data: Record<string, unknown> = {
+    const nowIso = new Date().toISOString()
+
+    const data: Omit<AbandonedCart, 'id' | 'createdAt' | 'updatedAt'> = {
       sessionId,
       user: userId,
       items: resolved.lines,
       cartTotal: resolved.total,
       status: 'active',
-      lastActivityAt: new Date().toISOString(),
+      lastActivityAt: nowIso,
+      customerName: null,
+      customerEmail: null,
+      customerNumber: null,
+      recoveredOrder: null,
+      recoveryEmailSentAt: null,
+      notes: null,
     }
 
     const cartId = getDocId(cartDoc)
