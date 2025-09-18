@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
 
     const cartQuery = await payload.find({
       collection: 'abandoned-carts',
+      overrideAccess: true,
       limit: 1,
       depth: 0,
       sort: '-updatedAt',
@@ -97,6 +98,12 @@ export async function GET(request: NextRequest) {
     }
 
     const cartRecord = cartDoc as Record<string, unknown>
+
+    const cartUserRaw = cartRecord.user
+    const cartUserId = typeof cartUserRaw === 'number' ? cartUserRaw : toItemId(cartUserRaw)
+    if (cartUserId !== userId) {
+      return NextResponse.json({ items: [], total: 0 })
+    }
 
     const lines: CartLine[] = Array.isArray(cartRecord.items)
       ? cartRecord.items
