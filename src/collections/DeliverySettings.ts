@@ -65,5 +65,30 @@ export const DeliverySettings: CollectionConfig = {
         description: 'Orders equal to or above this amount receive free delivery.',
       },
     },
+    {
+      name: 'digitalPaymentDeliveryCharge',
+      type: 'number',
+      required: true,
+      min: 0,
+      defaultValue: 20,
+      label: 'Digital payment delivery charge (BDT)',
+      admin: {
+        description: 'Applied when the order total is below the free delivery threshold.',
+      },
+    },
+    {
+      name: 'shippingHighlightTitle',
+      type: 'text',
+      required: true,
+      defaultValue: 'Free shipping on orders over 2000 taka',
+      label: 'Shipping highlight title',
+    },
+    {
+      name: 'shippingHighlightSubtitle',
+      type: 'text',
+      required: true,
+      defaultValue: 'Digital wallet payments have a flat Tk 20 delivery charge.',
+      label: 'Shipping highlight subtitle',
+    },
   ],
 }

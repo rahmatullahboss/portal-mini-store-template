@@ -169,7 +169,12 @@ export async function POST(request: NextRequest) {
       .find({ collection: 'delivery-settings', limit: 1 })
       .catch(() => null)
     const deliverySettingsSource = (settingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS
-    const { insideDhakaCharge, outsideDhakaCharge, freeDeliveryThreshold } = normalizeDeliverySettings(deliverySettingsSource)
+    const {
+      insideDhakaCharge,
+      outsideDhakaCharge,
+      freeDeliveryThreshold,
+      digitalPaymentDeliveryCharge,
+    } = normalizeDeliverySettings(deliverySettingsSource)
     const userDeliveryZone = resolveDeliveryZone((fullUser as any)?.deliveryZone)
     const requestDeliveryZone = resolveDeliveryZone(deliveryZoneInput)
     const inferredZoneFromAddress = (() => {
@@ -180,16 +185,6 @@ export async function POST(request: NextRequest) {
     })()
     const deliveryZone = requestDeliveryZone || userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
 
-    const freeDeliveryApplied = subtotal >= freeDeliveryThreshold
-    const appliedShippingCharge = freeDeliveryApplied
-      ? 0
-      : deliveryZone === 'outside_dhaka'
-        ? outsideDhakaCharge
-        : insideDhakaCharge
-    const shippingBase = Number.isFinite(appliedShippingCharge) ? appliedShippingCharge : 0
-    const shippingChargeValue = Number(Math.max(0, shippingBase).toFixed(2))
-    const subtotalValue = Number(subtotal.toFixed(2))
-    const totalValue = Number((subtotalValue + shippingChargeValue).toFixed(2))
     // Detect device
     const ua = request.headers.get('user-agent') || ''
     const uaLower = ua.toLowerCase()
@@ -222,6 +217,20 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       )
     }
+
+    const freeDeliveryApplied = subtotal >= freeDeliveryThreshold
+    const isDigitalPayment = paymentMethod === 'bkash' || paymentMethod === 'nagad'
+    const appliedShippingCharge = freeDeliveryApplied
+      ? 0
+      : isDigitalPayment
+        ? digitalPaymentDeliveryCharge
+        : deliveryZone === 'outside_dhaka'
+          ? outsideDhakaCharge
+          : insideDhakaCharge
+    const shippingBase = Number.isFinite(appliedShippingCharge) ? appliedShippingCharge : 0
+    const shippingChargeValue = Number(Math.max(0, shippingBase).toFixed(2))
+    const subtotalValue = Number(subtotal.toFixed(2))
+    const totalValue = Number((subtotalValue + shippingChargeValue).toFixed(2))
 
     const order = await payload.create({
       collection: 'orders',

@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import ReviewSection from './ReviewSection'
 import { ReviewStars } from '@/components/review-stars'
+import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 
 export const revalidate = 3600
 
@@ -35,6 +36,13 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   const deliveryZone = (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   const item = await getItem(id, payload)
+
+  const deliverySettingsResult = await payload
+    .find({ collection: 'delivery-settings', limit: 1 })
+    .catch(() => null)
+  const deliverySettings = normalizeDeliverySettings(
+    (deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS,
+  )
 
   if (!item) {
     return notFound()
@@ -131,8 +139,8 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
               <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
                 <Truck className="text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium">Free shipping worldwide</p>
-                  <p className="text-xs text-gray-500">On all orders</p>
+                  <p className="text-sm font-medium">{deliverySettings.shippingHighlightTitle}</p>
+                  <p className="text-xs text-gray-500">{deliverySettings.shippingHighlightSubtitle}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">

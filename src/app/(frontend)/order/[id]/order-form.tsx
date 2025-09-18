@@ -46,16 +46,19 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const settings = deliverySettings || DEFAULT_DELIVERY_SETTINGS
   const subtotal = Number(item.price) * quantity
   const freeDelivery = subtotal >= settings.freeDeliveryThreshold
+  const isDigitalPayment = isDigitalPaymentMethod(paymentMethod)
   const shippingCharge = freeDelivery
     ? 0
-    : deliveryZone === 'outside_dhaka'
-      ? settings.outsideDhakaCharge
-      : settings.insideDhakaCharge
+    : isDigitalPayment
+      ? settings.digitalPaymentDeliveryCharge
+      : deliveryZone === 'outside_dhaka'
+        ? settings.outsideDhakaCharge
+        : settings.insideDhakaCharge
   const total = subtotal + shippingCharge
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
-  const requiresDigitalPaymentDetails = isDigitalPaymentMethod(paymentMethod)
-  const digitalPaymentInstruction = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
+  const requiresDigitalPaymentDetails = isDigitalPayment
+  const digitalPaymentInstructions = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -318,6 +321,16 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
           </p>
         )}
+        {!freeDelivery && isDigitalPayment ? (
+          <p className="text-xs text-gray-500">
+            A flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} applies to digital wallet payments.
+          </p>
+        ) : (
+          <p className="text-xs text-gray-500">
+            Digital wallet payments below {formatCurrency(settings.freeDeliveryThreshold)} have a flat delivery charge of{' '}
+            {formatCurrency(settings.digitalPaymentDeliveryCharge)}.
+          </p>
+        )}
       </div>
 
       {/* Payment Method */}
@@ -368,9 +381,19 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
         {requiresDigitalPaymentDetails ? (
           <div className="space-y-4">
-            {digitalPaymentInstruction ? (
+            {digitalPaymentInstructions?.length ? (
               <Alert className="bg-blue-50 border-blue-200 text-blue-900">
-                <AlertDescription>{digitalPaymentInstruction}</AlertDescription>
+                <AlertDescription>
+                  <ul className="list-disc list-inside space-y-1">
+                    {digitalPaymentInstructions.map((instruction, index) => (
+                      <li key={index}>{instruction}</li>
+                    ))}
+                    <li>
+                      Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when
+                      the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+                    </li>
+                  </ul>
+                </AlertDescription>
               </Alert>
             ) : null}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
