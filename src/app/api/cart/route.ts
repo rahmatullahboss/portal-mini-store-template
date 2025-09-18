@@ -69,6 +69,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => null)
     const itemsInput = isRecord(body) ? body.items : null
+    const payloadSessionId =
+      isRecord(body) && typeof body.sessionId === 'string' && body.sessionId.trim().length > 0
+        ? body.sessionId.trim()
+        : undefined
     const incomingItems = normalizeIncomingItems(itemsInput)
     const quantityMap = buildQuantityMapFromIncoming(incomingItems)
 
@@ -77,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     const existingSession = getSessionIdFromDoc(cartDoc)
     const cookieSession = request.cookies.get('dyad_cart_sid')?.value
-    const sessionId = existingSession ?? cookieSession ?? generateSessionId()
+    const sessionId = existingSession ?? payloadSessionId ?? cookieSession ?? generateSessionId()
 
     const data: Record<string, unknown> = {
       sessionId,
@@ -105,6 +109,7 @@ export async function POST(request: NextRequest) {
       items: resolved.serialized,
       total: resolved.total,
       snapshot: resolved.snapshot,
+      sessionId,
     })
 
     if (sessionId) {

@@ -164,6 +164,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const serverSnapshotRef = useRef<Map<string, number>>(new Map())
   const skipNextPersistRef = useRef(false)
   const isAuthenticatedRef = useRef(false)
+  const sessionIdRef = useRef<string | null>(null)
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load cart from localStorage on mount
@@ -193,6 +194,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             serverSnapshotRef.current = new Map()
           }
+          const savedSessionId = (parsed as Record<string, unknown>)['sessionId']
+          sessionIdRef.current = isNonEmptyString(savedSessionId) ? savedSessionId : null
         }
       }
     } catch (error) {
@@ -211,7 +214,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return
       }
       const serverSnapshot = Object.fromEntries(serverSnapshotRef.current.entries())
-      localStorage.setItem('dyad-cart', JSON.stringify({ items: state.items, serverSnapshot }))
+      const payload = {
+        items: state.items,
+        serverSnapshot,
+        sessionId: sessionIdRef.current,
+      }
+      localStorage.setItem('dyad-cart', JSON.stringify(payload))
     } catch (error) {
       console.error('Failed to persist cart to localStorage:', error)
     }
@@ -226,6 +234,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.status === 401) {
         isAuthenticatedRef.current = false
         hasSyncedServerCartRef.current = false
+        sessionIdRef.current = null
         return
       }
       if (!response.ok) {
@@ -235,7 +244,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       isAuthenticatedRef.current = true
       const data = (await response.json().catch(() => null)) as unknown
-      if (!isRecord(data) || !Array.isArray(data.items)) {
+      if (!isRecord(data)) {
+        sessionIdRef.current = null
+        serverSnapshotRef.current = new Map()
+        return
+      }
+      const sessionIdValue = isNonEmptyString(data.sessionId) ? data.sessionId : null
+      sessionIdRef.current = sessionIdValue
+      if (!Array.isArray(data.items)) {
         serverSnapshotRef.current = new Map()
         return
       }
@@ -305,6 +321,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const handleMergeSuccess = () => {
       skipNextPersistRef.current = true
       serverSnapshotRef.current = new Map()
+      sessionIdRef.current = null
       try {
         localStorage.removeItem('dyad-cart')
       } catch {}
@@ -352,11 +369,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id,
               quantity,
             })),
+            sessionId: sessionIdRef.current ?? undefined,
           }),
         })
 
         if (response.status === 401) {
           isAuthenticatedRef.current = false
+          sessionIdRef.current = null
           return
         }
 
@@ -381,6 +400,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           serverSnapshotRef.current = new Map(currentSnapshot)
         }
+        const nextSessionId = isRecord(data) && isNonEmptyString(data.sessionId) ? data.sessionId : null
+        sessionIdRef.current = nextSessionId
       } catch (error) {
         console.error('Failed to persist cart to server:', error)
       }

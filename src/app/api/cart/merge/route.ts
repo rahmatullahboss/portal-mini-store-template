@@ -10,6 +10,7 @@ import {
   generateSessionId,
   getDocId,
   getSessionIdFromDoc,
+  isRecord,
   normalizeIncomingItems,
   resolveCartPayload,
   resolveUserId,
@@ -42,14 +43,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => null)
-    const itemsInput = body && typeof body === 'object' ? (body as any).items : null
+    const bodyRecord = isRecord(body) ? body : null
+    const itemsInput = bodyRecord?.items ?? null
     const incomingItems = normalizeIncomingItems(itemsInput)
     const incomingMap = buildQuantityMapFromIncoming(incomingItems)
 
     const cookieSession = request.cookies.get('dyad_cart_sid')?.value
+    const rawSessionId = bodyRecord?.sessionId
     const payloadSession =
-      typeof body === 'object' && body && typeof (body as any).sessionId === 'string'
-        ? (body as any).sessionId
+      typeof rawSessionId === 'string' && rawSessionId.trim().length > 0
+        ? rawSessionId.trim()
         : undefined
 
     const userCart = await findActiveCartForUser(payload, userId)
@@ -58,23 +61,30 @@ export async function POST(request: NextRequest) {
       ? await findCartBySession(payload, sessionIdCandidate)
       : null
 
-    const quantityMap = new Map<number, number>()
-
+    const userQuantityMap = new Map<number, number>()
     if (userCart) {
       const existing = extractCartQuantities(userCart)
       for (const [id, quantity] of existing.entries()) {
-        quantityMap.set(id, (quantityMap.get(id) ?? 0) + quantity)
+        userQuantityMap.set(id, (userQuantityMap.get(id) ?? 0) + quantity)
       }
     }
 
+    const guestQuantityMap = new Map<number, number>()
     if (sessionCart && getDocId(sessionCart) !== getDocId(userCart)) {
-      const existing = extractCartQuantities(sessionCart)
-      for (const [id, quantity] of existing.entries()) {
-        quantityMap.set(id, (quantityMap.get(id) ?? 0) + quantity)
+      const sessionQuantities = extractCartQuantities(sessionCart)
+      for (const [id, quantity] of sessionQuantities.entries()) {
+        guestQuantityMap.set(id, quantity)
       }
     }
 
-    const mergedMap = mergeQuantityMaps(quantityMap, incomingMap)
+    if (incomingMap.size > 0) {
+      for (const [id, quantity] of incomingMap.entries()) {
+        const existing = guestQuantityMap.get(id) ?? 0
+        guestQuantityMap.set(id, Math.max(existing, quantity))
+      }
+    }
+
+    const mergedMap = mergeQuantityMaps(userQuantityMap, guestQuantityMap)
     const resolved = await resolveCartPayload(payload, mergedMap)
 
     const targetCartId = getDocId(userCart) ?? getDocId(sessionCart)
@@ -113,6 +123,7 @@ export async function POST(request: NextRequest) {
       items: resolved.serialized,
       total: resolved.total,
       snapshot: resolved.snapshot,
+      sessionId,
     })
 
     if (sessionId) {

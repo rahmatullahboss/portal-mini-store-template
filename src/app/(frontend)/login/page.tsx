@@ -37,6 +37,8 @@ function LoginForm() {
         return
       }
 
+      const sessionIdRaw = isRecord(parsed) && typeof parsed.sessionId === 'string' ? parsed.sessionId : null
+
       const itemsPayload = itemsRaw
         .map((item) => {
           if (!isRecord(item)) return null
@@ -57,11 +59,16 @@ function LoginForm() {
         return
       }
 
+      const bodyPayload: Record<string, unknown> = { items: itemsPayload }
+      if (sessionIdRaw) {
+        bodyPayload.sessionId = sessionIdRaw
+      }
+
       const response = await fetch('/api/cart/merge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ items: itemsPayload }),
+        body: JSON.stringify(bodyPayload),
       })
 
       if (!response.ok) {
