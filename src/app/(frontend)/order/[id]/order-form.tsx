@@ -143,16 +143,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           </div>
           <div className="flex flex-col items-end gap-2 text-right">
             <Badge className="h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">Secure checkout</Badge>
-            {isDesktop ? (
-              <Button
-                type="submit"
-                form="order-form"
-                disabled={isSubmitting}
-                className="hidden rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80 lg:inline-flex"
-              >
-                {isSubmitting ? 'Placing Order…' : 'Place order securely'}
-              </Button>
-            ) : null}
           </div>
         </div>
 
@@ -210,15 +200,14 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           <p>Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the delivery.</p>
         </div>
 
-        {!isDesktop ? (
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
-          >
-            {isSubmitting ? 'Placing Order…' : 'Place order securely'}
-          </Button>
-        ) : null}
+        <Button
+          type="submit"
+          form="order-form"
+          disabled={isSubmitting}
+          className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
+        >
+          {isSubmitting ? 'Placing Order…' : 'Place order securely'}
+        </Button>
       </div>
     )
   }
