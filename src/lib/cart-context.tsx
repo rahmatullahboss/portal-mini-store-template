@@ -162,6 +162,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [hasLoadedLocalCart, setHasLoadedLocalCart] = useState(false)
   const hasSyncedServerCartRef = useRef(false)
   const serverSnapshotRef = useRef<Map<string, number>>(new Map())
+  const skipNextPersistRef = useRef(false)
+  const isAuthenticatedRef = useRef(false)
+  const sessionIdRef = useRef<string | null>(null)
+  const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -190,6 +194,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             serverSnapshotRef.current = new Map()
           }
+          const savedSessionId = (parsed as Record<string, unknown>)['sessionId']
+          sessionIdRef.current = isNonEmptyString(savedSessionId) ? savedSessionId : null
         }
       }
     } catch (error) {
@@ -203,8 +209,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!hasLoadedLocalCart || typeof window === 'undefined') return
     try {
+      if (skipNextPersistRef.current) {
+        skipNextPersistRef.current = false
+        return
+      }
       const serverSnapshot = Object.fromEntries(serverSnapshotRef.current.entries())
-      localStorage.setItem('dyad-cart', JSON.stringify({ items: state.items, serverSnapshot }))
+      const payload = {
+        items: state.items,
+        serverSnapshot,
+        sessionId: sessionIdRef.current,
+      }
+      localStorage.setItem('dyad-cart', JSON.stringify(payload))
     } catch (error) {
       console.error('Failed to persist cart to localStorage:', error)
     }
@@ -216,13 +231,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasSyncedServerCartRef.current = true
     try {
       const response = await fetch('/api/cart', { credentials: 'include' })
+      if (response.status === 401) {
+        isAuthenticatedRef.current = false
+        hasSyncedServerCartRef.current = false
+        sessionIdRef.current = null
+        return
+      }
       if (!response.ok) {
         // Allow retry on future attempts
         hasSyncedServerCartRef.current = false
         return
       }
+      isAuthenticatedRef.current = true
       const data = (await response.json().catch(() => null)) as unknown
-      if (!isRecord(data) || !Array.isArray(data.items)) {
+      if (!isRecord(data)) {
+        sessionIdRef.current = null
+        serverSnapshotRef.current = new Map()
+        return
+      }
+      const sessionIdValue = isNonEmptyString(data.sessionId) ? data.sessionId : null
+      sessionIdRef.current = sessionIdValue
+      if (!Array.isArray(data.items)) {
         serverSnapshotRef.current = new Map()
         return
       }
@@ -244,13 +273,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const existing = existingMap.get(incoming.id)
         const previousServerQuantity = previousSnapshot.get(incoming.id) ?? 0
         const existingQuantity = existing?.quantity ?? 0
-        const guestContribution = Math.max(existingQuantity - previousServerQuantity, 0)
-        const mergedQuantity = incoming.quantity + guestContribution
-        mergedMap.set(incoming.id, {
-          ...(existing ?? incoming),
-          ...incoming,
-          quantity: mergedQuantity,
-        })
+        const referenceQuantity = Math.max(previousServerQuantity, incoming.quantity)
+        const guestContribution = existingQuantity - referenceQuantity
+        const mergedQuantity = Math.max(incoming.quantity + guestContribution, 0)
+        if (mergedQuantity > 0) {
+          mergedMap.set(incoming.id, {
+            ...(existing ?? incoming),
+            ...incoming,
+            quantity: mergedQuantity,
+          })
+        } else {
+          mergedMap.delete(incoming.id)
+        }
         nextSnapshotEntries.push([incoming.id, incoming.quantity])
       }
 
@@ -271,11 +305,128 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (typeof window === 'undefined') return
     const handleAuthChange = () => {
       hasSyncedServerCartRef.current = false
+      isAuthenticatedRef.current = false
+      if (persistTimeoutRef.current) {
+        clearTimeout(persistTimeoutRef.current)
+        persistTimeoutRef.current = null
+      }
       syncCartFromServer()
     }
     window.addEventListener('dyad-auth-changed', handleAuthChange)
     return () => window.removeEventListener('dyad-auth-changed', handleAuthChange)
   }, [syncCartFromServer])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handleMergeSuccess = () => {
+      skipNextPersistRef.current = true
+      serverSnapshotRef.current = new Map()
+      sessionIdRef.current = null
+      try {
+        localStorage.removeItem('dyad-cart')
+      } catch {}
+      hasSyncedServerCartRef.current = false
+    }
+    window.addEventListener('dyad-cart-merge-success', handleMergeSuccess)
+    return () => window.removeEventListener('dyad-cart-merge-success', handleMergeSuccess)
+  }, [])
+
+  const persistCartToServer = useCallback(
+    async (items: CartItem[]) => {
+      if (!hasLoadedLocalCart || typeof window === 'undefined') return
+      if (!isAuthenticatedRef.current) return
+
+      const currentSnapshot = new Map<string, number>()
+      for (const item of items) {
+        if (!item?.id) continue
+        const quantity = Math.max(0, Math.floor(item.quantity))
+        if (quantity <= 0) continue
+        currentSnapshot.set(item.id, quantity)
+      }
+
+      const previousSnapshot = serverSnapshotRef.current
+      let isDifferent = currentSnapshot.size !== previousSnapshot.size
+      if (!isDifferent) {
+        for (const [id, quantity] of currentSnapshot.entries()) {
+          if ((previousSnapshot.get(id) ?? 0) !== quantity) {
+            isDifferent = true
+            break
+          }
+        }
+      }
+
+      if (!isDifferent) {
+        return
+      }
+
+      try {
+        const response = await fetch('/api/cart', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: Array.from(currentSnapshot.entries()).map(([id, quantity]) => ({
+              id,
+              quantity,
+            })),
+            sessionId: sessionIdRef.current ?? undefined,
+          }),
+        })
+
+        if (response.status === 401) {
+          isAuthenticatedRef.current = false
+          sessionIdRef.current = null
+          return
+        }
+
+        if (!response.ok) {
+          throw new Error(`Failed with status ${response.status}`)
+        }
+
+        isAuthenticatedRef.current = true
+
+        const data = (await response.json().catch(() => null)) as unknown
+        const snapshotRaw = isRecord(data) ? (data as Record<string, unknown>).snapshot : null
+        if (isRecord(snapshotRaw)) {
+          const nextEntries: [string, number][] = []
+          for (const [id, value] of Object.entries(snapshotRaw)) {
+            if (typeof id !== 'string') continue
+            const quantity = Number(value)
+            if (Number.isFinite(quantity) && quantity >= 0) {
+              nextEntries.push([id, Math.floor(quantity)])
+            }
+          }
+          serverSnapshotRef.current = new Map(nextEntries)
+        } else {
+          serverSnapshotRef.current = new Map(currentSnapshot)
+        }
+        const nextSessionId = isRecord(data) && isNonEmptyString(data.sessionId) ? data.sessionId : null
+        sessionIdRef.current = nextSessionId
+      } catch (error) {
+        console.error('Failed to persist cart to server:', error)
+      }
+    },
+    [hasLoadedLocalCart],
+  )
+
+  useEffect(() => {
+    if (!hasLoadedLocalCart) return
+    if (!isAuthenticatedRef.current) return
+    if (persistTimeoutRef.current) {
+      clearTimeout(persistTimeoutRef.current)
+    }
+    const itemsSnapshot = state.items
+    persistTimeoutRef.current = setTimeout(() => {
+      persistTimeoutRef.current = null
+      void persistCartToServer(itemsSnapshot)
+    }, 400)
+    return () => {
+      if (persistTimeoutRef.current) {
+        clearTimeout(persistTimeoutRef.current)
+        persistTimeoutRef.current = null
+      }
+    }
+  }, [state.items, hasLoadedLocalCart, persistCartToServer])
 
   // Send lightweight cart activity to server (for abandoned cart tracking)
   useEffect(() => {
