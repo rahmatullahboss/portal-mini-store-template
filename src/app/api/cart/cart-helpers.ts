@@ -17,11 +17,39 @@ export type SerializedCartItem = {
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
-export const toItemId = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
-  if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
-    return Number(value.trim())
+const coerceNumericId = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.floor(value)
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (/^\d+$/.test(trimmed)) {
+      return Number(trimmed)
+    }
   }
+  return null
+}
+
+export const toItemId = (value: unknown): number | null => {
+  const direct = coerceNumericId(value)
+  if (direct !== null) return direct
+
+  if (isRecord(value)) {
+    const candidateKeys = ['id', 'value', '_id'] as const
+    for (const key of candidateKeys) {
+      if (!(key in value)) continue
+      const candidate = (value as Record<string, unknown>)[key]
+      const numeric = coerceNumericId(candidate)
+      if (numeric !== null) {
+        return numeric
+      }
+      if (isRecord(candidate)) {
+        const nested = toItemId(candidate)
+        if (nested !== null) {
+          return nested
+        }
+      }
+    }
+  }
+
   return null
 }
 
