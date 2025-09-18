@@ -328,7 +328,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
       <div className="space-y-8">
         <form
           onSubmit={handleSubmit}
@@ -696,12 +696,10 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
         </form>
       </div>
 
-      <div className="space-y-6 self-start">
-        <div className="space-y-6 lg:sticky lg:top-32">
-          <ProductOverviewCard />
-          <NeedHelpCard />
-        </div>
+      <div className="space-y-6 self-start lg:sticky lg:top-32">
         <SummaryPanel layout="desktop" />
+        <ProductOverviewCard />
+        <NeedHelpCard />
       </div>
     </div>
   )
