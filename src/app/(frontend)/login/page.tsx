@@ -70,74 +70,10 @@ function LoginForm() {
       }
 
       const data = (await response.json().catch(() => null)) as unknown
-      if (!isRecord(data)) {
+      if (isRecord(data) && data.success === true) {
         window.localStorage.removeItem('dyad-cart')
-        return
+        window.dispatchEvent(new Event('dyad-cart-merge-success'))
       }
-
-      const mergedItemsRaw = Array.isArray((data as Record<string, unknown>).items)
-        ? (data as Record<string, unknown>).items
-        : []
-
-      const mergedItems = mergedItemsRaw
-        .map((item) => {
-          if (!isRecord(item)) return null
-          const idValue = item.id
-          if (typeof idValue !== 'string') return null
-          const quantityRaw = Number(item.quantity)
-          const quantity = Number.isFinite(quantityRaw) && quantityRaw > 0 ? Math.floor(quantityRaw) : 0
-          if (quantity <= 0) return null
-          const priceRaw = Number(item.price)
-          const price = Number.isFinite(priceRaw) && priceRaw >= 0 ? priceRaw : 0
-          const next: Record<string, unknown> = {
-            ...item,
-            id: idValue,
-            quantity,
-            price,
-          }
-          const imageValue = item.image
-          if (isRecord(imageValue) && typeof imageValue.url === 'string') {
-            next.image = {
-              url: imageValue.url,
-              ...(typeof imageValue.alt === 'string' ? { alt: imageValue.alt } : {}),
-            }
-          }
-          return next
-        })
-        .filter((item): item is Record<string, unknown> => item !== null)
-
-      if (!mergedItems.length) {
-        window.localStorage.removeItem('dyad-cart')
-        return
-      }
-
-      const snapshotSource = isRecord((data as Record<string, unknown>).snapshot)
-        ? ((data as Record<string, unknown>).snapshot as Record<string, unknown>)
-        : null
-
-      const snapshot: Record<string, number> = snapshotSource
-        ? Object.entries(snapshotSource).reduce((acc, [key, value]) => {
-            if (typeof key === 'string') {
-              const qty = Number(value)
-              if (Number.isFinite(qty) && qty >= 0) {
-                acc[key] = Math.floor(qty)
-              }
-            }
-            return acc
-          }, {} as Record<string, number>)
-        : mergedItems.reduce((acc, item) => {
-            const idValue = item.id
-            const quantityValue = Number((item as any).quantity)
-            if (typeof idValue === 'string' && Number.isFinite(quantityValue)) {
-              acc[idValue] = Math.floor(quantityValue)
-            }
-            return acc
-          }, {} as Record<string, number>)
-
-      window.localStorage.setItem(
-        'dyad-cart',
-        JSON.stringify({ items: mergedItems, serverSnapshot: snapshot }),
-      )
     } catch (error) {
       console.error('Failed to merge guest cart:', error)
     }

@@ -162,6 +162,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [hasLoadedLocalCart, setHasLoadedLocalCart] = useState(false)
   const hasSyncedServerCartRef = useRef(false)
   const serverSnapshotRef = useRef<Map<string, number>>(new Map())
+  const skipNextPersistRef = useRef(false)
   const isAuthenticatedRef = useRef(false)
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -205,6 +206,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!hasLoadedLocalCart || typeof window === 'undefined') return
     try {
+      if (skipNextPersistRef.current) {
+        skipNextPersistRef.current = false
+        return
+      }
       const serverSnapshot = Object.fromEntries(serverSnapshotRef.current.entries())
       localStorage.setItem('dyad-cart', JSON.stringify({ items: state.items, serverSnapshot }))
     } catch (error) {
@@ -294,6 +299,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.addEventListener('dyad-auth-changed', handleAuthChange)
     return () => window.removeEventListener('dyad-auth-changed', handleAuthChange)
   }, [syncCartFromServer])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handleMergeSuccess = () => {
+      skipNextPersistRef.current = true
+      serverSnapshotRef.current = new Map()
+      try {
+        localStorage.removeItem('dyad-cart')
+      } catch {}
+      hasSyncedServerCartRef.current = false
+    }
+    window.addEventListener('dyad-cart-merge-success', handleMergeSuccess)
+    return () => window.removeEventListener('dyad-cart-merge-success', handleMergeSuccess)
+  }, [])
 
   const persistCartToServer = useCallback(
     async (items: CartItem[]) => {
