@@ -88,6 +88,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     </div>
   )
   const OrderSummaryCard = ({ className }: { className?: string }) => {
+    const discountFieldId = React.useId()
     const senderNumberId = 'paymentSenderNumber'
     const transactionId = 'paymentTransactionId'
 
@@ -163,12 +164,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           ))}
         </div>
         <div className="mt-6 space-y-3">
-          <label htmlFor={`discount-${layout}`} className="text-sm font-semibold text-stone-700">
+          <label htmlFor={discountFieldId} className="text-sm font-semibold text-stone-700">
             Discount code
           </label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <input
-              id={`discount-${layout}`}
+              id={discountFieldId}
               type="text"
               value={discountCode}
               onChange={(e) => setDiscountCode(e.target.value)}
