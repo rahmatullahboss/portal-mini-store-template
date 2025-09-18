@@ -273,6 +273,9 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
                   onChange={(e) => onPaymentSenderNumberChange(e.target.value)}
                   required={requiresDigitalPaymentDetails}
                   placeholder="e.g. 01XXXXXXXXX"
+                  inputMode="numeric"
+                  pattern="01\\d{9}"
+                  maxLength={11}
                   className={inputClasses}
                 />
               </div>
@@ -372,7 +375,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     setError(null)
   }
   const handlePaymentSenderNumberChange = (value: string) => {
-    setPaymentSenderNumber(value)
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 11)
+    setPaymentSenderNumber(digitsOnly)
     setError(null)
   }
   const handlePaymentTransactionIdChange = (value: string) => {
@@ -384,7 +388,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
 
   React.useEffect(() => {
     if (deliveryZone === 'inside_dhaka') {
-      setAddressCity('Dhaka')
+      setAddressCity((prev) => (prev.trim().toLowerCase() === 'dhaka' ? prev : 'Dhaka'))
     }
   }, [deliveryZone])
 
@@ -444,8 +448,13 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     }
 
     if (requiresDigitalPaymentDetails) {
-      if (!paymentSenderNumber.trim()) {
+      const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
+      if (!sanitizedSenderNumber) {
         setError('Please provide the sender number used for the payment.')
+        return
+      }
+      if (sanitizedSenderNumber.length !== 11 || !/^01\d{9}$/.test(sanitizedSenderNumber)) {
+        setError('Please enter a valid 11-digit Bangladeshi sender number (e.g. 01XXXXXXXXX).')
         return
       }
       if (!paymentTransactionId.trim()) {
@@ -456,6 +465,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
 
     setIsSubmitting(true)
     setError(null)
+
+    const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
 
     try {
       const response = await fetch('/api/orders', {
@@ -471,7 +482,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           customerNumber,
           deliveryZone,
           paymentMethod,
-          paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+          paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
           paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           ...(user
             ? {
@@ -522,7 +533,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             deliveryZone: result?.doc?.deliveryZone ?? deliveryZone,
             freeDeliveryApplied: result?.doc?.freeDeliveryApplied ?? freeDelivery,
             paymentMethod,
-            paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+            paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
             paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           }),
         )

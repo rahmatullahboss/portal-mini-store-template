@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Minus, Plus, ShieldCheck, Truck } from 'lucide-react'
@@ -261,6 +261,9 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 onChange={(e) => onPaymentSenderNumberChange(e.target.value)}
                 required={requiresDigitalPaymentDetails}
                 placeholder="e.g. 01XXXXXXXXX"
+                inputMode="numeric"
+                pattern="01\\d{9}"
+                maxLength={11}
                 className={inputClasses}
               />
             </div>
@@ -346,13 +349,15 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const [email, setEmail] = useState<string>(user?.email || '')
   const [address_line1, setAddressLine1] = useState<string>(user?.address?.line1 || '')
   const [address_line2, setAddressLine2] = useState<string>(user?.address?.line2 || '')
-  const [address_city, setAddressCity] = useState<string>(user?.address?.city || '')
+  const initialDeliveryZone: 'inside_dhaka' | 'outside_dhaka' =
+    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
+  const [address_city, setAddressCity] = useState<string>(
+    initialDeliveryZone === 'inside_dhaka' ? 'Dhaka' : user?.address?.city || '',
+  )
   const [address_state, setAddressState] = useState<string>(user?.address?.state || '')
   const [address_postalCode, setAddressPostalCode] = useState<string>(user?.address?.postalCode || '')
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
-  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
-    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka',
-  )
+  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(initialDeliveryZone)
   const settings = deliverySettings || DEFAULT_DELIVERY_SETTINGS
   const subtotal = Number(item.price) * quantity
   const freeDelivery = subtotal >= settings.freeDeliveryThreshold
@@ -371,6 +376,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const digitalPaymentInstructions = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
   const senderNumberId = 'order-paymentSenderNumber'
   const transactionId = 'order-paymentTransactionId'
+  const isInsideDhaka = deliveryZone === 'inside_dhaka'
   const handleDecreaseQuantity = () => setQuantity((prev) => Math.max(1, prev - 1))
   const handleIncreaseQuantity = () => setQuantity((prev) => prev + 1)
   const handlePaymentMethodChange = (method: PaymentMethod) => {
@@ -382,7 +388,8 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     setError('')
   }
   const handlePaymentSenderNumberChange = (value: string) => {
-    setPaymentSenderNumber(value)
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 11)
+    setPaymentSenderNumber(digitsOnly)
     setError('')
   }
   const handlePaymentTransactionIdChange = (value: string) => {
@@ -394,14 +401,27 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const inputClasses =
     'block w-full rounded-xl border border-stone-200 bg-white/85 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400/70 focus:ring-offset-0'
 
+  useEffect(() => {
+    if (deliveryZone === 'inside_dhaka') {
+      setAddressCity((prev) => (prev.trim().toLowerCase() === 'dhaka' ? prev : 'Dhaka'))
+    }
+  }, [deliveryZone])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
 
     if (requiresDigitalPaymentDetails) {
-      if (!paymentSenderNumber.trim()) {
+      const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
+      if (!sanitizedSenderNumber) {
         setError('Please provide the sender number used for the payment.')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (sanitizedSenderNumber.length !== 11 || !/^01\d{9}$/.test(sanitizedSenderNumber)) {
+        setError('Please enter a valid 11-digit Bangladeshi sender number (e.g. 01XXXXXXXXX).')
         setIsSubmitting(false)
         return
       }
@@ -414,6 +434,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     }
 
     try {
+      const sanitizedSenderNumber = paymentSenderNumber.replace(/\D/g, '')
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -429,7 +450,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           customerNumber,
           deliveryZone,
           paymentMethod,
-          paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+          paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
           paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           ...(user
             ? {
@@ -478,7 +499,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
               shippingCharge: (data as any)?.doc?.shippingCharge ?? shippingCharge,
               totalAmount: (data as any)?.doc?.totalAmount ?? total,
               paymentMethod,
-              paymentSenderNumber: requiresDigitalPaymentDetails ? paymentSenderNumber.trim() : undefined,
+              paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
               paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
               deliveryZone: (data as any)?.doc?.deliveryZone ?? deliveryZone,
               freeDeliveryApplied: (data as any)?.doc?.freeDeliveryApplied ?? freeDelivery,
@@ -626,8 +647,16 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     value={address_city}
                     onChange={(e) => setAddressCity(e.target.value)}
                     required={!user}
-                    className={inputClasses}
+                    readOnly={isInsideDhaka}
+                    aria-readonly={isInsideDhaka}
+                    className={cn(
+                      inputClasses,
+                      isInsideDhaka ? 'cursor-not-allowed bg-stone-100 text-stone-600' : '',
+                    )}
                   />
+                  {isInsideDhaka ? (
+                    <p className="text-xs text-stone-500">City is fixed to Dhaka for inside Dhaka delivery.</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="address_state" className={labelClasses}>
