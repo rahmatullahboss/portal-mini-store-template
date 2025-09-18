@@ -88,6 +88,17 @@ export const AbandonedCarts: CollectionConfig = {
       required: true,
     },
     {
+      name: 'reminderStage',
+      type: 'number',
+      required: false,
+      defaultValue: 0,
+      min: 0,
+      max: 3,
+      admin: {
+        description: 'How many recovery reminder emails have been sent',
+      },
+    },
+    {
       name: 'lastActivityAt',
       type: 'date',
       required: true,

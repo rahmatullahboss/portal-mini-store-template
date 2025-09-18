@@ -25,7 +25,6 @@ export default async function CheckoutPage() {
     .catch(() => null)
   const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
 
-
   const steps = [
     { label: 'Cart', status: 'done' as const },
     { label: 'Checkout', status: 'current' as const },
@@ -77,4 +76,3 @@ export default async function CheckoutPage() {
     </div>
   )
 }
-

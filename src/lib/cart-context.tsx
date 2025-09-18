@@ -180,6 +180,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const skipNextPersistRef = useRef(false)
   const isAuthenticatedRef = useRef(true)
   const sessionIdRef = useRef<string | null>(null)
+  const shouldForcePersistRef = useRef(false)
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
   const reconnectTimerRef = useRef<number | null>(null)
@@ -190,8 +191,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const updateAuthState = useCallback((value: boolean) => {
+    const previous = isAuthenticatedRef.current
     isAuthenticatedRef.current = value
     setIsAuthenticated(value)
+    if (value && !previous) {
+      shouldForcePersistRef.current = true
+    }
   }, [])
 
   const ensureClientId = useCallback(() => {
@@ -505,6 +510,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      if (!isDifferent && shouldForcePersistRef.current) {
+        isDifferent = true
+      }
+
       if (!isDifferent) {
         return
       }
@@ -528,6 +537,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.status === 401) {
           updateAuthState(false)
           updateSessionId(null)
+          shouldForcePersistRef.current = false
           return
         }
 
@@ -536,6 +546,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         updateAuthState(true)
+        shouldForcePersistRef.current = false
 
         const data = (await response.json().catch(() => null)) as unknown
         const snapshotRaw = isRecord(data) ? (data as Record<string, unknown>).snapshot : null
@@ -556,6 +567,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateSessionId(nextSessionId)
       } catch (error) {
         console.error('Failed to persist cart to server:', error)
+      } finally {
+        shouldForcePersistRef.current = false
       }
     },
     [hasLoadedLocalCart, updateSessionId, updateAuthState, ensureClientId],
@@ -563,15 +576,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!hasLoadedLocalCart) return
-    if (!isAuthenticated) return
+    const itemsSnapshot = state.items
+
+    if (shouldForcePersistRef.current) {
+      void persistCartToServer(itemsSnapshot)
+      return
+    }
+
     if (persistTimeoutRef.current) {
       clearTimeout(persistTimeoutRef.current)
     }
-    const itemsSnapshot = state.items
+    const delay = isAuthenticated ? 400 : 400
     persistTimeoutRef.current = setTimeout(() => {
       persistTimeoutRef.current = null
       void persistCartToServer(itemsSnapshot)
-    }, 400)
+    }, delay)
     return () => {
       if (persistTimeoutRef.current) {
         clearTimeout(persistTimeoutRef.current)
