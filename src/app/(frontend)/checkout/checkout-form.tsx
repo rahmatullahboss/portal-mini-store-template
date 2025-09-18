@@ -461,12 +461,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         {freeDelivery ? (
           <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
         ) : (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
             Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
           </p>
         )}
         {!freeDelivery && isDigitalPayment ? (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
             A flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} applies to digital wallet payments.
           </p>
         ) : (
