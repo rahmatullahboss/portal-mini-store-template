@@ -6,12 +6,20 @@ const DEFAULT_SUBTITLE = 'Digital wallet payments have a flat Tk 20 delivery cha
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     ALTER TABLE "delivery_settings"
-      ADD COLUMN IF NOT EXISTS "digital_payment_delivery_charge" numeric DEFAULT 20 NOT NULL;
-    ALTER TABLE "delivery_settings"
-      ADD COLUMN IF NOT EXISTS "shipping_highlight_title" varchar DEFAULT ${DEFAULT_TITLE} NOT NULL;
-    ALTER TABLE "delivery_settings"
-      ADD COLUMN IF NOT EXISTS "shipping_highlight_subtitle" varchar DEFAULT ${DEFAULT_SUBTITLE} NOT NULL;
+      ADD COLUMN IF NOT EXISTS "digital_payment_delivery_charge" numeric DEFAULT 20 NOT NULL
+  `)
 
+  await db.execute(sql`
+    ALTER TABLE "delivery_settings"
+      ADD COLUMN IF NOT EXISTS "shipping_highlight_title" varchar DEFAULT ${DEFAULT_TITLE} NOT NULL
+  `)
+
+  await db.execute(sql`
+    ALTER TABLE "delivery_settings"
+      ADD COLUMN IF NOT EXISTS "shipping_highlight_subtitle" varchar DEFAULT ${DEFAULT_SUBTITLE} NOT NULL
+  `)
+
+  await db.execute(sql`
     UPDATE "delivery_settings"
     SET
       "digital_payment_delivery_charge" = COALESCE("digital_payment_delivery_charge", 20),
@@ -22,7 +30,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
       "shipping_highlight_subtitle" = CASE
         WHEN TRIM(COALESCE("shipping_highlight_subtitle", '')) = '' THEN ${DEFAULT_SUBTITLE}
         ELSE "shipping_highlight_subtitle"
-      END;
+      END
   `)
 }
 
