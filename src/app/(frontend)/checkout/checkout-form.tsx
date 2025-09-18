@@ -66,7 +66,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const requiresDigitalPaymentDetails = isDigitalPayment
   const digitalPaymentInstructions = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
   const isInsideDhaka = deliveryZone === 'inside_dhaka'
-  const formId = React.useId()
   const inputClasses =
     'block w-full rounded-xl border border-stone-200 bg-white/85 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400/70 focus:ring-offset-0'
   const SectionCard = ({
@@ -238,7 +237,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                       setError(null)
                     }}
                     className="sr-only"
-                    form={formId}
                   />
                   <div className="relative h-16 w-32">
                     <Image
@@ -285,7 +283,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                       required={requiresDigitalPaymentDetails}
                       placeholder="e.g. 01XXXXXXXXX"
                       className={inputClasses}
-                      form={formId}
                     />
                   </div>
                   <div className="space-y-2">
@@ -304,7 +301,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                       required={requiresDigitalPaymentDetails}
                       placeholder="e.g. TXN123456789"
                       className={inputClasses}
-                      form={formId}
                     />
                   </div>
                 </div>
@@ -317,7 +313,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         <div className="space-y-3">
           <Button
             type="submit"
-            form={formId}
             size="lg"
             className="w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2"
           >
@@ -503,13 +498,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   }
 
   return (
-    <div className="grid w-full max-w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid w-full max-w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]"
+    >
       <div className="min-w-0 space-y-8">
-        <form
-          id={formId}
-          onSubmit={handleSubmit}
-          className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
-        >
+        <div className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500">Step 02</p>
@@ -806,12 +800,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-        </form>
+        </div>
         <OrderSummaryCard className="lg:hidden" layout="mobile" />
       </div>
       <div className="min-w-0 space-y-6">
         <OrderSummaryCard className="hidden lg:block" layout="desktop" />
       </div>
-    </div>
+    </form>
   )
 }

@@ -230,8 +230,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     }
                     setError('')
                   }}
-                  className="sr-only"
-                  form="order-form"
+                    className="sr-only"
                 />
                 <div className="relative h-16 w-32">
                   <Image
@@ -281,7 +280,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     required={requiresDigitalPaymentDetails}
                     placeholder="e.g. 01XXXXXXXXX"
                     className={inputClasses}
-                    form="order-form"
                   />
                 </div>
                 <div className="space-y-2">
@@ -299,7 +297,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     required={requiresDigitalPaymentDetails}
                     placeholder="e.g. TXN123456789"
                     className={inputClasses}
-                    form="order-form"
                   />
                 </div>
               </div>
@@ -316,7 +313,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
         <Button
           type="submit"
-          form="order-form"
           disabled={isSubmitting}
           className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
         >
@@ -462,13 +458,12 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]"
+    >
       <div className="space-y-8">
-        <form
-          id="order-form"
-          onSubmit={handleSubmit}
-          className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
-        >
+        <div className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10">
           {!user ? (
             <div className="rounded-3xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
               <p className="font-semibold">Guest checkout</p>
@@ -707,13 +702,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
-        </form>
+        </div>
       </div>
 
       <div className="space-y-6 self-start lg:sticky lg:top-32">
         <ProductOverviewCard />
         <SummaryPanel layout="desktop" />
       </div>
-    </div>
+    </form>
   )
 }
