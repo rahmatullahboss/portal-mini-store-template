@@ -470,7 +470,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             A flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} applies to digital wallet payments.
           </p>
         ) : (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
             Digital wallet payments below {formatCurrency(settings.freeDeliveryThreshold)} have a flat delivery charge of{' '}
             {formatCurrency(settings.digitalPaymentDeliveryCharge)}.
           </p>
