@@ -503,7 +503,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
               <p className="text-sm text-stone-500">
                 Choose whether this address is inside or outside Dhaka to calculate delivery charges accurately.
               </p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
                 <label
                   className={cn(
                     'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/85 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
