@@ -454,50 +454,59 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
     try {
       const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
+      const sanitizedEmail = email.trim()
+      const payload: Record<string, any> = {
+        items: [
+          {
+            item: item.id,
+            quantity,
+          },
+        ],
+        customerNumber,
+        deliveryZone,
+        paymentMethod,
+        paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
+        paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
+      }
+
+      if (sanitizedEmail) {
+        payload.customerEmail = sanitizedEmail
+      }
+
+      if (user) {
+        const shippingAddress =
+          address_line1 || address_city || address_postalCode || address_country
+            ? {
+                line1: address_line1,
+                line2: address_line2 || undefined,
+                city: address_city,
+                state: address_state || undefined,
+                postalCode: address_postalCode,
+                country: address_country,
+              }
+            : undefined
+
+        if (shippingAddress) {
+          payload.shippingAddress = shippingAddress
+        }
+      } else {
+        payload.customerName = `${firstName} ${lastName}`.trim()
+        payload.shippingAddress = {
+          line1: address_line1,
+          line2: address_line2 || undefined,
+          city: address_city,
+          state: address_state || undefined,
+          postalCode: address_postalCode,
+          country: address_country,
+        }
+      }
+
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          items: [
-            {
-              item: item.id,
-              quantity,
-            },
-          ],
-          customerNumber,
-          deliveryZone,
-          paymentMethod,
-          paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
-          paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
-          ...(user
-            ? {
-                shippingAddress:
-                  address_line1 || address_city || address_postalCode || address_country
-                    ? {
-                        line1: address_line1,
-                        line2: address_line2 || undefined,
-                        city: address_city,
-                        state: address_state || undefined,
-                        postalCode: address_postalCode,
-                        country: address_country,
-                      }
-                    : undefined,
-              }
-            : {
-                customerName: `${firstName} ${lastName}`.trim(),
-                customerEmail: email,
-                shippingAddress: {
-                  line1: address_line1,
-                  line2: address_line2 || undefined,
-                  city: address_city,
-                  state: address_state || undefined,
-                  postalCode: address_postalCode,
-                  country: address_country,
-                },
-              }),
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -546,35 +555,11 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       onSubmit={handleSubmit}
       className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]"
     >
-      <div className="space-y-6 self-start lg:sticky lg:top-32 order-1 lg:order-2 mt-8 lg:mt-0">
+      <div className="order-1 mt-8 space-y-6 self-start lg:order-2 lg:col-start-2 lg:row-start-1 lg:mt-0">
         <ProductOverviewCard item={item} />
-        <SummaryPanel
-          quantity={quantity}
-          onDecreaseQuantity={handleDecreaseQuantity}
-          onIncreaseQuantity={handleIncreaseQuantity}
-          subtotal={subtotal}
-          shippingCharge={shippingCharge}
-          total={total}
-          freeDelivery={freeDelivery}
-          deliveryZone={deliveryZone}
-          formatCurrency={formatCurrency}
-          settings={settings}
-          paymentMethod={paymentMethod}
-          onSelectPaymentMethod={handlePaymentMethodChange}
-          requiresDigitalPaymentDetails={requiresDigitalPaymentDetails}
-          digitalPaymentInstructions={digitalPaymentInstructions}
-          paymentSenderNumber={paymentSenderNumber}
-          onPaymentSenderNumberChange={handlePaymentSenderNumberChange}
-          paymentTransactionId={paymentTransactionId}
-          onPaymentTransactionIdChange={handlePaymentTransactionIdChange}
-          inputClasses={inputClasses}
-          isSubmitting={isSubmitting}
-          senderNumberId={senderNumberId}
-          transactionId={transactionId}
-        />
       </div>
 
-      <div className="space-y-8 order-2 lg:order-1">
+      <div className="order-2 space-y-8 lg:order-1 lg:col-start-1 lg:row-span-2">
         <div className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10">
           {!user ? (
             <div className="rounded-3xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
@@ -634,22 +619,23 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                       className={inputClasses}
                     />
                   </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <label htmlFor="email" className={labelClasses}>
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className={inputClasses}
-                    />
-                  </div>
                 </div>
               ) : null}
+
+              <div className="space-y-2">
+                <label htmlFor="email" className={labelClasses}>
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className={inputClasses}
+                />
+              </div>
             </div>
           </SectionCard>
 
@@ -821,6 +807,32 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </Alert>
           ) : null}
         </div>
+      </div>
+      <div className="order-3 lg:order-2 lg:col-start-2 lg:row-start-2 lg:self-start lg:sticky lg:top-32">
+        <SummaryPanel
+          quantity={quantity}
+          onDecreaseQuantity={handleDecreaseQuantity}
+          onIncreaseQuantity={handleIncreaseQuantity}
+          subtotal={subtotal}
+          shippingCharge={shippingCharge}
+          total={total}
+          freeDelivery={freeDelivery}
+          deliveryZone={deliveryZone}
+          formatCurrency={formatCurrency}
+          settings={settings}
+          paymentMethod={paymentMethod}
+          onSelectPaymentMethod={handlePaymentMethodChange}
+          requiresDigitalPaymentDetails={requiresDigitalPaymentDetails}
+          digitalPaymentInstructions={digitalPaymentInstructions}
+          paymentSenderNumber={paymentSenderNumber}
+          onPaymentSenderNumberChange={handlePaymentSenderNumberChange}
+          paymentTransactionId={paymentTransactionId}
+          onPaymentTransactionIdChange={handlePaymentTransactionIdChange}
+          inputClasses={inputClasses}
+          isSubmitting={isSubmitting}
+          senderNumberId={senderNumberId}
+          transactionId={transactionId}
+        />
       </div>
     </form>
   )
