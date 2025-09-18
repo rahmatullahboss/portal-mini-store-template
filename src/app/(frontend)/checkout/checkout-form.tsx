@@ -202,7 +202,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       <div className="mt-6 space-y-3">
         <Button
           type="submit"
-          form={formId}
           size="lg"
           className="w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2"
         >
@@ -387,137 +386,137 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   }
 
   return (
-    <div className="grid w-full max-w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+    <form
+      id={formId}
+      onSubmit={handleSubmit}
+      className="grid w-full max-w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]"
+    >
       <div className="min-w-0 space-y-8">
-        <form
-          id={formId}
-          onSubmit={handleSubmit}
-          className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
-        >
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500">Step 02</p>
-            <h2 className="mt-2 text-2xl font-semibold text-stone-900 lg:text-3xl">Shipping information</h2>
-            <p className="mt-2 max-w-xl text-sm text-stone-500">
-              Provide your delivery details to complete this order.
-            </p>
+        <div className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500">Step 02</p>
+              <h2 className="mt-2 text-2xl font-semibold text-stone-900 lg:text-3xl">Shipping information</h2>
+              <p className="mt-2 max-w-xl text-sm text-stone-500">
+                Provide your delivery details to complete this order.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-amber-50/80 p-1 text-sm font-medium text-stone-600">
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-amber-600 shadow-sm shadow-amber-100 ring-1 ring-amber-200"
+              >
+                <Truck className="h-4 w-4" />
+                Delivery
+              </button>
+              <button
+                type="button"
+                disabled
+                className="flex items-center gap-2 rounded-full px-4 py-2 text-stone-400 transition disabled:cursor-not-allowed"
+              >
+                <Store className="h-4 w-4" />
+                Pick up
+                <Badge className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+                  Soon
+                </Badge>
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-amber-50/80 p-1 text-sm font-medium text-stone-600">
-            <button
-              type="button"
-              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-amber-600 shadow-sm shadow-amber-100 ring-1 ring-amber-200"
-            >
-              <Truck className="h-4 w-4" />
-              Delivery
-            </button>
-            <button
-              type="button"
-              disabled
-              className="flex items-center gap-2 rounded-full px-4 py-2 text-stone-400 transition disabled:cursor-not-allowed"
-            >
-              <Store className="h-4 w-4" />
-              Pick up
-              <Badge className="rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
-                Soon
-              </Badge>
-            </button>
-          </div>
-        </div>
 
-        {!user ? (
-          <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
-            <p className="font-semibold">Guest checkout</p>
-            <p className="mt-2">
-              You can place an order without creating an account. Save your details for next time by{' '}
-              <Link className="font-semibold underline" href="/register">
-                creating an account
-              </Link>{' '}
-              or{' '}
-              <Link className="font-semibold underline" href="/login">
-                signing in
-              </Link>
-              .
-            </p>
-          </div>
-        ) : null}
-
-        <SectionCard
-          title="Contact details"
-          description="We’ll use this information to send updates about your order."
-        >
           {!user ? (
-            <>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium text-stone-600">
-                    First name
-                  </label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                    className={inputClasses}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium text-stone-600">
-                    Last name
-                  </label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                    className={inputClasses}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-stone-600">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className={inputClasses}
-                />
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-stone-500">
-              We’ll send order updates to{' '}
-              <span className="font-medium text-stone-700">{user.email}</span>. Update the phone number below if you’d like us to
-              reach someone else for delivery.
-            </p>
-          )}
-          <div className="space-y-2">
-            <label htmlFor="customerNumber" className="text-sm font-medium text-stone-600">
-              Phone number
-            </label>
-            <input
-              id="customerNumber"
-              name="customerNumber"
-              type="tel"
-              required
-              value={customerNumber}
-              onChange={(e) => setCustomerNumber(e.target.value)}
-              placeholder="e.g. +8801XXXXXXXXX"
-              className={inputClasses}
-            />
-            <p className="text-xs text-stone-500">We’ll use this number to coordinate your delivery.</p>
-          </div>
-          {user ? (
-            <p className="text-xs text-stone-400">
-              Order will be placed for {user.firstName} {user.lastName}.
-            </p>
+            <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
+              <p className="font-semibold">Guest checkout</p>
+              <p className="mt-2">
+                You can place an order without creating an account. Save your details for next time by{' '}
+                <Link className="font-semibold underline" href="/register">
+                  creating an account
+                </Link>{' '}
+                or{' '}
+                <Link className="font-semibold underline" href="/login">
+                  signing in
+                </Link>
+                .
+              </p>
+            </div>
           ) : null}
-        </SectionCard>
+
+          <SectionCard
+            title="Contact details"
+            description="We’ll use this information to send updates about your order."
+          >
+            {!user ? (
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label htmlFor="firstName" className="text-sm font-medium text-stone-600">
+                      First name
+                    </label>
+                    <input
+                      id="firstName"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required
+                      className={inputClasses}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="lastName" className="text-sm font-medium text-stone-600">
+                      Last name
+                    </label>
+                    <input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required
+                      className={inputClasses}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-stone-600">
+                    Email address
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className={inputClasses}
+                  />
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-stone-500">
+                We’ll send order updates to{' '}
+                <span className="font-medium text-stone-700">{user.email}</span>. Update the phone number below if you’d like us to
+                reach someone else for delivery.
+              </p>
+            )}
+            <div className="space-y-2">
+              <label htmlFor="customerNumber" className="text-sm font-medium text-stone-600">
+                Phone number
+              </label>
+              <input
+                id="customerNumber"
+                name="customerNumber"
+                type="tel"
+                required
+                value={customerNumber}
+                onChange={(e) => setCustomerNumber(e.target.value)}
+                placeholder="e.g. +8801XXXXXXXXX"
+                className={inputClasses}
+              />
+              <p className="text-xs text-stone-500">We’ll use this number to coordinate your delivery.</p>
+            </div>
+            {user ? (
+              <p className="text-xs text-stone-400">
+                Order will be placed for {user.firstName} {user.lastName}.
+              </p>
+            ) : null}
+          </SectionCard>
 
         <SectionCard
           title="Shipping address"
@@ -795,12 +794,13 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <p className="text-xs text-stone-500">Pay with cash when your delivery arrives.</p>
           )}
         </SectionCard>
-        </form>
+        </div>
+
         <OrderSummaryCard className="lg:hidden" layout="mobile" />
       </div>
       <div className="min-w-0 space-y-6">
         <OrderSummaryCard className="hidden lg:block" layout="desktop" />
       </div>
-    </div>
+    </form>
   )
 }
