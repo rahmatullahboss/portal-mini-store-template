@@ -7,7 +7,6 @@ import { SiteHeader } from '@/components/site-header'
 import { notFound } from 'next/navigation'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { OrderNowButton } from '@/components/order-now-button'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -92,102 +91,175 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
     } catch {}
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          <div>
-            {((item.image && typeof item.image === 'object') || item.imageUrl) && (
-              <div className="aspect-square relative rounded-lg overflow-hidden border">
-                <Image
-                  src={
-                    item.image && typeof item.image === 'object' ? item.image.url : item.imageUrl
-                  }
-                  alt={
-                    (item.image && typeof item.image === 'object' ? item.image.alt : undefined) ||
-                    item.name
-                  }
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col justify-center">
-            <h1 className="text-4xl font-bold text-gray-900">{item.name}</h1>
-            <div className="flex items-center gap-3 mt-2">
-              {categoryLabel ? <Badge variant="secondary">{categoryLabel}</Badge> : null}
-              <div className="flex items-center gap-2">
-                <ReviewStars value={ratingAvg} />
-                <span className="text-sm text-gray-600">{reviews.length} Reviews</span>
-              </div>
-            </div>
-            <p className="text-lg text-gray-700 mt-4 whitespace-pre-line">
-              {shortDescription}
-            </p>
-            <div className="mt-6">
-              <span className="text-4xl font-bold text-green-600">Tk {item.price.toFixed(2)}</span>
-            </div>
-            <div className="mt-8 flex gap-3">
-              <>
-                <AddToCartButton item={item as any} />
-                <OrderNowButton item={item as any} isLoggedIn={!!user} deliveryZone={deliveryZone} />
-              </>
-            </div>
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
-                <Truck className="text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">{deliverySettings.shippingHighlightTitle}</p>
-                  <p className="text-xs text-gray-500">{deliverySettings.shippingHighlightSubtitle}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
-                <ShieldCheck className="text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">100% Secured Payment</p>
-                  <p className="text-xs text-gray-500">Trusted checkout</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-white">
-                <ShoppingCart className="text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">Top brand products</p>
-                  <p className="text-xs text-gray-500">Quality assured</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4">
-              <Button asChild variant="link">
-                <Link href="/"> &larr; Back to all items</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
+  const highlightCards = [
+    {
+      icon: Truck,
+      title: deliverySettings.shippingHighlightTitle,
+      subtitle: deliverySettings.shippingHighlightSubtitle,
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Secure digital payments',
+      subtitle: 'Trusted checkout powered by top gateways',
+    },
+    {
+      icon: ShoppingCart,
+      title: 'Curated premium picks',
+      subtitle: 'Hand-selected items you can rely on',
+    },
+  ]
 
-        <div className="mt-10">
-          <Tabs defaultValue="description">
-            <TabsList>
-              <TabsTrigger value="description">Description</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-            </TabsList>
-            <TabsContent value="description">
-              <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-                {item.description}
-              </div>
-            </TabsContent>
-            <TabsContent value="reviews">
-              <ReviewSection
-                itemId={id}
-                canReview={!!canReview}
-                userId={(user as any)?.id || null}
-                initialReviews={reviews as any}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+  return (
+    <div className="relative min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 text-gray-900">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -right-20 h-72 w-72 rounded-full bg-amber-200/60 blur-3xl" />
+        <div className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full bg-rose-200/60 blur-3xl" />
+        <div className="absolute top-1/3 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-200/40 blur-3xl" />
       </div>
+
+      <SiteHeader variant="full" user={user} />
+
+      <main className="relative z-10">
+        <div className="container mx-auto px-4 py-10 sm:px-6 lg:py-16 lg:px-8">
+          <div className="mb-6 flex items-center gap-3 text-sm text-gray-500">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 rounded-full bg-white/80 px-4 py-2 shadow-sm ring-1 ring-amber-200 transition hover:text-amber-600 hover:ring-amber-300"
+            >
+              <span aria-hidden>←</span>
+              Back to all items
+            </Link>
+            {categoryLabel ? (
+              <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-100 to-rose-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+                {categoryLabel}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-6">
+              {((item.image && typeof item.image === 'object') || item.imageUrl) && (
+                <div className="group relative overflow-hidden rounded-[2.75rem] border border-white/60 bg-white shadow-xl shadow-amber-100/80">
+                  <div className="relative aspect-square">
+                    <Image
+                      src={item.image && typeof item.image === 'object' ? item.image.url : item.imageUrl}
+                      alt={(item.image && typeof item.image === 'object' ? item.image.alt : undefined) || item.name}
+                      fill
+                      className="object-cover transition duration-700 ease-out group-hover:scale-105 group-hover:saturate-125"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-gray-900/10 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-4 rounded-[2rem] border border-white/60 bg-white/70 p-6 backdrop-blur">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-500">Highlights</p>
+                <p className="text-lg leading-relaxed text-gray-600 whitespace-pre-line">{shortDescription}</p>
+                <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
+                    ⭐ Rated {ratingAvg || '0.0'} / 5
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-rose-700">
+                    {reviews.length} verified reviews
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <aside className="space-y-6">
+              <div className="sticky top-28 space-y-6">
+                <div className="rounded-[2.75rem] border border-white/60 bg-white/80 p-8 shadow-2xl shadow-amber-100/70 backdrop-blur">
+                  <div className="flex items-start justify-between gap-4">
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{item.name}</h1>
+                    <Badge variant="secondary" className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-600">
+                      In store
+                    </Badge>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <ReviewStars value={ratingAvg} />
+                      <span>{reviews.length} Reviews</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-700">
+                      {categoryLabel || 'Featured'}
+                    </span>
+                  </div>
+
+                  <div className="mt-6 flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-amber-500">Starting from</p>
+                      <p className="text-4xl font-bold text-gray-900 sm:text-5xl">Tk {item.price.toFixed(2)}</p>
+                    </div>
+                    <span className="rounded-full bg-gradient-to-r from-amber-400 to-rose-400 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow-lg">
+                      Best Deal
+                    </span>
+                  </div>
+
+                  <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                    <AddToCartButton item={item as any} />
+                    <OrderNowButton item={item as any} isLoggedIn={!!user} deliveryZone={deliveryZone} />
+                  </div>
+
+                  <div className="mt-6 grid gap-4">
+                    {highlightCards.map(({ icon: Icon, title, subtitle }) => (
+                      <div
+                        key={title}
+                        className="flex items-start gap-4 rounded-2xl border border-amber-100/60 bg-amber-50/40 p-4 text-sm text-gray-600 shadow-sm"
+                      >
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-amber-500 shadow-inner">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <div>
+                          <p className="font-semibold text-gray-800">{title}</p>
+                          <p className="text-xs text-gray-500">{subtitle}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-[2rem] border border-white/60 bg-white/70 p-6 text-sm text-gray-600 backdrop-blur">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-500">Need help?</p>
+                  <p className="mt-2 leading-relaxed">
+                    Chat with our concierge team for personalised recommendations, delivery schedules, or bulk order
+                    support. We are online 9am – 11pm daily.
+                  </p>
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          <section className="mt-16 rounded-[2.75rem] border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur">
+            <Tabs defaultValue="description" className="w-full">
+              <TabsList className="inline-flex rounded-full bg-amber-100/60 p-1 text-sm">
+                <TabsTrigger
+                  value="description"
+                  className="rounded-full px-6 py-2 font-semibold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow"
+                >
+                  Description
+                </TabsTrigger>
+                <TabsTrigger
+                  value="reviews"
+                  className="rounded-full px-6 py-2 font-semibold text-gray-600 data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow"
+                >
+                  Reviews
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="description" className="mt-8 text-lg leading-relaxed text-gray-600">
+                <div className="prose max-w-none whitespace-pre-line">{item.description}</div>
+              </TabsContent>
+              <TabsContent value="reviews" className="mt-8">
+                <ReviewSection
+                  itemId={id}
+                  canReview={!!canReview}
+                  userId={(user as any)?.id || null}
+                  initialReviews={reviews as any}
+                />
+              </TabsContent>
+            </Tabs>
+          </section>
+        </div>
+      </main>
     </div>
   )
 }
