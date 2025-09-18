@@ -28,7 +28,6 @@ export default async function CheckoutPage() {
 
   const steps = [
     { label: 'Cart', status: 'done' as const },
-    { label: 'Review', status: 'done' as const },
     { label: 'Checkout', status: 'current' as const },
   ]
 

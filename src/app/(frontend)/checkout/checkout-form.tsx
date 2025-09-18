@@ -373,7 +373,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">Step 03</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">Step 02</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900 lg:text-3xl">Shipping information</h2>
             <p className="mt-2 max-w-xl text-sm text-slate-500">
               Provide your delivery details to complete this order.
@@ -671,10 +671,26 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </div>
         </SectionCard>
 
+        {error ? (
+          <Alert variant="destructive" className="rounded-2xl border border-red-200 bg-red-50/70 text-red-800">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        <OrderSummaryCard className="lg:hidden" layout="mobile" />
+      </form>
+      <div className="space-y-6">
+        <OrderSummaryCard className="hidden lg:block" layout="desktop" />
         <SectionCard
           title="Payment method"
           description="Choose how you would like to pay for this order."
+          className="rounded-[26px] border-slate-200/80 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur-sm"
         >
+          <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-sm font-medium text-amber-900 shadow-sm shadow-amber-100">
+            Digital wallet payments have a flat delivery charge of{' '}
+            <span className="font-semibold">{formatCurrency(settings.digitalPaymentDeliveryCharge)}</span> when the subtotal is
+            below <span className="font-semibold">{formatCurrency(settings.freeDeliveryThreshold)}</span>.
+          </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {PAYMENT_OPTIONS.map((option) => (
               <label
@@ -698,6 +714,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     setError(null)
                   }}
                   className="sr-only"
+                  form={formId}
                 />
                 <div className="relative h-16 w-32">
                   <Image
@@ -723,10 +740,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                       {digitalPaymentInstructions.map((instruction, index) => (
                         <li key={index}>{instruction}</li>
                       ))}
-                      <li>
-                        Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when
-                        the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
-                      </li>
                     </ul>
                   </AlertDescription>
                 </Alert>
@@ -748,6 +761,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     required={requiresDigitalPaymentDetails}
                     placeholder="e.g. 01XXXXXXXXX"
                     className={inputClasses}
+                    form={formId}
                   />
                 </div>
                 <div className="space-y-2">
@@ -766,6 +780,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     required={requiresDigitalPaymentDetails}
                     placeholder="e.g. TXN123456789"
                     className={inputClasses}
+                    form={formId}
                   />
                 </div>
               </div>
@@ -774,16 +789,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <p className="text-xs text-slate-500">Pay with cash when your delivery arrives.</p>
           )}
         </SectionCard>
-
-        {error ? (
-          <Alert variant="destructive" className="rounded-2xl border border-red-200 bg-red-50/70 text-red-800">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
-
-        <OrderSummaryCard className="lg:hidden" layout="mobile" />
-      </form>
-      <OrderSummaryCard className="hidden lg:block" layout="desktop" />
+      </div>
     </div>
   )
 }
