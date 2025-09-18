@@ -2,15 +2,12 @@ import { headers as getHeaders } from 'next/headers.js'
 import { getPayload } from 'payload'
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image' // Added for the new sidebar component
-
 import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 import OrderForm from './order-form'
 import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge' // Added from main branch
 import { Check } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -110,62 +107,11 @@ export default async function OrderPage({ params }: OrderPageProps) {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-          <OrderForm
-            item={item}
-            user={(fullUser as any) || (user as any)}
-            deliverySettings={deliverySettings}
-          />
-
-          <div className="space-y-6">
-            <div className="rounded-[26px] border border-stone-200/80 bg-white/90 p-6 shadow-xl shadow-amber-200/70 backdrop-blur-sm lg:sticky lg:top-32">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-600">Product overview</p>
-                  <h2 className="text-2xl font-semibold text-stone-900">{item.name}</h2>
-                  <p className="text-sm text-stone-500">Review the product details before confirming your order.</p>
-                </div>
-                {typeof (item as any).category === 'object' || (item as any).category ? (
-                  <Badge className="ml-auto h-7 rounded-full bg-stone-100 px-3 text-xs font-medium text-stone-600">
-                    {typeof (item as any).category === 'object'
-                      ? ((item as any).category as any)?.name
-                      : (item as any).category}
-                  </Badge>
-                ) : null}
-              </div>
-              {item.image && typeof item.image === 'object' && item.image.url ? (
-                <div className="relative mt-6 h-56 overflow-hidden rounded-3xl border border-stone-200 bg-stone-100">
-                  <Image
-                    src={item.image.url}
-                    alt={item.image.alt || item.name}
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 1024px) 384px, 100vw"
-                  />
-                </div>
-              ) : null}
-              <div className="mt-6 space-y-3 text-sm text-stone-600">
-                {item.shortDescription || item.description ? (
-                  <p className="text-base text-stone-600">
-                    {(item.shortDescription as string) || (item.description as string)}
-                  </p>
-                ) : null}
-                <div className="flex items-center justify-between rounded-2xl bg-amber-50/70 px-4 py-3 text-sm text-amber-700">
-                  <span className="font-medium">Unit price</span>
-                  <span className="text-base font-semibold text-amber-600">৳{Number(item.price).toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-amber-200/60 bg-amber-50/80 p-6 text-sm text-amber-800 shadow-lg shadow-amber-200/60">
-              <h3 className="text-base font-semibold">Need help?</h3>
-              <p className="mt-2 leading-relaxed">
-                Our support team is ready to assist if you have questions about this product or the checkout process. Reach out via
-                live chat or email and we’ll be happy to help.
-              </p>
-            </div>
-          </div>
-        </div>
+        <OrderForm
+          item={item}
+          user={(fullUser as any) || (user as any)}
+          deliverySettings={deliverySettings}
+        />
       </div>
     </div>
   )

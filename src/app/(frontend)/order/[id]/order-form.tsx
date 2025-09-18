@@ -126,71 +126,91 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </div>
   )
 
-  const SummaryPanel = ({ layout }: { layout: 'mobile' | 'desktop' }) => (
-    <div
-      className={cn(
-        'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50',
-        layout === 'mobile' ? 'lg:hidden' : 'hidden lg:block',
-      )}
-    >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-stone-900">Review your cart</h3>
-          <p className="text-sm text-stone-500">Confirm the quantity and totals before placing your order.</p>
-        </div>
-        <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">Secure checkout</Badge>
-      </div>
+  const SummaryPanel = ({ layout }: { layout: 'mobile' | 'desktop' }) => {
+    const isDesktop = layout === 'desktop'
 
-      <div className="mt-5 flex flex-col gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1 text-sm text-stone-600">
-          <p className="text-sm font-semibold text-stone-900">Quantity</p>
-          <p>Adjust how many units you would like to order.</p>
-        </div>
-        <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity <= 1}
-            aria-label="Decrease quantity"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
-          >
-            <Minus className="h-4 w-4" />
-          </button>
-          <span className="min-w-[2ch] text-base font-semibold text-stone-900">{quantity}</span>
-          <button
-            type="button"
-            onClick={() => setQuantity(quantity + 1)}
-            aria-label="Increase quantity"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-5 space-y-3 rounded-3xl border border-amber-50 bg-white/75 p-5 shadow-inner shadow-amber-200/40">
-        <div className="flex items-center justify-between text-sm text-stone-600">
-          <span>Subtotal</span>
-          <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm text-stone-600">
-          <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
-          <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
-        </div>
-        <div className="flex items-center justify-between text-base font-semibold text-stone-900">
-          <span>Total due</span>
-          <span>{formatCurrency(total)}</span>
-        </div>
-        {freeDelivery ? (
-          <p className="text-xs font-semibold text-emerald-600">Congratulations! Free delivery is applied to this order.</p>
-        ) : (
-          <p className="text-xs text-stone-500">
-            Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
-          </p>
+    return (
+      <div
+        className={cn(
+          'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50',
+          isDesktop ? 'hidden lg:block' : 'lg:hidden',
         )}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-stone-900">Review your cart</h3>
+            <p className="text-sm text-stone-500">Confirm the quantity and totals before placing your order.</p>
+          </div>
+          <div className="flex flex-col items-end gap-2 text-right">
+            <Badge className="h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">Secure checkout</Badge>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1 text-sm text-stone-600">
+            <p className="text-sm font-semibold text-stone-900">Quantity</p>
+            <p>Adjust how many units you would like to order.</p>
+          </div>
+          <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              disabled={quantity <= 1}
+              aria-label="Decrease quantity"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <span className="min-w-[2ch] text-base font-semibold text-stone-900">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity(quantity + 1)}
+              aria-label="Increase quantity"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition hover:bg-amber-50 hover:text-amber-600"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-3 rounded-3xl border border-amber-50 bg-white/75 p-5 shadow-inner shadow-amber-200/40">
+          <div className="flex items-center justify-between text-sm text-stone-600">
+            <span>Subtotal</span>
+            <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-stone-600">
+            <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
+            <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+          </div>
+          <div className="flex items-center justify-between text-base font-semibold text-stone-900">
+            <span>Total due</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+          {freeDelivery ? (
+            <p className="text-xs font-semibold text-emerald-600">Congratulations! Free delivery is applied to this order.</p>
+          ) : (
+            <p className="text-xs text-stone-500">
+              Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-5 flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
+          <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
+          <p>Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the delivery.</p>
+        </div>
+
+        <Button
+          type="submit"
+          form="order-form"
+          disabled={isSubmitting}
+          className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
+        >
+          {isSubmitting ? 'Placing Order…' : 'Place order securely'}
+        </Button>
       </div>
-    </div>
-  )
+    )
+  }
 
   const NeedHelpCard = () => (
     <div className="rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50">
@@ -328,9 +348,10 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
       <div className="space-y-8">
         <form
+          id="order-form"
           onSubmit={handleSubmit}
           className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
         >
@@ -672,36 +693,18 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
           <SummaryPanel layout="mobile" />
 
-          <div className="flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
-            <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
-            <p>
-              Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the
-              delivery.
-            </p>
-          </div>
-
           {error ? (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
-
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-12 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
-          >
-            {isSubmitting ? 'Placing Order…' : 'Place order securely'}
-          </Button>
         </form>
       </div>
 
-      <div className="space-y-6 self-start">
-        <div className="space-y-6 lg:sticky lg:top-32">
-          <ProductOverviewCard />
-          <NeedHelpCard />
-        </div>
+      <div className="space-y-6 self-start lg:sticky lg:top-32">
+        <ProductOverviewCard />
         <SummaryPanel layout="desktop" />
+        <NeedHelpCard />
       </div>
     </div>
   )
