@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       ...(typeof total === 'number' ? { cartTotal: total } : {}),
       status: 'active',
       lastActivityAt: now,
+      reminderStage: 0,
     }
 
     let doc
