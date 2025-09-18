@@ -25,7 +25,10 @@ type CartAction =
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
   | { type: 'CLEAR_CART' }
   | { type: 'SET_ITEMS'; payload: CartItem[] }
-  | { type: 'MERGE_ITEMS'; payload: CartItem[] }
+  | {
+      type: 'MERGE_ITEMS'
+      payload: { items: CartItem[]; previousServerQuantities: Record<string, number> }
+    }
   | { type: 'TOGGLE_CART' }
   | { type: 'OPEN_CART' }
   | { type: 'CLOSE_CART' }
@@ -35,6 +38,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0
+
+const CART_STORAGE_KEY = 'dyad-cart'
+const CART_META_STORAGE_KEY = 'dyad-cart-meta'
+
+const isNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value)
 
 const normalizeCartItem = (value: unknown): CartItem | null => {
   if (!isRecord(value)) return null
@@ -121,21 +130,38 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         items: action.payload,
       }
     case 'MERGE_ITEMS': {
+      const { items: incomingItems, previousServerQuantities } = action.payload
       const mergedMap = new Map<string, CartItem>()
-      for (const item of state.items) {
-        mergedMap.set(item.id, item)
-      }
-      for (const incoming of action.payload) {
+      const serverQuantities = new Map<string, number>()
+
+      for (const incoming of incomingItems) {
         if (!incoming || !incoming.id) continue
         const existing = mergedMap.get(incoming.id)
-        if (existing) {
-          mergedMap.set(incoming.id, {
-            ...existing,
-            ...incoming,
-            quantity: existing.quantity + incoming.quantity,
-          })
-        } else {
-          mergedMap.set(incoming.id, incoming)
+        mergedMap.set(incoming.id, existing ? { ...existing, ...incoming } : incoming)
+        serverQuantities.set(incoming.id, incoming.quantity)
+      }
+
+      for (const item of state.items) {
+        const hasPreviousRecord = Object.prototype.hasOwnProperty.call(
+          previousServerQuantities,
+          item.id,
+        )
+        const previousQuantity = previousServerQuantities[item.id] ?? 0
+        const localQuantity = item.quantity
+        const serverQuantity = serverQuantities.get(item.id) ?? 0
+        const serverDelta = hasPreviousRecord ? Math.max(serverQuantity - previousQuantity, 0) : 0
+        const localDelta = localQuantity - previousQuantity
+        const unsyncedDelta = Math.max(localDelta - serverDelta, 0)
+
+        if (unsyncedDelta > 0) {
+          const current = mergedMap.get(item.id)
+          if (current) {
+            mergedMap.set(item.id, { ...current, quantity: current.quantity + unsyncedDelta })
+          } else {
+            mergedMap.set(item.id, { ...item, quantity: unsyncedDelta })
+          }
+        } else if (!mergedMap.has(item.id) && !hasPreviousRecord) {
+          mergedMap.set(item.id, item)
         }
       }
       return {
@@ -185,12 +211,41 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   })
   const [hasLoadedLocalCart, setHasLoadedLocalCart] = useState(false)
   const hasSyncedServerCartRef = useRef(false)
+  const lastServerQuantitiesRef = useRef<Record<string, number>>({})
+
+  const persistLastServerQuantities = useCallback((quantities: Record<string, number>) => {
+    lastServerQuantitiesRef.current = quantities
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(
+        CART_META_STORAGE_KEY,
+        JSON.stringify({ lastServerQuantities: quantities }),
+      )
+    } catch (error) {
+      console.error('Failed to persist cart metadata to localStorage:', error)
+    }
+  }, [])
 
   // Load cart from localStorage on mount
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
-      const savedCart = localStorage.getItem('dyad-cart')
+      const metaRaw = localStorage.getItem(CART_META_STORAGE_KEY)
+      if (metaRaw) {
+        const parsedMeta = JSON.parse(metaRaw) as unknown
+        if (isRecord(parsedMeta) && isRecord(parsedMeta.lastServerQuantities)) {
+          const normalizedEntries = Object.entries(parsedMeta.lastServerQuantities).filter(
+            (entry): entry is [string, number] => isNumber(entry[1]),
+          )
+          lastServerQuantitiesRef.current = Object.fromEntries(normalizedEntries)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load cart metadata from localStorage:', error)
+    }
+
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY)
       if (savedCart) {
         const parsed = JSON.parse(savedCart) as unknown
         if (isRecord(parsed) && Array.isArray(parsed.items)) {
@@ -211,7 +266,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!hasLoadedLocalCart || typeof window === 'undefined') return
     try {
-      localStorage.setItem('dyad-cart', JSON.stringify({ items: state.items }))
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: state.items }))
     } catch (error) {
       console.error('Failed to persist cart to localStorage:', error)
     }
@@ -236,13 +291,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .map((item) => normalizeCartItem(item))
         .filter((item): item is CartItem => item !== null)
       if (incomingItems.length > 0) {
-        dispatch({ type: 'MERGE_ITEMS', payload: incomingItems })
+        const previousServerQuantities = lastServerQuantitiesRef.current
+        dispatch({
+          type: 'MERGE_ITEMS',
+          payload: { items: incomingItems, previousServerQuantities },
+        })
+        const nextQuantities = incomingItems.reduce<Record<string, number>>((acc, item) => {
+          acc[item.id] = item.quantity
+          return acc
+        }, {})
+        persistLastServerQuantities(nextQuantities)
       }
     } catch (error) {
       console.error('Failed to sync cart from server:', error)
       hasSyncedServerCartRef.current = false
     }
-  }, [hasLoadedLocalCart])
+  }, [hasLoadedLocalCart, persistLastServerQuantities])
 
   useEffect(() => {
     if (!hasLoadedLocalCart) return
