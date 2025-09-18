@@ -174,7 +174,7 @@ export const CartSidebar: React.FC = () => {
               <div className="space-y-3">
                 <Button
                   asChild
-                  className="w-full bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white py-3 rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105"
+                  className="w-full rounded-full border-0 bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] py-3 text-white shadow-lg shadow-orange-500/25 transition-all duration-300 hover:scale-105 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2"
                   size="lg"
                 >
                   <Link href="/checkout" onClick={closeCart}>
