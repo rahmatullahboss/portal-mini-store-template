@@ -85,8 +85,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </div>
   )
 
-  const ProductOverviewCard = () => (
-    <div className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50">
+  const ProductOverviewCard = ({ layout }: { layout: 'mobile' | 'desktop' }) => (
+    <div
+      className={cn(
+        'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50 backdrop-blur-sm',
+        layout === 'mobile' ? 'lg:hidden' : 'hidden lg:block',
+      )}
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">Product overview</p>
@@ -192,8 +197,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </div>
   )
 
-  const NeedHelpCard = () => (
-    <div className="rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50">
+  const NeedHelpCard = ({ layout }: { layout: 'mobile' | 'desktop' }) => (
+    <div
+      className={cn(
+        'rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50',
+        layout === 'mobile' ? 'lg:hidden' : 'hidden lg:block',
+      )}
+    >
       <h3 className="text-base font-semibold text-stone-900">Need help?</h3>
       <p className="mt-2 leading-relaxed">
         Give us a call or send us a message if you have any questions about this product or your order. Our friendly team is ready
@@ -328,8 +338,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)] xl:gap-12">
       <div className="space-y-8">
+        <ProductOverviewCard layout="mobile" />
         <form
           onSubmit={handleSubmit}
           className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
@@ -672,13 +683,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
           <SummaryPanel layout="mobile" />
 
-          <div className="flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
-            <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
-            <p>
-              Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the
-              delivery.
-            </p>
-          </div>
+          <NeedHelpCard layout="mobile" />
 
           {error ? (
             <Alert variant="destructive">
@@ -686,22 +691,35 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </Alert>
           ) : null}
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-12 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
-          >
-            {isSubmitting ? 'Placing Order…' : 'Place order securely'}
-          </Button>
+          <div className="rounded-[30px] border border-amber-100/70 bg-[linear-gradient(120deg,rgba(253,230,138,0.65)_0%,rgba(255,228,230,0.75)_100%)] p-5 shadow-inner shadow-amber-200/40 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3 text-sm text-stone-700">
+                <span className="flex size-10 items-center justify-center rounded-2xl bg-white/80 shadow-sm">
+                  <ShieldCheck className="h-5 w-5 text-amber-500" aria-hidden />
+                </span>
+                <p className="text-sm leading-relaxed text-stone-700">
+                  Your personal details are protected with secure checkout. We’ll only use them to confirm your order and
+                  coordinate the delivery.
+                </p>
+              </div>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-12 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80 sm:w-auto"
+              >
+                {isSubmitting ? 'Placing Order…' : 'Place order securely'}
+              </Button>
+            </div>
+          </div>
         </form>
       </div>
 
-      <div className="space-y-6 self-start">
+      <div className="self-start">
         <div className="space-y-6 lg:sticky lg:top-32">
-          <ProductOverviewCard />
-          <NeedHelpCard />
+          <ProductOverviewCard layout="desktop" />
+          <SummaryPanel layout="desktop" />
+          <NeedHelpCard layout="desktop" />
         </div>
-        <SummaryPanel layout="desktop" />
       </div>
     </div>
   )
