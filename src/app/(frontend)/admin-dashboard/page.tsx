@@ -499,6 +499,11 @@ export default async function AdminDashboardPage({
                             <span className="font-medium text-gray-800">Method:</span>{' '}
                             {formatPaymentMethod(order.paymentMethod)}
                           </div>
+                          <div>
+                            <span className="font-medium text-gray-800">Delivery charge:</span>{' '}
+                            {fmtBDT(order.shippingCharge || 0)}
+                            {order.freeDeliveryApplied ? ' (Free delivery applied)' : ''}
+                          </div>
                           {isDigitalPayment(order.paymentMethod) ? (
                             <>
                               <div>
