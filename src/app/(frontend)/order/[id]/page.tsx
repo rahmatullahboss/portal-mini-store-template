@@ -12,6 +12,7 @@ import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/deli
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Check } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,18 +44,27 @@ export default async function OrderPage({ params }: OrderPageProps) {
     .catch(() => null)
   const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
 
+  const steps = [
+    { label: 'Product', status: 'done' as const },
+    { label: 'Checkout', status: 'current' as const },
+  ]
+
   if (!item || !item.available) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Item Not Available</CardTitle>
-              <CardDescription>Sorry, this item is not available for ordering.</CardDescription>
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_80%_at_50%_0%,rgba(59,130,246,0.08),transparent)]" />
+        <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
+        <div className="relative mx-auto w-full max-w-4xl px-4 pb-16 pt-20 sm:pt-24">
+          <Card className="rounded-3xl border border-slate-200/80 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur">
+            <CardHeader className="space-y-2 text-center">
+              <CardTitle className="text-2xl font-semibold text-slate-900">Item not available</CardTitle>
+              <CardDescription className="text-base text-slate-500">
+                Sorry, this item is not available for ordering right now. Please explore other products.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button asChild>
-                <Link href="/">Back to Home</Link>
+            <CardContent className="flex justify-center pb-8">
+              <Button asChild className="rounded-full px-6">
+                <Link href="/">Back to shopping</Link>
               </Button>
             </CardContent>
           </Card>
@@ -64,60 +74,101 @@ export default async function OrderPage({ params }: OrderPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_80%_at_50%_0%,rgba(59,130,246,0.08),transparent)]" />
       <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
-      <div className="container mx-auto px-4 py-8">
-        <Button asChild variant="ghost" className="mb-6">
-          <Link href="/">← Back to Items</Link>
-        </Button>
+      <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-10 lg:px-8 lg:pt-16">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <Button
+            asChild
+            variant="ghost"
+            className="h-11 rounded-full border border-transparent bg-white/70 px-4 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur transition hover:border-blue-100 hover:bg-white/90 hover:text-blue-600"
+          >
+            <Link href="/">← Back to shopping</Link>
+          </Button>
+          <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-500">
+            {steps.map((step, index) => (
+              <React.Fragment key={step.label}>
+                <span
+                  className={
+                    step.status === 'current'
+                      ? 'flex items-center gap-2 rounded-full bg-blue-600/10 px-3 py-1 text-blue-600'
+                      : 'flex items-center gap-2 text-slate-500'
+                  }
+                >
+                  <span
+                    className={
+                      step.status === 'done'
+                        ? 'flex size-6 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white shadow'
+                        : 'flex size-6 items-center justify-center rounded-full border border-blue-200 bg-white text-xs font-semibold text-blue-600 shadow-sm'
+                    }
+                    aria-hidden
+                  >
+                    {step.status === 'done' ? <Check className="h-3 w-3" /> : index + 1}
+                  </span>
+                  {step.label}
+                </span>
+                {index < steps.length - 1 ? <span className="hidden h-px w-8 bg-slate-300 sm:block" aria-hidden /> : null}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Item Details */}
-          <Card className="overflow-hidden">
-            {item.image && typeof item.image === 'object' && item.image.url && (
-              <div className="aspect-video relative">
-                <Image
-                  src={item.image.url}
-                  alt={item.image.alt || item.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">{item.name}</CardTitle>
-                <Badge variant="secondary">{typeof (item as any).category === 'object' ? ((item as any).category as any)?.name : (item as any).category}</Badge>
-              </div>
-              <CardDescription className="whitespace-pre-line">
-                {item.shortDescription ?? item.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-green-600">৳{item.price.toFixed(2)} each</p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <OrderForm
+            item={item}
+            user={(fullUser as any) || (user as any)}
+            deliverySettings={deliverySettings}
+          />
 
-          {/* Order Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Place Your Order</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!user ? (
-                <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
-                  <p className="font-medium">Guest checkout</p>
-                  <p className="mt-1">
-                    You can order this item without an account. We’ll ask for your contact and shipping details.
-                    Want to save your details?{' '}
-                    <Link className="underline font-medium" href="/register">Create an account</Link>{' '}
-                    or <Link className="underline font-medium" href="/login">sign in</Link>.
-                  </p>
+          <div className="space-y-6">
+            <div className="rounded-[26px] border border-slate-200/80 bg-white/90 p-6 shadow-xl shadow-slate-200/70 backdrop-blur-sm lg:sticky lg:top-32">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-500">Product overview</p>
+                  <h2 className="text-2xl font-semibold text-slate-900">{item.name}</h2>
+                  <p className="text-sm text-slate-500">Review the product details before confirming your order.</p>
+                </div>
+                {typeof (item as any).category === 'object' || (item as any).category ? (
+                  <Badge className="ml-auto h-7 rounded-full bg-slate-100 px-3 text-xs font-medium text-slate-600">
+                    {typeof (item as any).category === 'object'
+                      ? ((item as any).category as any)?.name
+                      : (item as any).category}
+                  </Badge>
+                ) : null}
+              </div>
+              {item.image && typeof item.image === 'object' && item.image.url ? (
+                <div className="relative mt-6 h-56 overflow-hidden rounded-3xl border border-slate-200 bg-slate-100">
+                  <Image
+                    src={item.image.url}
+                    alt={item.image.alt || item.name}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 384px, 100vw"
+                  />
                 </div>
               ) : null}
-              <OrderForm item={item} user={(fullUser as any) || (user as any)} deliverySettings={deliverySettings} />
-            </CardContent>
-          </Card>
+              <div className="mt-6 space-y-3 text-sm text-slate-600">
+                {item.shortDescription || item.description ? (
+                  <p className="text-base text-slate-600">
+                    {(item.shortDescription as string) || (item.description as string)}
+                  </p>
+                ) : null}
+                <div className="flex items-center justify-between rounded-2xl bg-blue-50/70 px-4 py-3 text-sm text-blue-700">
+                  <span className="font-medium">Unit price</span>
+                  <span className="text-base font-semibold text-blue-600">৳{Number(item.price).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-blue-200/60 bg-blue-50/80 p-6 text-sm text-blue-800 shadow-lg shadow-blue-200/60">
+              <h3 className="text-base font-semibold">Need help?</h3>
+              <p className="mt-2 leading-relaxed">
+                Our support team is ready to assist if you have questions about this product or the checkout process. Reach out via
+                live chat or email and we’ll be happy to help.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

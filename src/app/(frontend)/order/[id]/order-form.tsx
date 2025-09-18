@@ -3,10 +3,10 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { Minus, Plus, ShieldCheck, Truck } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
 import type { DeliverySettings } from '@/lib/delivery-settings'
 import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { cn } from '@/lib/utils'
@@ -60,6 +60,29 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const requiresDigitalPaymentDetails = isDigitalPayment
   const digitalPaymentInstructions = DIGITAL_PAYMENT_INSTRUCTIONS[paymentMethod]
 
+  const labelClasses = 'text-sm font-medium text-slate-700'
+  const inputClasses =
+    'block w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm text-slate-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500/70 focus:ring-offset-0'
+
+  const SectionCard = ({
+    title,
+    description,
+    children,
+    className,
+  }: {
+    title: string
+    description?: string
+    children: React.ReactNode
+    className?: string
+  }) => (
+    <div className={cn('rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm shadow-slate-200/60', className)}>
+      <div className="space-y-1">
+        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+        {description ? <p className="text-sm text-slate-500">{description}</p> : null}
+      </div>
+      <div className="mt-5 space-y-5">{children}</div>
+    </div>
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,7 +123,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
           ...(user
             ? {
-                // Optional override shipping
                 shippingAddress:
                   address_line1 || address_city || address_postalCode || address_country
                     ? {
@@ -114,7 +136,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     : undefined,
               }
             : {
-                // Guest checkout details
                 customerName: `${firstName} ${lastName}`.trim(),
                 customerEmail: email,
                 shippingAddress: {
@@ -132,7 +153,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       if (response.ok) {
         const data = await response.json().catch(() => null)
         const oid = (data as any)?.doc?.id
-        // Save confirmation preview for guest page
         try {
           sessionStorage.setItem(
             'last-order-preview',
@@ -173,179 +193,250 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-3">
-        <label htmlFor="quantity" className="text-sm font-medium">
-          Quantity:
-        </label>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity <= 1}
-            variant="outline"
-            size="sm"
-          >
-            -
-          </Button>
-          <Input
-            type="number"
-            id="quantity"
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-            min="1"
-            className="w-20 text-center"
-          />
-          <Button
-            type="button"
-            onClick={() => setQuantity(quantity + 1)}
-            variant="outline"
-            size="sm"
-          >
-            +
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="customerNumber" className="text-sm font-medium">
-          Customer number
-        </label>
-        <Input
-          id="customerNumber"
-          value={customerNumber}
-          onChange={(e) => setCustomerNumber(e.target.value)}
-          placeholder="e.g. 01XXXXXXXXX"
-          required
-        />
-      </div>
-
-      {/* Customer Details (for guests) */}
       {!user ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="firstName" className="text-sm font-medium">First name</label>
-              <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="lastName" className="text-sm font-medium">Last name</label>
-              <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">Email</label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
+        <div className="rounded-3xl border border-blue-200/70 bg-blue-50/80 p-5 text-sm text-blue-800 shadow-sm shadow-blue-100">
+          <p className="font-semibold">Guest checkout</p>
+          <p className="mt-1 leading-relaxed">
+            You can order this item without creating an account. Provide your contact and delivery details below or{' '}
+            <a href="/login" className="font-semibold underline">
+              sign in
+            </a>{' '}
+            to autofill your saved information.
+          </p>
         </div>
       ) : null}
 
-      {/* Shipping Address */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Shipping address</h3>
-        <div className="space-y-2">
-          <label htmlFor="address_line1" className="text-sm font-medium">Address line 1</label>
-          <Input id="address_line1" value={address_line1} onChange={(e) => setAddressLine1(e.target.value)} required={!user} />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="address_line2" className="text-sm font-medium">Address line 2 (optional)</label>
-          <Input id="address_line2" value={address_line2} onChange={(e) => setAddressLine2(e.target.value)} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <SectionCard title="Contact information" description="We’ll use this to share order updates and delivery details.">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="address_city" className="text-sm font-medium">City</label>
-            <Input id="address_city" value={address_city} onChange={(e) => setAddressCity(e.target.value)} required={!user} />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="address_state" className="text-sm font-medium">State / Region</label>
-            <Input id="address_state" value={address_state} onChange={(e) => setAddressState(e.target.value)} />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label htmlFor="address_postalCode" className="text-sm font-medium">Postal code</label>
-            <Input id="address_postalCode" value={address_postalCode} onChange={(e) => setAddressPostalCode(e.target.value)} required={!user} />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="address_country" className="text-sm font-medium">Country</label>
-            <Input id="address_country" value={address_country} onChange={(e) => setAddressCountry(e.target.value)} required={!user} />
-          </div>
-        </div>
-      </div>
-
-      {/* Delivery Zone */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Delivery area</h3>
-        <p className="text-sm text-gray-500">
-          Choose whether this address is inside or outside Dhaka to calculate delivery charges.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label
-            className={cn(
-              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
-              deliveryZone === 'inside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
-            )}
-          >
+            <label htmlFor="customerNumber" className={labelClasses}>
+              Customer number
+            </label>
             <input
-              type="radio"
-              name="deliveryZone"
-              value="inside_dhaka"
-              checked={deliveryZone === 'inside_dhaka'}
-              onChange={() => setDeliveryZone('inside_dhaka')}
-              className="sr-only"
+              id="customerNumber"
+              name="customerNumber"
+              value={customerNumber}
+              onChange={(e) => setCustomerNumber(e.target.value)}
+              placeholder="e.g. 01XXXXXXXXX"
+              required
+              className={inputClasses}
             />
-            <div className="font-medium">Inside Dhaka</div>
-            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.insideDhakaCharge)}</p>
-          </label>
-          <label
-            className={cn(
-              'border rounded-lg p-3 cursor-pointer transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
-              deliveryZone === 'outside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
-            )}
-          >
-            <input
-              type="radio"
-              name="deliveryZone"
-              value="outside_dhaka"
-              checked={deliveryZone === 'outside_dhaka'}
-              onChange={() => setDeliveryZone('outside_dhaka')}
-              className="sr-only"
-            />
-            <div className="font-medium">Outside Dhaka</div>
-            <p className="text-sm text-gray-500">Delivery charge {formatCurrency(settings.outsideDhakaCharge)}</p>
-          </label>
-        </div>
-        {freeDelivery ? (
-          <p className="text-sm text-green-600 font-semibold">Free delivery applied for this order.</p>
-        ) : (
-          <p className="text-xs text-gray-500">
-            Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
-          </p>
-        )}
-        {!freeDelivery && isDigitalPayment ? (
-          <p className="text-xs text-gray-500">
-            A flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} applies to digital wallet payments.
-          </p>
-        ) : (
-          <p className="text-xs text-gray-500">
-            Digital wallet payments below {formatCurrency(settings.freeDeliveryThreshold)} have a flat delivery charge of{' '}
-            {formatCurrency(settings.digitalPaymentDeliveryCharge)}.
-          </p>
-        )}
-      </div>
+          </div>
 
-      {/* Payment Method */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Payment method</h3>
-        <p className="text-sm text-gray-500">
-          Choose how you would like to pay. Digital wallet payments require a completed transfer before placing the order.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {!user ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="firstName" className={labelClasses}>
+                  First name
+                </label>
+                <input
+                  id="firstName"
+                  name="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  className={inputClasses}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="lastName" className={labelClasses}>
+                  Last name
+                </label>
+                <input
+                  id="lastName"
+                  name="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  className={inputClasses}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <label htmlFor="email" className={labelClasses}>
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className={inputClasses}
+                />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Delivery address"
+        description="Tell us where to deliver your order so we can estimate shipping charges."
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="address_line1" className={labelClasses}>
+              Address line 1
+            </label>
+            <input
+              id="address_line1"
+              name="address_line1"
+              value={address_line1}
+              onChange={(e) => setAddressLine1(e.target.value)}
+              required={!user}
+              className={inputClasses}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="address_line2" className={labelClasses}>
+              Address line 2 (optional)
+            </label>
+            <input
+              id="address_line2"
+              name="address_line2"
+              value={address_line2}
+              onChange={(e) => setAddressLine2(e.target.value)}
+              className={inputClasses}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="address_city" className={labelClasses}>
+                City
+              </label>
+              <input
+                id="address_city"
+                name="address_city"
+                value={address_city}
+                onChange={(e) => setAddressCity(e.target.value)}
+                required={!user}
+                className={inputClasses}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="address_state" className={labelClasses}>
+                State / Region
+              </label>
+              <input
+                id="address_state"
+                name="address_state"
+                value={address_state}
+                onChange={(e) => setAddressState(e.target.value)}
+                className={inputClasses}
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="address_postalCode" className={labelClasses}>
+                Postal code
+              </label>
+              <input
+                id="address_postalCode"
+                name="address_postalCode"
+                value={address_postalCode}
+                onChange={(e) => setAddressPostalCode(e.target.value)}
+                required={!user}
+                className={inputClasses}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="address_country" className={labelClasses}>
+                Country
+              </label>
+              <input
+                id="address_country"
+                name="address_country"
+                value={address_country}
+                onChange={(e) => setAddressCountry(e.target.value)}
+                required={!user}
+                className={inputClasses}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-slate-700">Delivery area</p>
+          <p className="text-sm text-slate-500">
+            Choose whether this address is inside or outside Dhaka to calculate delivery charges accurately.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label
+              className={cn(
+                'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/70 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-blue-500/70 focus-within:ring-offset-2',
+                deliveryZone === 'inside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200/60' : 'border-slate-200',
+              )}
+            >
+              <input
+                type="radio"
+                name="deliveryZone"
+                value="inside_dhaka"
+                checked={deliveryZone === 'inside_dhaka'}
+                onChange={() => setDeliveryZone('inside_dhaka')}
+                className="sr-only"
+              />
+              <span className="mt-1 flex size-9 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <Truck className="h-5 w-5" aria-hidden />
+              </span>
+              <span className="space-y-1">
+                <span className="block text-sm font-semibold text-slate-900">Inside Dhaka</span>
+                <span className="block text-xs text-slate-500">
+                  Delivery charge {formatCurrency(settings.insideDhakaCharge)}
+                </span>
+              </span>
+            </label>
+            <label
+              className={cn(
+                'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/70 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-blue-500/70 focus-within:ring-offset-2',
+                deliveryZone === 'outside_dhaka' ? 'border-blue-500 ring-2 ring-blue-200/60' : 'border-slate-200',
+              )}
+            >
+              <input
+                type="radio"
+                name="deliveryZone"
+                value="outside_dhaka"
+                checked={deliveryZone === 'outside_dhaka'}
+                onChange={() => setDeliveryZone('outside_dhaka')}
+                className="sr-only"
+              />
+              <span className="mt-1 flex size-9 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <Truck className="h-5 w-5" aria-hidden />
+              </span>
+              <span className="space-y-1">
+                <span className="block text-sm font-semibold text-slate-900">Outside Dhaka</span>
+                <span className="block text-xs text-slate-500">
+                  Delivery charge {formatCurrency(settings.outsideDhakaCharge)}
+                </span>
+              </span>
+            </label>
+          </div>
+          {freeDelivery ? (
+            <p className="text-xs font-semibold text-green-600">Free delivery applied for this order.</p>
+          ) : (
+            <p className="text-xs text-slate-500">
+              Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+            </p>
+          )}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Payment method"
+        description="Choose how you’d like to pay for this order. Digital wallet payments require a completed transfer."
+      >
+        <div className="rounded-2xl border border-blue-200/80 bg-blue-50/80 px-4 py-3 text-sm text-blue-700">
+          Digital wallet payments have a flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} when the
+          subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
           {PAYMENT_OPTIONS.map((option) => (
             <label
               key={option.value}
               className={cn(
-                'border rounded-lg p-3 cursor-pointer transition flex flex-col items-center gap-2 text-center focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500',
-                paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200',
+                'flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white/70 p-4 text-center shadow-sm transition focus-within:ring-2 focus-within:ring-blue-500/70 focus-within:ring-offset-2',
+                paymentMethod === option.value ? 'border-blue-500 ring-2 ring-blue-200/60' : '',
               )}
             >
               <input
@@ -363,45 +454,44 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                 }}
                 className="sr-only"
               />
-              <div className="relative w-32 h-16">
+              <div className="relative h-12 w-24">
                 <Image
                   src={option.logo.src}
                   alt={option.logo.alt}
-                  width={option.logo.width}
-                  height={option.logo.height}
-                  className="h-full w-full object-contain"
-                  sizes="128px"
+                  fill
+                  className="object-contain"
+                  sizes="96px"
                   priority={option.value === 'cod'}
                 />
               </div>
-              <span className="font-medium text-sm">{option.label}</span>
+              <span className="text-sm font-semibold text-slate-800">{option.label}</span>
             </label>
           ))}
         </div>
 
         {requiresDigitalPaymentDetails ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {digitalPaymentInstructions?.length ? (
-              <Alert className="bg-blue-50 border-blue-200 text-blue-900">
+              <Alert className="border-blue-200 bg-blue-50 text-blue-900">
                 <AlertDescription>
-                  <ul className="list-disc list-inside space-y-1">
+                  <ul className="list-disc space-y-1 pl-5 text-sm">
                     {digitalPaymentInstructions.map((instruction, index) => (
                       <li key={index}>{instruction}</li>
                     ))}
                     <li>
-                      Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when
-                      the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+                      Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when the
+                      subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
                     </li>
                   </ul>
                 </AlertDescription>
               </Alert>
             ) : null}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="paymentSenderNumber" className="text-sm font-medium text-gray-700">
+                <label htmlFor="paymentSenderNumber" className={labelClasses}>
                   Sender wallet number
                 </label>
-                <Input
+                <input
                   id="paymentSenderNumber"
                   name="paymentSenderNumber"
                   type="tel"
@@ -412,16 +502,16 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                   }}
                   required={requiresDigitalPaymentDetails}
                   placeholder="e.g. 01XXXXXXXXX"
+                  className={inputClasses}
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="paymentTransactionId" className="text-sm font-medium text-gray-700">
+                <label htmlFor="paymentTransactionId" className={labelClasses}>
                   Transaction ID
                 </label>
-                <Input
+                <input
                   id="paymentTransactionId"
                   name="paymentTransactionId"
-                  type="text"
                   value={paymentTransactionId}
                   onChange={(e) => {
                     setPaymentTransactionId(e.target.value)
@@ -429,49 +519,91 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                   }}
                   required={requiresDigitalPaymentDetails}
                   placeholder="e.g. TXN123456789"
+                  className={inputClasses}
                 />
               </div>
             </div>
           </div>
         ) : (
-          <p className="text-xs text-gray-500">You can pay in cash when the delivery arrives.</p>
+          <p className="text-xs text-slate-500">You can pay in cash when the delivery arrives.</p>
         )}
-      </div>
-      <Separator />
+      </SectionCard>
 
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Order total</h3>
-        <div className="space-y-1 text-sm">
-          <div className="flex items-center justify-between">
+      <SectionCard
+        title="Order summary"
+        description="Confirm your quantity and review the costs before placing the order."
+      >
+        <div className="flex flex-col gap-4 rounded-3xl border border-slate-100 bg-white/70 p-4 shadow-inner shadow-slate-200/60 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1 text-sm text-slate-600">
+            <p className="text-sm font-semibold text-slate-900">Quantity</p>
+            <p>Adjust how many units you would like to order.</p>
+          </div>
+          <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white/80 px-2 py-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              disabled={quantity <= 1}
+              aria-label="Decrease quantity"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <span className="min-w-[2ch] text-base font-semibold text-slate-900">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity(quantity + 1)}
+              aria-label="Increase quantity"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-3 rounded-3xl border border-slate-100 bg-white/70 p-5 shadow-inner shadow-slate-200/60">
+          <div className="flex items-center justify-between text-sm text-slate-600">
             <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
+            <span className="font-medium text-slate-900">{formatCurrency(subtotal)}</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span>Delivery ({deliveryZone === 'outside_dhaka' ? 'Outside Dhaka' : 'Inside Dhaka'})</span>
-            <span>{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+          <div className="flex items-center justify-between text-sm text-slate-600">
+            <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
+            <span className="font-medium text-slate-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
           </div>
+          <div className="flex items-center justify-between text-base font-semibold text-slate-900">
+            <span>Total due</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+          {freeDelivery ? (
+            <p className="text-xs font-semibold text-green-600">Congratulations! Free delivery is applied to this order.</p>
+          ) : (
+            <p className="text-xs text-slate-500">
+              Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
+            </p>
+          )}
         </div>
-        <div className="flex items-center justify-between text-base font-semibold">
-          <span>Total</span>
-          <span>{formatCurrency(total)}</span>
-        </div>
-        {freeDelivery ? (
-          <p className="text-xs text-green-600 font-semibold">Free delivery applied for this order.</p>
-        ) : (
-          <p className="text-xs text-gray-500">
-            Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock free delivery.
-          </p>
-        )}
-      </div>
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Placing Order...' : 'Place Order'}
-      </Button>
+        <div className="flex items-start gap-3 rounded-3xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600">
+          <ShieldCheck className="mt-0.5 h-5 w-5 text-blue-500" aria-hidden />
+          <p>
+            Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the
+            delivery.
+          </p>
+        </div>
+
+        {error ? (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="h-12 w-full rounded-2xl bg-blue-600 px-6 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/70 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
+        >
+          {isSubmitting ? 'Placing Order…' : 'Place order securely'}
+        </Button>
+      </SectionCard>
     </form>
   )
 }
