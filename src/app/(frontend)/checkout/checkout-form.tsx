@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ShieldCheck, Store, Truck } from 'lucide-react'
+import { Minus, Plus, ShieldCheck, Store, Truck } from 'lucide-react'
 import type { DeliverySettings } from '@/lib/delivery-settings'
 import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { cn } from '@/lib/utils'
@@ -27,7 +27,7 @@ interface CheckoutFormProps {
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettings }) => {
-  const { state, clearCart, getTotalPrice } = useCart()
+  const { state, clearCart, getTotalPrice, updateQuantity } = useCart()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [customerNumber, setCustomerNumber] = useState<string>(user?.customerNumber || '')
@@ -133,10 +133,27 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               </div>
               <p className="text-xs text-slate-500">{formatCurrency(item.price)} each</p>
             </div>
-            <div className="flex flex-col items-end gap-2 text-right">
-              <Badge className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600">
-                ×{item.quantity}
-              </Badge>
+            <div className="flex flex-col items-end gap-3 text-right">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-2 py-1 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                  disabled={item.quantity <= 1}
+                  aria-label={`Decrease quantity of ${item.name}`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="min-w-[2ch] text-sm font-semibold text-slate-900">{item.quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  aria-label={`Increase quantity of ${item.name}`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
               <p className="text-sm font-semibold text-slate-900">{formatCurrency(item.price * item.quantity)}</p>
             </div>
           </div>
@@ -366,11 +383,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
-      <form
-        id={formId}
-        onSubmit={handleSubmit}
-        className="space-y-8 rounded-[28px] border border-white/70 bg-white/80 p-6 shadow-2xl shadow-blue-100/40 backdrop-blur lg:p-10"
-      >
+      <div className="space-y-8">
+        <form
+          id={formId}
+          onSubmit={handleSubmit}
+          className="space-y-8 rounded-[28px] border border-white/70 bg-white/80 p-6 shadow-2xl shadow-blue-100/40 backdrop-blur lg:p-10"
+        >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">Step 02</p>
@@ -659,15 +677,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                 Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
               </div>
             )}
-            {isDigitalPayment ? (
-              <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-xs text-blue-700 shadow-sm">
-                {freeDelivery
-                  ? 'Digital wallet payments remain eligible for free shipping once the threshold is met.'
-                  : `Digital wallet payments have a flat delivery charge of ${formatCurrency(
-                      settings.digitalPaymentDeliveryCharge,
-                    )} when the subtotal is below ${formatCurrency(settings.freeDeliveryThreshold)}.`}
-              </div>
-            ) : null}
           </div>
         </SectionCard>
 
@@ -677,10 +686,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </Alert>
         ) : null}
 
-        <OrderSummaryCard className="lg:hidden" layout="mobile" />
-      </form>
-      <div className="space-y-6">
-        <OrderSummaryCard className="hidden lg:block" layout="desktop" />
+          <OrderSummaryCard className="lg:hidden" layout="mobile" />
+        </form>
         <SectionCard
           title="Payment method"
           description="Choose how you would like to pay for this order."
@@ -789,6 +796,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <p className="text-xs text-slate-500">Pay with cash when your delivery arrives.</p>
           )}
         </SectionCard>
+      </div>
+      <div className="space-y-6">
+        <OrderSummaryCard className="hidden lg:block" layout="desktop" />
       </div>
     </div>
   )
