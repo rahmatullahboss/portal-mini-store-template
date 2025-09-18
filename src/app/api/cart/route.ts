@@ -89,6 +89,10 @@ export async function POST(request: NextRequest) {
         ? body.sessionId.trim()
         : undefined
     const requestSessionId = resolveSessionIdFromRequest(request)
+    const originClientId =
+      isRecord(body) && typeof body.clientId === 'string' && body.clientId.trim().length > 0
+        ? body.clientId.trim()
+        : null
     const incomingItems = normalizeIncomingItems(itemsInput)
     const quantityMap = buildQuantityMapFromIncoming(incomingItems)
 
@@ -159,6 +163,7 @@ export async function POST(request: NextRequest) {
         originSessionId: sessionCandidate ?? null,
         userId: typeof userId === 'number' || typeof userId === 'string' ? String(userId) : null,
         updatedAt: nowIso,
+        originClientId,
       })
     } catch (broadcastError) {
       console.error('Failed to broadcast cart update:', broadcastError)

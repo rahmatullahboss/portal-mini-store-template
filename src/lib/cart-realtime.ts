@@ -20,6 +20,7 @@ export interface CartRealtimePayload {
   originSessionId: string | null
   userId: string | null
   updatedAt: string
+  originClientId?: string | null
 }
 
 const encoder = new TextEncoder()

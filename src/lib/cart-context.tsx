@@ -183,6 +183,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
   const reconnectTimerRef = useRef<number | null>(null)
+  const clientIdRef = useRef<string | null>(null)
   const updateSessionId = useCallback((value: string | null) => {
     sessionIdRef.current = value
     setSessionToken(value)
@@ -191,6 +192,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateAuthState = useCallback((value: boolean) => {
     isAuthenticatedRef.current = value
     setIsAuthenticated(value)
+  }, [])
+
+  const ensureClientId = useCallback(() => {
+    if (clientIdRef.current) return clientIdRef.current
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('dyad-cart-client-id')
+        if (stored && stored.trim().length > 0) {
+          clientIdRef.current = stored.trim()
+          return clientIdRef.current
+        }
+        const generated = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : Math.random().toString(36).slice(2)
+        clientIdRef.current = generated
+        localStorage.setItem('dyad-cart-client-id', generated)
+        return generated
+      } catch {
+        const fallback = Math.random().toString(36).slice(2)
+        clientIdRef.current = fallback
+        return fallback
+      }
+    }
+    const fallback = Math.random().toString(36).slice(2)
+    clientIdRef.current = fallback
+    return fallback
   }, [])
 
   const closeEventSource = useCallback(() => {
@@ -207,6 +234,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load cart from localStorage on mount
   useEffect(() => {
     if (typeof window === 'undefined') return
+    ensureClientId()
     try {
       const savedCart = localStorage.getItem('dyad-cart')
       if (savedCart) {
@@ -240,7 +268,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setHasLoadedLocalCart(true)
     }
-  }, [updateSessionId])
+  }, [updateSessionId, ensureClientId])
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -383,11 +411,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const parsed = JSON.parse((event as MessageEvent).data ?? '{}') as {
             sessionId?: string | null
             originSessionId?: string | null
+            originClientId?: string | null
           }
-          const origin = typeof parsed.originSessionId === 'string' && parsed.originSessionId.trim().length > 0
-            ? parsed.originSessionId.trim()
-            : null
-          if (origin && sessionIdRef.current && origin === sessionIdRef.current) {
+          const originSession = typeof parsed.originSessionId === 'string' && parsed.originSessionId.trim().length > 0 ? parsed.originSessionId.trim() : null
+          const originClient = typeof parsed.originClientId === 'string' && parsed.originClientId.trim().length > 0 ? parsed.originClientId.trim() : null
+          const localClient = clientIdRef.current ?? ensureClientId()
+          if (originClient && localClient && originClient === localClient) {
+            return
+          }
+          if (originSession && sessionIdRef.current && originSession === sessionIdRef.current) {
             return
           }
         } catch {
@@ -416,7 +448,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       cancelled = true
       closeEventSource()
     }
-  }, [sessionToken, isAuthenticated, syncCartFromServer, closeEventSource])
+  }, [sessionToken, isAuthenticated, syncCartFromServer, closeEventSource, ensureClientId])
   useEffect(() => {
     if (typeof window === 'undefined') return
     const handleAuthChange = () => {
@@ -478,6 +510,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
+        const clientId = ensureClientId()
         const response = await fetch('/api/cart', {
           method: 'POST',
           credentials: 'include',
@@ -488,6 +521,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
               quantity,
             })),
             sessionId: sessionIdRef.current ?? undefined,
+            clientId,
           }),
         })
 
@@ -524,7 +558,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to persist cart to server:', error)
       }
     },
-    [hasLoadedLocalCart, updateSessionId, updateAuthState],
+    [hasLoadedLocalCart, updateSessionId, updateAuthState, ensureClientId],
   )
 
   useEffect(() => {
