@@ -18,7 +18,6 @@ import * as migration_20250917_add_delivery_settings from './20250917_add_delive
 import * as migration_20250917_add_delivery_settings_lock_rel from './20250917_add_delivery_settings_lock_rel';
 import * as migration_20250918_add_payment_fields_to_orders from './20250918_add_payment_fields_to_orders';
 import * as migration_20250919_update_delivery_settings_with_highlight from './20250919_update_delivery_settings_with_highlight';
-import * as migration_20250914_add_abandoned_cart_reminder_stage from './20250914_add_abandoned_cart_reminder_stage';
 
 export const migrations = [
   {
