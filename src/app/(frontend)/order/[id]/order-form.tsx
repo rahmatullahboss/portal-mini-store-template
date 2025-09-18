@@ -126,7 +126,15 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </div>
   )
 
-  const SummaryPanel = ({ layout }: { layout: 'mobile' | 'desktop' }) => (
+  const SummaryPanel = ({
+    layout,
+    formId,
+    isSubmitting,
+  }: {
+    layout: 'mobile' | 'desktop'
+    formId: string
+    isSubmitting: boolean
+  }) => (
     <div
       className={cn(
         'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50',
@@ -168,26 +176,44 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
         </div>
       </div>
 
-      <div className="mt-5 space-y-3 rounded-3xl border border-amber-50 bg-white/75 p-5 shadow-inner shadow-amber-200/40">
-        <div className="flex items-center justify-between text-sm text-stone-600">
-          <span>Subtotal</span>
-          <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
+      <div className="mt-5 space-y-5 rounded-3xl border border-amber-50 bg-white/75 p-5 shadow-inner shadow-amber-200/40">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm text-stone-600">
+            <span>Subtotal</span>
+            <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-stone-600">
+            <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
+            <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+          </div>
+          <div className="flex items-center justify-between text-base font-semibold text-stone-900">
+            <span>Total due</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+          {freeDelivery ? (
+            <p className="text-xs font-semibold text-emerald-600">Congratulations! Free delivery is applied to this order.</p>
+          ) : (
+            <p className="text-xs text-stone-500">
+              Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
+            </p>
+          )}
         </div>
-        <div className="flex items-center justify-between text-sm text-stone-600">
-          <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
-          <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
-        </div>
-        <div className="flex items-center justify-between text-base font-semibold text-stone-900">
-          <span>Total due</span>
-          <span>{formatCurrency(total)}</span>
-        </div>
-        {freeDelivery ? (
-          <p className="text-xs font-semibold text-emerald-600">Congratulations! Free delivery is applied to this order.</p>
-        ) : (
-          <p className="text-xs text-stone-500">
-            Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
+        <div className="h-px w-full bg-gradient-to-r from-amber-100 via-transparent to-rose-100" />
+        <div className="flex items-start gap-3 rounded-2xl bg-white/80 p-4 text-sm text-stone-600">
+          <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
+          <p>
+            Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the
+            delivery.
           </p>
-        )}
+        </div>
+        <Button
+          type="submit"
+          form={layout === 'desktop' ? formId : undefined}
+          disabled={isSubmitting}
+          className="h-12 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
+        >
+          {isSubmitting ? 'Placing Order…' : 'Place order securely'}
+        </Button>
       </div>
     </div>
   )
@@ -220,7 +246,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </div>
   )
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
@@ -327,10 +353,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     }
   }
 
+  const formId = 'order-checkout-form'
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
       <div className="space-y-8">
         <form
+          id={formId}
           onSubmit={handleSubmit}
           className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10"
         >
@@ -670,15 +699,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             )}
           </SectionCard>
 
-          <SummaryPanel layout="mobile" />
-
-          <div className="flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
-            <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
-            <p>
-              Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the
-              delivery.
-            </p>
-          </div>
+          <SummaryPanel layout="mobile" formId={formId} isSubmitting={isSubmitting} />
 
           {error ? (
             <Alert variant="destructive">
@@ -686,22 +707,15 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </Alert>
           ) : null}
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-12 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
-          >
-            {isSubmitting ? 'Placing Order…' : 'Place order securely'}
-          </Button>
         </form>
       </div>
 
       <div className="space-y-6 self-start">
         <div className="space-y-6 lg:sticky lg:top-32">
           <ProductOverviewCard />
+          <SummaryPanel layout="desktop" formId={formId} isSubmitting={isSubmitting} />
           <NeedHelpCard />
         </div>
-        <SummaryPanel layout="desktop" />
       </div>
     </div>
   )
