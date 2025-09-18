@@ -30,7 +30,7 @@ export const dynamic = 'force-dynamic'
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string; start?: string; end?: string }>
+  searchParams: Promise<{ date?: string; start?: string; end?: string; payment?: string }>
 }) {
   const headers = await getHeaders()
   const payloadConfig = await config
@@ -61,13 +61,23 @@ export default async function AdminDashboardPage({
   const isDigitalPayment = (method?: string | null) => method === 'bkash' || method === 'nagad'
 
   // Determine selected date or date range and compute [start, endExclusive)
-  const { date: paramDate, start: startParam, end: endParam } = await searchParams
+  const { date: paramDate, start: startParam, end: endParam, payment: paymentParam } = await searchParams
   const toDateOnly = (d: Date) => {
     const year = d.getUTCFullYear()
     const month = String(d.getUTCMonth() + 1).padStart(2, '0')
     const day = String(d.getUTCDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
   }
+
+  const normalizePaymentFilter = (value?: string): 'all' | 'digital' | 'cod' => {
+    if (!value) return 'all'
+    const normalized = value.toLowerCase().trim()
+    if (normalized === 'digital') return 'digital'
+    if (['cod', 'cash', 'cash_on_delivery'].includes(normalized)) return 'cod'
+    return 'all'
+  }
+
+  const paymentFilter = normalizePaymentFilter(paymentParam)
 
   const isDateOnly = (s?: string) => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s)
 
@@ -95,17 +105,25 @@ export default async function AdminDashboardPage({
   }
 
   // Fetch orders for the selected day or range
+  const orderWhere: Record<string, any> = {
+    orderDate: {
+      greater_than_equal: start.toISOString(),
+      less_than: endExclusive.toISOString(),
+    },
+  }
+
+  if (paymentFilter === 'digital') {
+    orderWhere.paymentMethod = { in: ['bkash', 'nagad'] }
+  } else if (paymentFilter === 'cod') {
+    orderWhere.paymentMethod = { equals: 'cod' }
+  }
+
   const orders = await payload.find({
     collection: 'orders',
     depth: 3,
     sort: '-orderDate',
     limit: 50,
-    where: {
-      orderDate: {
-        greater_than_equal: start.toISOString(),
-        less_than: endExclusive.toISOString(),
-      },
-    },
+    where: orderWhere,
   })
 
   // Fetch recent abandoned carts (active + abandoned)
@@ -128,6 +146,27 @@ export default async function AdminDashboardPage({
   const refundedOrders = orders.docs.filter((order: any) => order.status === 'refunded')
   const activeCarts = (carts.docs as any[]).filter((c: any) => c.status === 'active')
   const abandonedCarts = (carts.docs as any[]).filter((c: any) => c.status === 'abandoned')
+
+  const buildPaymentFilterLink = (target: 'all' | 'digital' | 'cod') => {
+    const params = new URLSearchParams()
+    if (selectedRange) {
+      params.set('start', selectedRange.start)
+      params.set('end', selectedRange.end)
+    } else if (selectedDateOnly) {
+      params.set('date', selectedDateOnly)
+    }
+
+    if (target === 'digital') {
+      params.set('payment', 'digital')
+    } else if (target === 'cod') {
+      params.set('payment', 'cod')
+    }
+
+    const query = params.toString()
+    return query ? `/admin-dashboard?${query}` : '/admin-dashboard'
+  }
+
+  const paymentQuerySuffix = paymentFilter === 'all' ? '' : `&payment=${paymentFilter}`
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -354,41 +393,83 @@ export default async function AdminDashboardPage({
 
         {/* Orders Section */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              {selectedRange
-                ? `Orders from ${selectedRange.start} to ${selectedRange.end}`
-                : `Orders for ${selectedDateOnly}`}
-            </h2>
-            <div className="flex items-center gap-2">
-              {!selectedRange && (() => {
-                const cur = new Date(start)
-                const prev = new Date(cur)
-                prev.setUTCDate(cur.getUTCDate() - 1)
-                const next = new Date(cur)
-                next.setUTCDate(cur.getUTCDate() + 1)
-                const today = toDateOnly(new Date())
-                const prevStr = toDateOnly(prev)
-                const nextStr = toDateOnly(next)
-                return (
-                  <>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/admin-dashboard?date=${prevStr}`}>Previous Day</Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm" disabled={nextStr > today}>
-                      <Link aria-disabled={nextStr > today} href={`/admin-dashboard?date=${nextStr}`}>
-                        Next Day
-                      </Link>
-                    </Button>
-                  </>
-                )
-              })()}
-              <DateFilter
-                initialMode={selectedRange ? 'range' : 'single'}
-                initialDate={selectedDateOnly}
-                initialStart={selectedRange?.start}
-                initialEnd={selectedRange?.end}
-              />
+          <div className="mb-4 rounded-2xl border border-gray-200/60 bg-white shadow-sm">
+            <div className="flex flex-col gap-4 border-b border-gray-200/70 bg-gray-50/60 px-5 py-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  {selectedRange
+                    ? `Orders from ${selectedRange.start} to ${selectedRange.end}`
+                    : `Orders for ${selectedDateOnly}`}
+                </h2>
+                {paymentFilter !== 'all' ? (
+                  <Badge className="mt-2 bg-amber-100 text-amber-800">
+                    {paymentFilter === 'digital' ? 'Digital wallet payments' : 'Cash on delivery'}
+                  </Badge>
+                ) : null}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <div className="flex items-center gap-2">
+                  {!selectedRange && (() => {
+                    const cur = new Date(start)
+                    const prev = new Date(cur)
+                    prev.setUTCDate(cur.getUTCDate() - 1)
+                    const next = new Date(cur)
+                    next.setUTCDate(cur.getUTCDate() + 1)
+                    const today = toDateOnly(new Date())
+                    const prevStr = toDateOnly(prev)
+                    const nextStr = toDateOnly(next)
+                    return (
+                      <>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/admin-dashboard?date=${prevStr}${paymentQuerySuffix}`}>
+                            Previous Day
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" disabled={nextStr > today}>
+                          <Link
+                            aria-disabled={nextStr > today}
+                            href={`/admin-dashboard?date=${nextStr}${paymentQuerySuffix}`}
+                          >
+                            Next Day
+                          </Link>
+                        </Button>
+                      </>
+                    )
+                  })()}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant={paymentFilter === 'all' ? 'default' : 'outline'}
+                    className={paymentFilter === 'all' ? 'bg-amber-500 hover:bg-amber-500/90 text-white' : ''}
+                  >
+                    <Link href={buildPaymentFilterLink('all')}>All payments</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant={paymentFilter === 'digital' ? 'default' : 'outline'}
+                    className={paymentFilter === 'digital' ? 'bg-amber-500 hover:bg-amber-500/90 text-white' : ''}
+                  >
+                    <Link href={buildPaymentFilterLink('digital')}>Digital only</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant={paymentFilter === 'cod' ? 'default' : 'outline'}
+                    className={paymentFilter === 'cod' ? 'bg-amber-500 hover:bg-amber-500/90 text-white' : ''}
+                  >
+                    <Link href={buildPaymentFilterLink('cod')}>Cash only</Link>
+                  </Button>
+                  <DateFilter
+                    initialMode={selectedRange ? 'range' : 'single'}
+                    initialDate={selectedDateOnly}
+                    initialStart={selectedRange?.start}
+                    initialEnd={selectedRange?.end}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

@@ -690,7 +690,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-        </form>
         <SectionCard
           title="Payment method"
           description="Choose how you would like to pay for this order."
@@ -724,7 +723,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     setError(null)
                   }}
                   className="sr-only"
-                  form={formId}
                 />
                 <div className="relative h-16 w-32">
                   <Image
@@ -771,7 +769,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     required={requiresDigitalPaymentDetails}
                     placeholder="e.g. 01XXXXXXXXX"
                     className={inputClasses}
-                    form={formId}
                   />
                 </div>
                 <div className="space-y-2">
@@ -790,7 +787,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     required={requiresDigitalPaymentDetails}
                     placeholder="e.g. TXN123456789"
                     className={inputClasses}
-                    form={formId}
                   />
                 </div>
               </div>
@@ -799,6 +795,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <p className="text-xs text-stone-500">Pay with cash when your delivery arrives.</p>
           )}
         </SectionCard>
+        </form>
         <OrderSummaryCard className="lg:hidden" layout="mobile" />
       </div>
       <div className="min-w-0 space-y-6">
