@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload, type Payload } from 'payload'
-import type { Where } from 'payload/types'
+import type { Where } from 'payload/dist/types'
 
 import config, { getServerSideURL } from '@/payload.config'
 
