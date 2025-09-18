@@ -690,8 +690,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-
-          <OrderSummaryCard className="lg:hidden" layout="mobile" />
         </form>
         <SectionCard
           title="Payment method"
@@ -801,6 +799,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
             <p className="text-xs text-stone-500">Pay with cash when your delivery arrives.</p>
           )}
         </SectionCard>
+        <OrderSummaryCard className="lg:hidden" layout="mobile" />
       </div>
       <div className="space-y-6">
         <OrderSummaryCard className="hidden lg:block" layout="desktop" />
