@@ -22,6 +22,9 @@ import { Reviews } from './collections/Reviews'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+type BuildConfigInput = Parameters<typeof buildConfig>[0]
+type PayloadPlugin = BuildConfigInput extends { plugins?: infer P } ? (P extends Array<infer Plugin> ? Plugin : never) : never
+
 export const getServerSideURL = () => {
   // Prefer explicitly provided public URL
   const explicit = process.env.NEXT_PUBLIC_SERVER_URL
@@ -37,7 +40,7 @@ export const getServerSideURL = () => {
   return undefined as unknown as string
 }
 
-const storagePlugins = [] as any[]
+const storagePlugins: PayloadPlugin[] = []
 
 // Prefer Vercel Blob if configured; otherwise fall back to S3 if configured
 if (process.env.BLOB_READ_WRITE_TOKEN) {

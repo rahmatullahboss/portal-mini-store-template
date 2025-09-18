@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload, type Payload } from 'payload'
-import type { Where } from 'payload/dist/types'
 
 import config, { getServerSideURL } from '@/payload.config'
+
+type PayloadFindArgs = Parameters<Payload['find']>
+type PayloadWhere = PayloadFindArgs[0] extends { where?: infer W } ? NonNullable<W> : never
 
 type AbandonedCartDoc = {
   id?: string | number
@@ -318,8 +320,8 @@ const runWorkflow = async (payload: Payload, ttlMinutes: number) => {
     predicate: (cart: AbandonedCartDoc) => boolean,
     fields: Partial<AbandonedCartDoc> & Record<string, unknown>,
   ) => {
-    const stageFilters: Where[] = (() => {
-      const filters: Where[] = []
+    const stageFilters: PayloadWhere[] = (() => {
+      const filters: PayloadWhere[] = []
       if (stage === 'first') {
         filters.push({ firstReminderSentAt: { equals: null } })
       } else if (stage === 'second') {
