@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import type { AbandonedCart } from '@/payload-types'
 
 import config from '@/payload.config'
+import { broadcastCartUpdate, buildCartChannels } from '@/lib/cart-realtime'
 import {
   buildQuantityMapFromIncoming,
   extractCartQuantities,
@@ -15,27 +16,10 @@ import {
   isRecord,
   normalizeIncomingItems,
   resolveCartPayload,
+  resolveSessionIdFromRequest,
   resolveUserId,
 } from './cart-helpers'
 
-const resolveSessionIdFromRequest = (request: NextRequest): string | null => {
-  const urlSession = request.nextUrl.searchParams.get('sessionId')
-  if (typeof urlSession === 'string' && urlSession.trim().length > 0) {
-    return urlSession.trim()
-  }
-
-  const headerSession = request.headers.get('x-dyad-cart-session')
-  if (typeof headerSession === 'string' && headerSession.trim().length > 0) {
-    return headerSession.trim()
-  }
-
-  const cookieSession = request.cookies.get('dyad_cart_sid')?.value
-  if (typeof cookieSession === 'string' && cookieSession.trim().length > 0) {
-    return cookieSession.trim()
-  }
-
-  return null
-}
 
 const applySessionCookie = (response: NextResponse, sessionId: string | null) => {
   if (!sessionId) return
@@ -163,9 +147,27 @@ export async function POST(request: NextRequest) {
 
     applySessionCookie(response, sessionId)
 
+    const channelKeys = buildCartChannels({
+      userId: typeof userId === 'number' || typeof userId === 'string' ? String(userId) : null,
+      sessionId,
+    })
+
+    try {
+      broadcastCartUpdate(channelKeys, {
+        type: 'cart_updated',
+        sessionId,
+        originSessionId: sessionCandidate ?? null,
+        userId: typeof userId === 'number' || typeof userId === 'string' ? String(userId) : null,
+        updatedAt: nowIso,
+      })
+    } catch (broadcastError) {
+      console.error('Failed to broadcast cart update:', broadcastError)
+    }
     return response
   } catch (error) {
     console.error('Failed to persist cart:', error)
     return NextResponse.json({ error: 'Failed to persist cart' }, { status: 500 })
   }
 }
+
+

@@ -1,4 +1,24 @@
+import type { NextRequest } from 'next/server'
 import type { Payload } from 'payload'
+
+export const resolveSessionIdFromRequest = (request: NextRequest): string | null => {
+  const urlSession = request.nextUrl.searchParams.get('sessionId')
+  if (typeof urlSession === 'string' && urlSession.trim().length > 0) {
+    return urlSession.trim()
+  }
+
+  const headerSession = request.headers.get('x-dyad-cart-session')
+  if (typeof headerSession === 'string' && headerSession.trim().length > 0) {
+    return headerSession.trim()
+  }
+
+  const cookieSession = request.cookies.get('dyad_cart_sid')?.value
+  if (typeof cookieSession === 'string' && cookieSession.trim().length > 0) {
+    return cookieSession.trim()
+  }
+
+  return null
+}
 
 export type CartLine = { item: number; quantity: number }
 export type IncomingCartItem = { id: string | number; quantity: number }
