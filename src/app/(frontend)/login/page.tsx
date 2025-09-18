@@ -63,6 +63,9 @@ function LoginForm() {
 
       if (response.ok) {
         // Login successful, redirect to home
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('dyad-auth-changed'))
+        }
         router.push('/')
         router.refresh()
       } else {
