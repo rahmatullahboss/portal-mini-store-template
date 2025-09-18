@@ -1,7 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 
 import config, { getServerSideURL } from '@/payload.config'
+
+type AbandonedCartDoc = {
+  id?: string | number
+  customerEmail?: string | null
+  cartTotal?: number | null
+  subtotal?: number | null
+  status?: string | null
+  items?: Array<{
+    item?:
+      | {
+          id?: string | number
+          name?: string | null
+          price?: number | null
+          category?:
+            | string
+            | {
+                name?: string | null
+              }
+          image?: {
+            url?: string | null
+          }
+        }
+      | string
+      | number
+      | null
+    quantity?: number | null
+    name?: string | null
+    price?: number | null
+  }> | null
+  lastActivityAt?: string | Date | null
+  abandonedAt?: string | Date | null
+  firstReminderSentAt?: string | Date | null
+  secondReminderSentAt?: string | Date | null
+  finalReminderSentAt?: string | Date | null
+}
+
+type NormalisedItem = {
+  id: string
+  name: string
+  quantity: number
+  price?: number
+  category?: string
+  imageUrl?: string
+}
 
 const DEFAULT_TTL_MINUTES = Number(process.env.ABANDONED_CART_TTL_MINUTES || 60)
 const MIN_TTL_MINUTES = 5
@@ -50,58 +94,69 @@ const toDate = (value: unknown): Date | null => {
   return null
 }
 
-const hasCartValue = (cart: Record<string, any>) => {
+const hasCartValue = (cart: AbandonedCartDoc) => {
   if (!cart) return false
   const total = typeof cart.cartTotal === 'number' ? cart.cartTotal : undefined
   const subtotal = typeof cart.subtotal === 'number' ? cart.subtotal : undefined
   if (typeof total === 'number' && total > 0) return true
   if (typeof subtotal === 'number' && subtotal > 0) return true
   if (Array.isArray(cart.items)) {
-    const hasQty = cart.items.some((line: any) => Number(line?.quantity) > 0)
+    const hasQty = cart.items.some((line) => Number(line?.quantity) > 0)
     if (hasQty) return true
   }
   return false
 }
 
-const normaliseItems = (cart: Record<string, any>) => {
-  const items = Array.isArray(cart.items) ? cart.items : []
-  return items
-    .map((line: any) => {
-      const item = line?.item
-      const product = item && typeof item === 'object' ? item : null
-      const id = product?.id || line?.item
-      if (!id) return null
+const normaliseItems = (cart: AbandonedCartDoc): NormalisedItem[] => {
+  if (!Array.isArray(cart.items) || cart.items.length === 0) return []
+
+  return cart.items
+    .map<NormalisedItem | null>((line) => {
+      const product = line?.item && typeof line.item === 'object' ? line.item : null
+      const rawId = product?.id ?? line?.item
+      if (!rawId) return null
+
       const quantity = Number(line?.quantity)
       const safeQty = Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1
       const priceRaw = Number(product?.price ?? line?.price)
       const price = Number.isFinite(priceRaw) && priceRaw >= 0 ? priceRaw : undefined
-      const imageValue = product?.image
-      let imageUrl: string | undefined
-      if (imageValue && typeof imageValue === 'object' && typeof imageValue.url === 'string') {
-        imageUrl = imageValue.url
+
+      const imageValue = product && typeof product === 'object' ? product.image : undefined
+      const imageUrl =
+        imageValue && typeof imageValue === 'object' && typeof imageValue?.url === 'string'
+          ? imageValue.url
+          : undefined
+
+      let category: string | undefined
+      if (product) {
+        if (typeof product.category === 'string') {
+          category = product.category
+        } else if (product.category && typeof product.category === 'object') {
+          const nested = product.category as { name?: string | null }
+          category = typeof nested?.name === 'string' ? nested.name : undefined
+        }
       }
+
       return {
-        id: String(id),
-        name: typeof product?.name === 'string' ? product.name : line?.name || 'পণ্য',
+        id: String(rawId),
+        name:
+          (product && typeof product?.name === 'string' && product.name) ||
+          (typeof line?.name === 'string' && line.name) ||
+          'পণ্য',
         quantity: safeQty,
         price,
-        category:
-          typeof product?.category === 'string'
-            ? product.category
-            : typeof product?.category?.name === 'string'
-              ? product.category.name
-              : '',
+        category,
         imageUrl,
       }
     })
-    .filter((value): value is {
-      id: string
-      name: string
-      quantity: number
-      price?: number
-      category?: string
-      imageUrl?: string
-    } => !!value)
+    .filter((value): value is NormalisedItem => value !== null)
+}
+
+const resolveCartId = (cart: AbandonedCartDoc) => {
+  if (typeof cart.id === 'string' || typeof cart.id === 'number') {
+    return cart.id
+  }
+  return undefined
 }
 
 const renderItemsHTML = (items: ReturnType<typeof normaliseItems>) => {
@@ -142,8 +197,8 @@ const buildCTAButton = (label: string) => `
 `
 
 const sendEmail = async (
-  payload: any,
-  cart: Record<string, any>,
+  payload: Payload,
+  cart: AbandonedCartDoc,
   stage: 'first' | 'second' | 'final',
 ) => {
   const email = cart.customerEmail
@@ -171,7 +226,10 @@ const sendEmail = async (
   }
 
   const totalText = total ?? subtotal
-  const totalFragment = typeof totalText === 'number' ? `<p style="margin:16px 0 0; font-weight:600;">আনুমানিক মোট: ${formatCurrency(totalText)}</p>` : ''
+  const totalFragment =
+    typeof totalText === 'number'
+      ? `<p style="margin:16px 0 0; font-weight:600;">আনুমানিক মোট: ${formatCurrency(totalText)}</p>`
+      : ''
   const html = `
     <div style="font-family:Helvetica,Arial,sans-serif; background:#f9fafb; padding:24px;">
       <div style="max-width:520px; margin:0 auto; background:#ffffff; padding:24px; border-radius:12px;">
@@ -186,17 +244,18 @@ const sendEmail = async (
     </div>
   `
 
-  const textLines = [
-    subject,
-    '',
-    intro,
-    '',
-    items.map((item) => `${item.name} x ${item.quantity}`).join('\n'),
-    '',
-    typeof totalText === 'number' ? `মোট: ${formatCurrency(totalText)}` : undefined,
-    stage === 'final' ? `কুপন কোড: ${FINAL_DISCOUNT_CODE}` : undefined,
-    'আপনার অর্ডার সম্পন্ন করতে ভিজিট করুন: ' + `${STOREFRONT_URL}/checkout`,
-  ].filter(Boolean)
+  const textLines: string[] = [subject, '', intro]
+  if (items.length) {
+    textLines.push('')
+    textLines.push(...items.map((item) => `${item.name} x ${item.quantity}`))
+  }
+  if (typeof totalText === 'number') {
+    textLines.push('', `মোট: ${formatCurrency(totalText)}`)
+  }
+  if (stage === 'final') {
+    textLines.push('', `কুপন কোড: ${FINAL_DISCOUNT_CODE}`)
+  }
+  textLines.push('', `আপনার অর্ডার সম্পন্ন করতে ভিজিট করুন: ${STOREFRONT_URL}/checkout`)
 
   await payload.sendEmail?.({
     to: email,
@@ -208,7 +267,7 @@ const sendEmail = async (
   return true
 }
 
-const runWorkflow = async (payload: any, ttlMinutes: number) => {
+const runWorkflow = async (payload: Payload, ttlMinutes: number) => {
   const ttl = Math.max(MIN_TTL_MINUTES, ttlMinutes || DEFAULT_TTL_MINUTES)
   const now = new Date()
   const inactivityCutoff = new Date(now.getTime() - ttl * 60 * 1000).toISOString()
@@ -227,10 +286,11 @@ const runWorkflow = async (payload: any, ttlMinutes: number) => {
   })
 
   let marked = 0
-  for (const doc of candidates.docs || []) {
+  for (const doc of (candidates.docs || []) as AbandonedCartDoc[]) {
     if (!hasCartValue(doc)) continue
-    const id = (doc as any).id
-    const abandonedAtDate = toDate((doc as any).lastActivityAt) || new Date()
+    const id = resolveCartId(doc)
+    if (!id) continue
+    const abandonedAtDate = toDate(doc.lastActivityAt) || new Date()
     const abandonedAt = abandonedAtDate.toISOString()
     try {
       await payload.update({
@@ -254,8 +314,8 @@ const runWorkflow = async (payload: any, ttlMinutes: number) => {
 
   const sendStage = async (
     stage: 'first' | 'second' | 'final',
-    predicate: (cart: Record<string, any>) => boolean,
-    fields: Record<string, any>,
+    predicate: (cart: AbandonedCartDoc) => boolean,
+    fields: Partial<AbandonedCartDoc> & Record<string, unknown>,
   ) => {
     const stageFilters =
       stage === 'first'
@@ -280,26 +340,28 @@ const runWorkflow = async (payload: any, ttlMinutes: number) => {
     })
 
     let sent = 0
-    for (const cart of res.docs || []) {
+    for (const cart of (res.docs || []) as AbandonedCartDoc[]) {
       if (!hasCartValue(cart)) continue
       if (stage === 'first' && cart.firstReminderSentAt) continue
       if (stage === 'second' && (!cart.firstReminderSentAt || cart.secondReminderSentAt)) continue
       if (stage === 'final' && (!cart.secondReminderSentAt || cart.finalReminderSentAt)) continue
       if (!predicate(cart)) continue
-      const ok = await sendEmail(payload, cart, stage).catch((error) => {
-        console.error(`Failed to send ${stage} reminder for cart`, (cart as any).id, error)
+      const ok = await sendEmail(payload, cart, stage).catch((error: unknown) => {
+        console.error(`Failed to send ${stage} reminder for cart`, resolveCartId(cart), error)
         return false
       })
       if (!ok) continue
+      const id = resolveCartId(cart)
+      if (!id) continue
       try {
         await payload.update({
           collection: 'abandoned-carts',
-          id: (cart as any).id,
+          id,
           data: fields,
         })
         sent++
       } catch (error) {
-        console.error('Failed to update reminder timestamps', (cart as any).id, error)
+        console.error('Failed to update reminder timestamps', id, error)
       }
     }
     return sent
