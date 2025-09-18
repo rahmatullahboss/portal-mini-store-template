@@ -714,6 +714,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
         <div className="lg:hidden">
           <NeedHelpCard />
         </div>
+        <div className="hidden lg:block">
+          <NeedHelpCard />
+        </div>
       </div>
 
       <div className="space-y-6 self-start lg:sticky lg:top-32">
@@ -721,9 +724,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           <ProductOverviewCard />
         </div>
         <SummaryPanel layout="desktop" />
-        <div className="hidden lg:block">
-          <NeedHelpCard />
-        </div>
       </div>
     </div>
   )
