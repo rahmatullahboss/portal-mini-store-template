@@ -70,8 +70,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const userRecord = user as Record<string, unknown>
-    const userIdRaw = userRecord?.id
+    const userIdRaw = user.id
     const userId = typeof userIdRaw === 'number' ? userIdRaw : toItemId(userIdRaw)
     if (typeof userId !== 'number') {
       return NextResponse.json({ items: [], total: 0 })
