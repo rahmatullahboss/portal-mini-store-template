@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload, type Payload } from 'payload'
+import type { Where } from 'payload/types'
 
 import config, { getServerSideURL } from '@/payload.config'
 
@@ -317,18 +318,19 @@ const runWorkflow = async (payload: Payload, ttlMinutes: number) => {
     predicate: (cart: AbandonedCartDoc) => boolean,
     fields: Partial<AbandonedCartDoc> & Record<string, unknown>,
   ) => {
-    const stageFilters =
-      stage === 'first'
-        ? [{ firstReminderSentAt: { equals: null } }]
-        : stage === 'second'
-          ? [
-              { firstReminderSentAt: { exists: true } },
-              { secondReminderSentAt: { equals: null } },
-            ]
-          : [
-              { secondReminderSentAt: { exists: true } },
-              { finalReminderSentAt: { equals: null } },
-            ]
+    const stageFilters: Where[] = (() => {
+      const filters: Where[] = []
+      if (stage === 'first') {
+        filters.push({ firstReminderSentAt: { equals: null } })
+      } else if (stage === 'second') {
+        filters.push({ firstReminderSentAt: { exists: true } })
+        filters.push({ secondReminderSentAt: { equals: null } })
+      } else {
+        filters.push({ secondReminderSentAt: { exists: true } })
+        filters.push({ finalReminderSentAt: { equals: null } })
+      }
+      return filters
+    })()
 
     const res = await payload.find({
       collection: 'abandoned-carts',
