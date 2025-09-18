@@ -10,11 +10,17 @@ export async function POST(request: NextRequest) {
     const { user } = await payload.auth({ headers: request.headers })
 
     const body = await request.json().catch(() => ({}))
+    const normalizeString = (value: unknown) => {
+      if (typeof value !== 'string') return undefined
+      const trimmed = value.trim()
+      return trimmed.length > 0 ? trimmed : undefined
+    }
+
     const items: IncomingItem[] = Array.isArray(body?.items) ? body.items : []
     const total = typeof body?.total === 'number' ? Number(body.total) : undefined
-    const customerEmail = typeof body?.customerEmail === 'string' ? body.customerEmail : undefined
-    const customerName = typeof body?.customerName === 'string' ? body.customerName : undefined
-    const customerNumber = typeof body?.customerNumber === 'string' ? body.customerNumber : undefined
+    const customerEmail = normalizeString(body?.customerEmail)
+    const customerName = normalizeString(body?.customerName)
+    const customerNumber = normalizeString(body?.customerNumber)
 
     // Require at least one meaningful field
     if (!items.length && typeof total !== 'number') {
@@ -72,11 +78,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Pull profile fallbacks for logged-in users
-    const userEmail = user ? String((user as any)?.email || '') : undefined
-    const userName = user
-      ? `${String((user as any)?.firstName || '')} ${String((user as any)?.lastName || '')}`.trim()
-      : undefined
-    const userNumber = user ? String((user as any)?.customerNumber || '') : undefined
+    const userEmail = normalizeString(user ? (user as any)?.email : undefined)
+    const userName = normalizeString(
+      user
+        ? `${String((user as any)?.firstName || '')} ${String((user as any)?.lastName || '')}`
+        : undefined,
+    )
+    const userNumber = normalizeString(user ? (user as any)?.customerNumber : undefined)
+
+    const hasContactInfo = Boolean(user || customerEmail || customerNumber || userEmail || userNumber)
+
+    if (!hasContactInfo) {
+      if (existing?.docs?.[0]) {
+        await payload.delete({
+          collection: 'abandoned-carts',
+          id: (existing.docs[0] as any).id,
+        })
+      }
+      return NextResponse.json({ success: true })
+    }
 
     const data: any = {
       sessionId: String(sid),
