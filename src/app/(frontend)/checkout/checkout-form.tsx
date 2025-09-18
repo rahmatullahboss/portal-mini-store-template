@@ -274,7 +274,7 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
                   required={requiresDigitalPaymentDetails}
                   placeholder="e.g. 01XXXXXXXXX"
                   inputMode="numeric"
-                  pattern="01\\d{9}"
+                  pattern="[0-9]{11}"
                   maxLength={11}
                   className={inputClasses}
                 />
@@ -456,7 +456,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       const normalized = normalizeSenderNumberInput(value)
       setPaymentSenderNumber(normalized)
 
-      if (error && normalized.length === 11 && /^01\d{9}$/.test(normalized) && error.toLowerCase().includes('sender number')) {
+      if (error && normalized.length === 11 && error.toLowerCase().includes('sender number')) {
         setError(null)
       }
     },
@@ -477,8 +477,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         setError('Please provide the sender number used for the payment.')
         return
       }
-      if (sanitizedSenderNumber.length !== 11 || !/^01\d{9}$/.test(sanitizedSenderNumber)) {
-        setError('Please enter a valid 11-digit Bangladeshi sender number (e.g. 01XXXXXXXXX).')
+      if (sanitizedSenderNumber.length !== 11) {
+        setError('Please enter an 11-digit sender number before submitting your payment details.')
         return
       }
       if (!paymentTransactionId.trim()) {

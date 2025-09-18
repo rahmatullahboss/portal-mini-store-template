@@ -262,7 +262,7 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 required={requiresDigitalPaymentDetails}
                 placeholder="e.g. 01XXXXXXXXX"
                 inputMode="numeric"
-                pattern="01\\d{9}"
+                pattern="[0-9]{11}"
                 maxLength={11}
                 className={inputClasses}
               />
@@ -405,7 +405,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       const normalized = normalizeSenderNumberInput(value)
       setPaymentSenderNumber(normalized)
 
-      if (error && normalized.length === 11 && /^01\d{9}$/.test(normalized) && error.toLowerCase().includes('sender number')) {
+      if (error && normalized.length === 11 && error.toLowerCase().includes('sender number')) {
         setError('')
       }
     },
@@ -439,8 +439,8 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
         return
       }
 
-      if (sanitizedSenderNumber.length !== 11 || !/^01\d{9}$/.test(sanitizedSenderNumber)) {
-        setError('Please enter a valid 11-digit Bangladeshi sender number (e.g. 01XXXXXXXXX).')
+      if (sanitizedSenderNumber.length !== 11) {
+        setError('Please enter an 11-digit sender number before submitting your payment details.')
         setIsSubmitting(false)
         return
       }
