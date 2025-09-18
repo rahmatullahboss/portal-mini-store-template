@@ -91,7 +91,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const OrderSummaryCard = ({ className, layout }: { className?: string; layout: 'desktop' | 'mobile' }) => (
     <div
       className={cn(
-        'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/60 backdrop-blur-sm',
+        'w-full rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/60 backdrop-blur-sm',
         layout === 'desktop' ? 'lg:sticky lg:top-28' : '',
         className,
       )}
@@ -387,8 +387,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
-      <div className="space-y-8">
+    <div className="grid w-full max-w-full grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+      <div className="min-w-0 space-y-8">
         <form
           id={formId}
           onSubmit={handleSubmit}
@@ -801,7 +801,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         </SectionCard>
         <OrderSummaryCard className="lg:hidden" layout="mobile" />
       </div>
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <OrderSummaryCard className="hidden lg:block" layout="desktop" />
       </div>
     </div>
