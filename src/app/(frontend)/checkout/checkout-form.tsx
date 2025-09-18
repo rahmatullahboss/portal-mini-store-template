@@ -87,15 +87,15 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       <div className="mt-5 space-y-5">{children}</div>
     </div>
   )
-  const OrderSummaryCard = ({ className, layout }: { className?: string; layout: 'desktop' | 'mobile' }) => {
-    const senderNumberId = `paymentSenderNumber-${layout}`
-    const transactionId = `paymentTransactionId-${layout}`
+  const OrderSummaryCard = ({ className }: { className?: string }) => {
+    const senderNumberId = 'paymentSenderNumber'
+    const transactionId = 'paymentTransactionId'
 
     return (
       <div
         className={cn(
           'w-full rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/60 backdrop-blur-sm',
-          layout === 'desktop' ? 'lg:sticky lg:top-28' : '',
+          'lg:sticky lg:top-28',
           className,
         )}
       >
@@ -260,7 +260,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                     <AlertDescription>
                       <ul className="list-disc space-y-1 pl-5 text-sm">
                         {digitalPaymentInstructions.map((instruction, index) => (
-                          <li key={`${layout}-instruction-${index}`}>{instruction}</li>
+                          <li key={`instruction-${index}`}>{instruction}</li>
                         ))}
                       </ul>
                     </AlertDescription>
@@ -801,10 +801,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </Alert>
         ) : null}
         </div>
-        <OrderSummaryCard className="lg:hidden" layout="mobile" />
       </div>
-      <div className="min-w-0 space-y-6">
-        <OrderSummaryCard className="hidden lg:block" layout="desktop" />
+      <div className="min-w-0 space-y-6 lg:space-y-6 mt-8 lg:mt-0">
+        <OrderSummaryCard />
       </div>
     </form>
   )

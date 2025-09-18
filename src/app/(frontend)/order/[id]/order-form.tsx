@@ -127,17 +127,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     </div>
   )
 
-  const SummaryPanel = ({ layout }: { layout: 'mobile' | 'desktop' }) => {
-    const isDesktop = layout === 'desktop'
-    const senderNumberId = `order-paymentSenderNumber-${layout}`
-    const transactionId = `order-paymentTransactionId-${layout}`
+  const SummaryPanel = () => {
+    const senderNumberId = 'order-paymentSenderNumber'
+    const transactionId = 'order-paymentTransactionId'
 
     return (
       <div
-        className={cn(
-          'rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50',
-          isDesktop ? 'hidden lg:block' : 'lg:hidden',
-        )}
+        className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -254,7 +250,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                   <AlertDescription>
                     <ul className="list-disc space-y-1 pl-5 text-sm">
                       {digitalPaymentInstructions.map((instruction, index) => (
-                        <li key={`${layout}-digital-instruction-${index}`}>{instruction}</li>
+                        <li key={`digital-instruction-${index}`}>{instruction}</li>
                       ))}
                       <li>
                         Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
@@ -695,8 +691,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
           <NeedHelpCard />
 
-          <SummaryPanel layout="mobile" />
-
           {error ? (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -705,9 +699,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
         </div>
       </div>
 
-      <div className="space-y-6 self-start lg:sticky lg:top-32">
+      <div className="space-y-6 self-start lg:sticky lg:top-32 mt-8 lg:mt-0">
         <ProductOverviewCard />
-        <SummaryPanel layout="desktop" />
+        <SummaryPanel />
       </div>
     </form>
   )
