@@ -698,6 +698,8 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </div>
           </SectionCard>
 
+          <NeedHelpCard />
+
           <SummaryPanel layout="mobile" />
 
           {error ? (
@@ -711,7 +713,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       <div className="space-y-6 self-start lg:sticky lg:top-32">
         <ProductOverviewCard />
         <SummaryPanel layout="desktop" />
-        <NeedHelpCard />
       </div>
     </div>
   )
