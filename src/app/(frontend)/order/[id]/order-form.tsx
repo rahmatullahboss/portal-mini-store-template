@@ -149,12 +149,12 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1 text-sm text-stone-600">
+        <div className="mt-5 flex flex-col items-center gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 text-center shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+          <div className="space-y-1 text-sm text-stone-600 sm:text-left">
             <p className="text-sm font-semibold text-stone-900">Quantity</p>
             <p>Adjust how many units you would like to order.</p>
           </div>
-          <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm">
+          <div className="mx-auto flex w-full max-w-[220px] items-center justify-between gap-3 rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm sm:mx-0 sm:max-w-none">
             <button
               type="button"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -164,7 +164,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             >
               <Minus className="h-4 w-4" />
             </button>
-            <span className="min-w-[2ch] text-base font-semibold text-stone-900">{quantity}</span>
+            <span className="min-w-[3ch] text-center text-base font-semibold text-stone-900">{quantity}</span>
             <button
               type="button"
               onClick={() => setQuantity(quantity + 1)}
@@ -326,8 +326,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     )
   }
 
-  const NeedHelpCard = () => (
-    <div className="rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50">
+  const NeedHelpCard = ({ className }: { className?: string }) => (
+    <div
+      className={cn(
+        'rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50',
+        className,
+      )}
+    >
       <h3 className="text-base font-semibold text-stone-900">Need help?</h3>
       <p className="mt-2 leading-relaxed">
         Give us a call or send us a message if you have any questions about this product or your order. Our friendly team is ready
@@ -464,6 +469,10 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
       <div className="space-y-8">
+        <div className="lg:hidden">
+          <ProductOverviewCard />
+        </div>
+
         <form
           id="order-form"
           onSubmit={handleSubmit}
@@ -698,8 +707,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </div>
           </SectionCard>
 
-          <NeedHelpCard />
-
           <SummaryPanel layout="mobile" />
 
           {error ? (
@@ -708,10 +715,15 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </Alert>
           ) : null}
         </form>
+
+        <NeedHelpCard className="w-full lg:hidden" />
+        <NeedHelpCard className="hidden lg:block" />
       </div>
 
       <div className="space-y-6 self-start lg:sticky lg:top-32">
-        <ProductOverviewCard />
+        <div className="hidden lg:block">
+          <ProductOverviewCard />
+        </div>
         <SummaryPanel layout="desktop" />
       </div>
     </div>
