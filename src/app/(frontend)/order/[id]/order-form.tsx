@@ -146,7 +146,7 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
         <p className="text-sm font-semibold text-stone-900">Quantity</p>
         <p>Adjust how many units you would like to order.</p>
       </div>
-      <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm">
+      <div className="grid grid-cols-[auto_minmax(2.5rem,1fr)_auto] items-center rounded-full border border-stone-200 bg-white/85 px-2 py-1 shadow-sm">
         <button
           type="button"
           onClick={onDecreaseQuantity}
@@ -156,7 +156,7 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
         >
           <Minus className="h-4 w-4" />
         </button>
-        <span className="min-w-[2ch] text-base font-semibold text-stone-900">{quantity}</span>
+        <span className="text-center text-base font-semibold text-stone-900">{quantity}</span>
         <button
           type="button"
           onClick={onIncreaseQuantity}
@@ -546,7 +546,35 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       onSubmit={handleSubmit}
       className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]"
     >
-      <div className="space-y-8">
+      <div className="space-y-6 self-start lg:sticky lg:top-32 order-1 lg:order-2 mt-8 lg:mt-0">
+        <ProductOverviewCard item={item} />
+        <SummaryPanel
+          quantity={quantity}
+          onDecreaseQuantity={handleDecreaseQuantity}
+          onIncreaseQuantity={handleIncreaseQuantity}
+          subtotal={subtotal}
+          shippingCharge={shippingCharge}
+          total={total}
+          freeDelivery={freeDelivery}
+          deliveryZone={deliveryZone}
+          formatCurrency={formatCurrency}
+          settings={settings}
+          paymentMethod={paymentMethod}
+          onSelectPaymentMethod={handlePaymentMethodChange}
+          requiresDigitalPaymentDetails={requiresDigitalPaymentDetails}
+          digitalPaymentInstructions={digitalPaymentInstructions}
+          paymentSenderNumber={paymentSenderNumber}
+          onPaymentSenderNumberChange={handlePaymentSenderNumberChange}
+          paymentTransactionId={paymentTransactionId}
+          onPaymentTransactionIdChange={handlePaymentTransactionIdChange}
+          inputClasses={inputClasses}
+          isSubmitting={isSubmitting}
+          senderNumberId={senderNumberId}
+          transactionId={transactionId}
+        />
+      </div>
+
+      <div className="space-y-8 order-2 lg:order-1">
         <div className="space-y-8 rounded-[28px] border border-amber-100/70 bg-white/90 p-6 shadow-xl shadow-amber-200/40 backdrop-blur lg:p-10">
           {!user ? (
             <div className="rounded-3xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
@@ -793,34 +821,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </Alert>
           ) : null}
         </div>
-      </div>
-
-      <div className="space-y-6 self-start lg:sticky lg:top-32 mt-8 lg:mt-0">
-        <ProductOverviewCard item={item} />
-        <SummaryPanel
-          quantity={quantity}
-          onDecreaseQuantity={handleDecreaseQuantity}
-          onIncreaseQuantity={handleIncreaseQuantity}
-          subtotal={subtotal}
-          shippingCharge={shippingCharge}
-          total={total}
-          freeDelivery={freeDelivery}
-          deliveryZone={deliveryZone}
-          formatCurrency={formatCurrency}
-          settings={settings}
-          paymentMethod={paymentMethod}
-          onSelectPaymentMethod={handlePaymentMethodChange}
-          requiresDigitalPaymentDetails={requiresDigitalPaymentDetails}
-          digitalPaymentInstructions={digitalPaymentInstructions}
-          paymentSenderNumber={paymentSenderNumber}
-          onPaymentSenderNumberChange={handlePaymentSenderNumberChange}
-          paymentTransactionId={paymentTransactionId}
-          onPaymentTransactionIdChange={handlePaymentTransactionIdChange}
-          inputClasses={inputClasses}
-          isSubmitting={isSubmitting}
-          senderNumberId={senderNumberId}
-          transactionId={transactionId}
-        />
       </div>
     </form>
   )
