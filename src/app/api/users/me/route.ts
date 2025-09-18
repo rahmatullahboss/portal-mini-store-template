@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     firstName: (user as any).firstName,
     lastName: (user as any).lastName,
     customerNumber: (user as any).customerNumber || null,
+    deliveryZone: (user as any).deliveryZone || null,
     address: (user as any).address || null,
   })
 }
@@ -30,6 +31,13 @@ export async function PATCH(request: NextRequest) {
     if (typeof body.lastName === 'string') data.lastName = body.lastName
     if (typeof body.email === 'string') data.email = body.email
     if (typeof body.customerNumber === 'string') data.customerNumber = body.customerNumber
+
+    if (typeof body.deliveryZone === 'string') {
+      const normalized = body.deliveryZone.toLowerCase().replace(/[\s-]+/g, '_')
+      if (normalized === 'outside_dhaka' || normalized === 'inside_dhaka') {
+        data.deliveryZone = normalized
+      }
+    }
     if (body.address && typeof body.address === 'object') {
       const a = body.address
       data.address = {

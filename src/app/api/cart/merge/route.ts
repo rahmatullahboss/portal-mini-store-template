@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = resolveUserId(user)
-    if (typeof userId !== 'number') {
+    if (typeof userId !== 'number' && typeof userId !== 'string') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     const data: Omit<AbandonedCart, 'id' | 'createdAt' | 'updatedAt'> = {
       sessionId,
-      user: userId,
+      user: userId as any,
       items: resolved.lines,
       cartTotal: resolved.total,
       status: 'active',

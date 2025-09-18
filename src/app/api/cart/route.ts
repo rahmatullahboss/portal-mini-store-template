@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     let cartDoc: Record<string, unknown> | null = null
 
-    if (typeof userId === 'number') {
+    if (typeof userId === 'number' || typeof userId === 'string') {
       cartDoc = await findActiveCartForUser(payload, userId)
     }
 
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     const quantityMap = buildQuantityMapFromIncoming(incomingItems)
 
     let cartDoc: Record<string, unknown> | null = null
-    if (typeof userId === 'number') {
+    if (typeof userId === 'number' || typeof userId === 'string') {
       cartDoc = await findActiveCartForUser(payload, userId)
     }
 
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     const data: Omit<AbandonedCart, 'id' | 'createdAt' | 'updatedAt'> = {
       sessionId,
-      user: typeof userId === 'number' ? userId : null,
+      user: typeof userId === 'number' || typeof userId === 'string' ? (userId as any) : null,
       items: resolved.lines,
       cartTotal: resolved.total,
       status: 'active',
