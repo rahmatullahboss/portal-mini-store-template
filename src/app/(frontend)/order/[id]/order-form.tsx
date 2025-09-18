@@ -8,6 +8,7 @@ import { Minus, Plus, ShieldCheck, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import type { DeliverySettings } from '@/lib/delivery-settings'
 import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import { cn } from '@/lib/utils'
@@ -128,6 +129,8 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
   const SummaryPanel = ({ layout }: { layout: 'mobile' | 'desktop' }) => {
     const isDesktop = layout === 'desktop'
+    const senderNumberId = `order-paymentSenderNumber-${layout}`
+    const transactionId = `order-paymentTransactionId-${layout}`
 
     return (
       <div
@@ -138,8 +141,8 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-stone-900">Review your cart</h3>
-            <p className="text-sm text-stone-500">Confirm the quantity and totals before placing your order.</p>
+            <h3 className="text-lg font-semibold text-stone-900">Review your order</h3>
+            <p className="text-sm text-stone-500">Confirm the quantity, payment method, and totals before placing your order.</p>
           </div>
           <div className="flex flex-col items-end gap-2 text-right">
             <Badge className="h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">Secure checkout</Badge>
@@ -195,6 +198,117 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           )}
         </div>
 
+        <Separator className="my-6" />
+
+        <div className="space-y-5">
+          <div>
+            <h4 className="text-base font-semibold text-stone-900">Payment method</h4>
+            <p className="text-xs text-stone-500">Select a payment option to complete your order.</p>
+          </div>
+          <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-xs font-medium text-amber-900 shadow-sm shadow-amber-100">
+            Digital wallet payments have a flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {PAYMENT_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={cn(
+                  'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+                  paymentMethod === option.value ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
+                )}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={option.value}
+                  checked={paymentMethod === option.value}
+                  onChange={() => {
+                    setPaymentMethod(option.value)
+                    if (option.value === 'cod') {
+                      setPaymentSenderNumber('')
+                      setPaymentTransactionId('')
+                    }
+                    setError('')
+                  }}
+                  className="sr-only"
+                  form="order-form"
+                />
+                <div className="relative h-16 w-32">
+                  <Image
+                    src={option.logo.src}
+                    alt={option.logo.alt}
+                    width={option.logo.width}
+                    height={option.logo.height}
+                    className="h-full w-full object-contain"
+                    sizes="128px"
+                    priority={option.value === 'cod'}
+                  />
+                </div>
+                <span className="text-sm font-medium text-stone-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+          {requiresDigitalPaymentDetails ? (
+            <div className="space-y-5 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-amber-900 shadow-sm shadow-amber-100">
+              {digitalPaymentInstructions?.length ? (
+                <Alert className="border-transparent bg-transparent p-0 text-amber-900">
+                  <AlertDescription>
+                    <ul className="list-disc space-y-1 pl-5 text-sm">
+                      {digitalPaymentInstructions.map((instruction, index) => (
+                        <li key={`${layout}-digital-instruction-${index}`}>{instruction}</li>
+                      ))}
+                      <li>
+                        Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+                      </li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor={senderNumberId} className="text-sm font-medium text-stone-600">
+                    Sender wallet number
+                  </label>
+                  <input
+                    id={senderNumberId}
+                    name="paymentSenderNumber"
+                    type="tel"
+                    value={paymentSenderNumber}
+                    onChange={(e) => {
+                      setPaymentSenderNumber(e.target.value)
+                      setError('')
+                    }}
+                    required={requiresDigitalPaymentDetails}
+                    placeholder="e.g. 01XXXXXXXXX"
+                    className={inputClasses}
+                    form="order-form"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor={transactionId} className="text-sm font-medium text-stone-600">
+                    Transaction ID
+                  </label>
+                  <input
+                    id={transactionId}
+                    name="paymentTransactionId"
+                    value={paymentTransactionId}
+                    onChange={(e) => {
+                      setPaymentTransactionId(e.target.value)
+                      setError('')
+                    }}
+                    required={requiresDigitalPaymentDetails}
+                    placeholder="e.g. TXN123456789"
+                    className={inputClasses}
+                    form="order-form"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-stone-500">You can pay in cash when the delivery arrives.</p>
+          )}
+        </div>
+
         <div className="mt-5 flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
           <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
           <p>Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the delivery.</p>
@@ -206,7 +320,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           disabled={isSubmitting}
           className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
         >
-          {isSubmitting ? 'Placing Order…' : 'Place order securely'}
+          {isSubmitting ? 'Placing Order…' : 'Confirm order'}
         </Button>
       </div>
     )
@@ -584,112 +698,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </div>
           </SectionCard>
 
-          <SectionCard
-            title="Payment method"
-            description="Choose how you’d like to pay for this order. Digital wallet payments require a completed transfer."
-          >
-            <div className="rounded-2xl border border-amber-100 bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-sm text-amber-700">
-              Digital wallet payments have a flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} when the
-              subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {PAYMENT_OPTIONS.map((option) => (
-                <label
-                  key={option.value}
-                  className={cn(
-                    'flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
-                    paymentMethod === option.value ? 'border-amber-400 ring-2 ring-amber-200/70' : '',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={option.value}
-                    checked={paymentMethod === option.value}
-                    onChange={() => {
-                      setPaymentMethod(option.value)
-                      if (option.value === 'cod') {
-                        setPaymentSenderNumber('')
-                        setPaymentTransactionId('')
-                      }
-                      setError('')
-                    }}
-                    className="sr-only"
-                  />
-                  <div className="relative h-12 w-24">
-                    <Image
-                      src={option.logo.src}
-                      alt={option.logo.alt}
-                      fill
-                      className="object-contain"
-                      sizes="96px"
-                      priority={option.value === 'cod'}
-                    />
-                  </div>
-                  <span className="text-sm font-semibold text-stone-800">{option.label}</span>
-                </label>
-              ))}
-            </div>
-
-            {requiresDigitalPaymentDetails ? (
-              <div className="space-y-5">
-                {digitalPaymentInstructions?.length ? (
-                  <Alert className="border-amber-100 bg-amber-50 text-amber-900">
-                    <AlertDescription>
-                      <ul className="list-disc space-y-1 pl-5 text-sm">
-                        {digitalPaymentInstructions.map((instruction, index) => (
-                          <li key={index}>{instruction}</li>
-                        ))}
-                        <li>
-                          Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when the
-                          subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
-                        </li>
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <label htmlFor="paymentSenderNumber" className={labelClasses}>
-                      Sender wallet number
-                    </label>
-                    <input
-                      id="paymentSenderNumber"
-                      name="paymentSenderNumber"
-                      type="tel"
-                      value={paymentSenderNumber}
-                      onChange={(e) => {
-                        setPaymentSenderNumber(e.target.value)
-                        setError('')
-                      }}
-                      required={requiresDigitalPaymentDetails}
-                      placeholder="e.g. 01XXXXXXXXX"
-                      className={inputClasses}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="paymentTransactionId" className={labelClasses}>
-                      Transaction ID
-                    </label>
-                    <input
-                      id="paymentTransactionId"
-                      name="paymentTransactionId"
-                      value={paymentTransactionId}
-                      onChange={(e) => {
-                        setPaymentTransactionId(e.target.value)
-                        setError('')
-                      }}
-                      required={requiresDigitalPaymentDetails}
-                      placeholder="e.g. TXN123456789"
-                      className={inputClasses}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-stone-500">You can pay in cash when the delivery arrives.</p>
-            )}
-          </SectionCard>
+          <NeedHelpCard />
 
           <SummaryPanel layout="mobile" />
 
@@ -704,7 +713,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       <div className="space-y-6 self-start lg:sticky lg:top-32">
         <ProductOverviewCard />
         <SummaryPanel layout="desktop" />
-        <NeedHelpCard />
       </div>
     </div>
   )
