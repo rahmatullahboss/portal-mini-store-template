@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, Suspense, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
 
 function LoginForm() {
   const [formData, setFormData] = useState({
@@ -21,6 +24,124 @@ function LoginForm() {
   const [message, setMessage] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const mergeGuestCart = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    try {
+      const savedCart = window.localStorage.getItem('dyad-cart')
+      if (!savedCart) return
+      const parsed = JSON.parse(savedCart) as unknown
+      const itemsRaw = isRecord(parsed) ? parsed.items : null
+      if (!Array.isArray(itemsRaw)) {
+        window.localStorage.removeItem('dyad-cart')
+        return
+      }
+
+      const itemsPayload = itemsRaw
+        .map((item) => {
+          if (!isRecord(item)) return null
+          const idValue = item.id
+          if (typeof idValue !== 'string' && typeof idValue !== 'number') return null
+          const quantityRaw = Number(item.quantity)
+          const quantity = Number.isFinite(quantityRaw) && quantityRaw > 0 ? Math.floor(quantityRaw) : 0
+          if (quantity <= 0) return null
+          return {
+            id: typeof idValue === 'number' ? String(idValue) : idValue,
+            quantity,
+          }
+        })
+        .filter((item): item is { id: string; quantity: number } => item !== null)
+
+      if (!itemsPayload.length) {
+        window.localStorage.removeItem('dyad-cart')
+        return
+      }
+
+      const response = await fetch('/api/cart/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ items: itemsPayload }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) return
+        throw new Error(`Merge failed with status ${response.status}`)
+      }
+
+      const data = (await response.json().catch(() => null)) as unknown
+      if (!isRecord(data)) {
+        window.localStorage.removeItem('dyad-cart')
+        return
+      }
+
+      const mergedItemsRaw = Array.isArray((data as Record<string, unknown>).items)
+        ? (data as Record<string, unknown>).items
+        : []
+
+      const mergedItems = mergedItemsRaw
+        .map((item) => {
+          if (!isRecord(item)) return null
+          const idValue = item.id
+          if (typeof idValue !== 'string') return null
+          const quantityRaw = Number(item.quantity)
+          const quantity = Number.isFinite(quantityRaw) && quantityRaw > 0 ? Math.floor(quantityRaw) : 0
+          if (quantity <= 0) return null
+          const priceRaw = Number(item.price)
+          const price = Number.isFinite(priceRaw) && priceRaw >= 0 ? priceRaw : 0
+          const next: Record<string, unknown> = {
+            ...item,
+            id: idValue,
+            quantity,
+            price,
+          }
+          const imageValue = item.image
+          if (isRecord(imageValue) && typeof imageValue.url === 'string') {
+            next.image = {
+              url: imageValue.url,
+              ...(typeof imageValue.alt === 'string' ? { alt: imageValue.alt } : {}),
+            }
+          }
+          return next
+        })
+        .filter((item): item is Record<string, unknown> => item !== null)
+
+      if (!mergedItems.length) {
+        window.localStorage.removeItem('dyad-cart')
+        return
+      }
+
+      const snapshotSource = isRecord((data as Record<string, unknown>).snapshot)
+        ? ((data as Record<string, unknown>).snapshot as Record<string, unknown>)
+        : null
+
+      const snapshot: Record<string, number> = snapshotSource
+        ? Object.entries(snapshotSource).reduce((acc, [key, value]) => {
+            if (typeof key === 'string') {
+              const qty = Number(value)
+              if (Number.isFinite(qty) && qty >= 0) {
+                acc[key] = Math.floor(qty)
+              }
+            }
+            return acc
+          }, {} as Record<string, number>)
+        : mergedItems.reduce((acc, item) => {
+            const idValue = item.id
+            const quantityValue = Number((item as any).quantity)
+            if (typeof idValue === 'string' && Number.isFinite(quantityValue)) {
+              acc[idValue] = Math.floor(quantityValue)
+            }
+            return acc
+          }, {} as Record<string, number>)
+
+      window.localStorage.setItem(
+        'dyad-cart',
+        JSON.stringify({ items: mergedItems, serverSnapshot: snapshot }),
+      )
+    } catch (error) {
+      console.error('Failed to merge guest cart:', error)
+    }
+  }, [])
 
   useEffect(() => {
     const messageParam = searchParams.get('message')
@@ -63,6 +184,7 @@ function LoginForm() {
 
       if (response.ok) {
         // Login successful, redirect to home
+        await mergeGuestCart()
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('dyad-auth-changed'))
         }
