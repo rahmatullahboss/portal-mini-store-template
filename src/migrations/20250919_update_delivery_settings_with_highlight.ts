@@ -3,21 +3,26 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-vercel-postg
 const DEFAULT_TITLE = 'Free shipping on orders over 2000 taka'
 const DEFAULT_SUBTITLE = 'Digital wallet payments have a flat Tk 20 delivery charge.'
 
+const escapeLiteral = (value: string): string => value.replace(/'/g, "''")
+
+const DEFAULT_TITLE_LITERAL = `'${escapeLiteral(DEFAULT_TITLE)}'`
+const DEFAULT_SUBTITLE_LITERAL = `'${escapeLiteral(DEFAULT_SUBTITLE)}'`
+
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     ALTER TABLE "delivery_settings"
       ADD COLUMN IF NOT EXISTS "digital_payment_delivery_charge" numeric DEFAULT 20 NOT NULL
   `)
 
-  await db.execute(sql`
+  await db.execute(sql.raw(`
     ALTER TABLE "delivery_settings"
-      ADD COLUMN IF NOT EXISTS "shipping_highlight_title" varchar DEFAULT ${DEFAULT_TITLE} NOT NULL
-  `)
+      ADD COLUMN IF NOT EXISTS "shipping_highlight_title" varchar DEFAULT ${DEFAULT_TITLE_LITERAL} NOT NULL
+  `))
 
-  await db.execute(sql`
+  await db.execute(sql.raw(`
     ALTER TABLE "delivery_settings"
-      ADD COLUMN IF NOT EXISTS "shipping_highlight_subtitle" varchar DEFAULT ${DEFAULT_SUBTITLE} NOT NULL
-  `)
+      ADD COLUMN IF NOT EXISTS "shipping_highlight_subtitle" varchar DEFAULT ${DEFAULT_SUBTITLE_LITERAL} NOT NULL
+  `))
 
   await db.execute(sql`
     UPDATE "delivery_settings"
