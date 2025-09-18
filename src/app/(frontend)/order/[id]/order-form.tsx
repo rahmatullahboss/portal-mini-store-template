@@ -149,8 +149,8 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1 text-sm text-stone-600">
+        <div className="mt-5 flex flex-col items-center gap-4 rounded-3xl border border-amber-50 bg-white/75 p-4 text-center shadow-inner shadow-amber-200/40 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+          <div className="space-y-1 text-sm text-stone-600 sm:text-left">
             <p className="text-sm font-semibold text-stone-900">Quantity</p>
             <p>Adjust how many units you would like to order.</p>
           </div>
@@ -464,6 +464,10 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
       <div className="space-y-8">
+        <div className="lg:hidden">
+          <ProductOverviewCard />
+        </div>
+
         <form
           id="order-form"
           onSubmit={handleSubmit}
@@ -698,8 +702,6 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </div>
           </SectionCard>
 
-          <NeedHelpCard />
-
           <SummaryPanel layout="mobile" />
 
           {error ? (
@@ -708,11 +710,20 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </Alert>
           ) : null}
         </form>
+
+        <div className="lg:hidden">
+          <NeedHelpCard />
+        </div>
       </div>
 
       <div className="space-y-6 self-start lg:sticky lg:top-32">
-        <ProductOverviewCard />
+        <div className="hidden lg:block">
+          <ProductOverviewCard />
+        </div>
         <SummaryPanel layout="desktop" />
+        <div className="hidden lg:block">
+          <NeedHelpCard />
+        </div>
       </div>
     </div>
   )
