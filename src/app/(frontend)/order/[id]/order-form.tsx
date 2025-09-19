@@ -632,7 +632,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
+                  required={!!user}
                   className={inputClasses}
                 />
               </div>
@@ -799,7 +799,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </div>
           </SectionCard>
 
-          <NeedHelpCard />
+          <div className="hidden lg:block">
+            <NeedHelpCard />
+          </div>
 
           {error ? (
             <Alert variant="destructive">
@@ -833,6 +835,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           senderNumberId={senderNumberId}
           transactionId={transactionId}
         />
+      </div>
+      <div className="order-4 lg:hidden">
+        <NeedHelpCard />
       </div>
     </form>
   )
