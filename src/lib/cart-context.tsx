@@ -472,15 +472,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const clientId = ensureClientId()
+
+        // Convert string IDs to numeric IDs for the backend
+        const cartItems = Array.from(currentSnapshot.entries()).map(([id, quantity]) => {
+          // Try to convert string ID to number
+          const numericId = Number(id)
+          return {
+            item: Number.isFinite(numericId) ? numericId : id,
+            quantity,
+          }
+        })
+
         const response = await fetch('/api/cart', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: Array.from(currentSnapshot.entries()).map(([id, quantity]) => ({
-              id,
-              quantity,
-            })),
+            items: cartItems,
             sessionId: sessionIdRef.current ?? undefined,
             clientId,
           }),
