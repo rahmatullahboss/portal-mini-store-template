@@ -75,6 +75,7 @@ export interface Config {
     reviews: Review;
     'abandoned-carts': AbandonedCart;
     'delivery-settings': DeliverySetting;
+    posts: Post;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -89,6 +90,7 @@ export interface Config {
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'abandoned-carts': AbandonedCartsSelect<false> | AbandonedCartsSelect<true>;
     'delivery-settings': DeliverySettingsSelect<false> | DeliverySettingsSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -372,6 +374,28 @@ export interface DeliverySetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  title: string;
+  slug: string;
+  author: number | User;
+  publishedDate: string;
+  category: number | Category;
+  featuredImage?: (number | null) | Media;
+  content?:
+    | {
+        [k: string]: unknown;
+      }[]
+    | null;
+  excerpt?: string | null;
+  status: 'draft' | 'published';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -408,6 +432,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'delivery-settings';
         value: number | DeliverySetting;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -628,6 +656,23 @@ export interface DeliverySettingsSelect<T extends boolean = true> {
   digitalPaymentDeliveryCharge?: T;
   shippingHighlightTitle?: T;
   shippingHighlightSubtitle?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  author?: T;
+  publishedDate?: T;
+  category?: T;
+  featuredImage?: T;
+  content?: T;
+  excerpt?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

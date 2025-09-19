@@ -1,23 +1,24 @@
-import * as migration_20250908_055127 from './20250908_055127';
-import * as migration_20250909_050442 from './20250909_050442';
-import * as migration_20250909_120000_add_customer_number_to_orders from './20250909_120000_add_customer_number_to_orders';
-import * as migration_20250909_123000_guest_checkout_orders_fields from './20250909_123000_guest_checkout_orders_fields';
-import * as migration_20250909_130000_add_customer_number_to_users from './20250909_130000_add_customer_number_to_users';
-import * as migration_20250910_000001_make_media_alt_nullable from './20250910_000001_make_media_alt_nullable';
-import * as migration_20250911_063423 from './20250911_063423';
-import * as migration_20250911_add_reviews_table from './20250911_add_reviews_table';
-import * as migration_20250911_add_categories_lock_rel from './20250911_add_categories_lock_rel';
-import * as migration_20250912_add_reviews_lock_rel from './20250912_add_reviews_lock_rel';
-import * as migration_20250912_add_reviewer_name_to_reviews from './20250912_add_reviewer_name_to_reviews';
-import * as migration_20250912_make_orders_items_item_nullable from './20250912_make_orders_items_item_nullable';
-import * as migration_20250912_add_device_fields_to_orders from './20250912_add_device_fields_to_orders';
-import * as migration_20250913_add_abandoned_carts from './20250913_add_abandoned_carts';
-import * as migration_20250914_add_abandoned_cart_reminder_stage from './20250914_add_abandoned_cart_reminder_stage';
-import * as migration_20250916_add_short_description_to_items from './20250916_add_short_description_to_items';
-import * as migration_20250917_add_delivery_settings from './20250917_add_delivery_settings';
-import * as migration_20250917_add_delivery_settings_lock_rel from './20250917_add_delivery_settings_lock_rel';
-import * as migration_20250918_add_payment_fields_to_orders from './20250918_add_payment_fields_to_orders';
-import * as migration_20250919_update_delivery_settings_with_highlight from './20250919_update_delivery_settings_with_highlight';
+import * as migration_20250908_055127 from './20250908_055127'
+import * as migration_20250909_050442 from './20250909_050442'
+import * as migration_20250909_120000_add_customer_number_to_orders from './20250909_120000_add_customer_number_to_orders'
+import * as migration_20250909_123000_guest_checkout_orders_fields from './20250909_123000_guest_checkout_orders_fields'
+import * as migration_20250909_130000_add_customer_number_to_users from './20250909_130000_add_customer_number_to_users'
+import * as migration_20250910_000001_make_media_alt_nullable from './20250910_000001_make_media_alt_nullable'
+import * as migration_20250911_063423 from './20250911_063423'
+import * as migration_20250911_add_reviews_table from './20250911_add_reviews_table'
+import * as migration_20250911_add_categories_lock_rel from './20250911_add_categories_lock_rel'
+import * as migration_20250912_add_reviews_lock_rel from './20250912_add_reviews_lock_rel'
+import * as migration_20250912_add_reviewer_name_to_reviews from './20250912_add_reviewer_name_to_reviews'
+import * as migration_20250912_make_orders_items_item_nullable from './20250912_make_orders_items_item_nullable'
+import * as migration_20250912_add_device_fields_to_orders from './20250912_add_device_fields_to_orders'
+import * as migration_20250913_add_abandoned_carts from './20250913_add_abandoned_carts'
+import * as migration_20250914_add_abandoned_cart_reminder_stage from './20250914_add_abandoned_cart_reminder_stage'
+import * as migration_20250916_add_short_description_to_items from './20250916_add_short_description_to_items'
+import * as migration_20250917_add_delivery_settings from './20250917_add_delivery_settings'
+import * as migration_20250917_add_delivery_settings_lock_rel from './20250917_add_delivery_settings_lock_rel'
+import * as migration_20250918_add_payment_fields_to_orders from './20250918_add_payment_fields_to_orders'
+import * as migration_20250919_update_delivery_settings_with_highlight from './20250919_update_delivery_settings_with_highlight'
+import * as migration_20250920_add_posts_collection from './20250920_add_posts_collection'
 
 export const migrations = [
   {
@@ -53,7 +54,7 @@ export const migrations = [
   {
     up: migration_20250911_063423.up,
     down: migration_20250911_063423.down,
-    name: '20250911_063423'
+    name: '20250911_063423',
   },
   {
     up: migration_20250911_add_reviews_table.up,
@@ -120,4 +121,9 @@ export const migrations = [
     down: migration_20250919_update_delivery_settings_with_highlight.down,
     name: '20250919_update_delivery_settings_with_highlight',
   },
-];
+  {
+    up: migration_20250920_add_posts_collection.up,
+    down: migration_20250920_add_posts_collection.down,
+    name: '20250920_add_posts_collection',
+  },
+]

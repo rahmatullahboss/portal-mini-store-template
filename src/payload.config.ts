@@ -18,6 +18,7 @@ import { Orders } from './collections/Orders'
 import { DeliverySettings } from './collections/DeliverySettings'
 import { AbandonedCarts } from './collections/AbandonedCarts'
 import { Reviews } from './collections/Reviews'
+import Posts from './collections/Posts'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -99,7 +100,17 @@ export default buildConfig({
     Boolean,
   ) as string[],
   plugins: storagePlugins,
-  collections: [Users, Media, Items, Categories, Orders, Reviews, AbandonedCarts, DeliverySettings],
+  collections: [
+    Users,
+    Media,
+    Items,
+    Categories,
+    Orders,
+    Reviews,
+    AbandonedCarts,
+    DeliverySettings,
+    Posts,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
