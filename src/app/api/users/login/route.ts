@@ -20,7 +20,6 @@ async function parseRequestBody(request: NextRequest): Promise<Record<string, un
   console.log('Content type:', contentType)
 
   try {
-    // Handle the case where body is sent as { _payload: "jsonString" }
     if (contentType.includes('application/json') || contentType === '') {
       const rawBody = await request.text()
       console.log('Raw body text:', rawBody)
@@ -48,6 +47,19 @@ async function parseRequestBody(request: NextRequest): Promise<Record<string, un
       const formData = await request.formData()
       const result: Record<string, unknown> = {}
 
+      // Handle the case where we have a _payload field in form data
+      const payloadField = formData.get('_payload')
+      if (payloadField && typeof payloadField === 'string') {
+        try {
+          const parsed = JSON.parse(payloadField)
+          console.log('Parsed _payload from form data:', parsed)
+          return parsed
+        } catch (jsonError) {
+          console.error('Failed to parse _payload from form data:', jsonError)
+        }
+      }
+
+      // Fallback to regular form data parsing
       for (const [key, value] of formData.entries()) {
         result[key] = typeof value === 'string' ? value : value.name
       }
@@ -71,33 +83,8 @@ async function parseRequestBody(request: NextRequest): Promise<Record<string, un
 export async function POST(request: NextRequest) {
   console.log('Login request received')
 
-  // First, let's try to get the raw body to see what we're working with
-  const contentType = request.headers.get('content-type') || ''
-  console.log('Content type:', contentType)
-
   try {
-    // Get the raw body
-    const rawBody = await request.text()
-    console.log('Raw body text:', rawBody)
-
-    let body: Record<string, unknown> | null = null
-
-    // Try to parse as JSON first
-    try {
-      const parsed = JSON.parse(rawBody)
-      console.log('Parsed JSON:', parsed)
-      // If it has a _payload property, parse that as JSON too
-      if (parsed._payload && typeof parsed._payload === 'string') {
-        console.log('Parsing _payload as JSON:', parsed._payload)
-        body = JSON.parse(parsed._payload)
-      } else {
-        body = parsed
-      }
-    } catch (jsonError) {
-      console.error('Failed to parse as JSON:', jsonError)
-      body = null
-    }
-
+    const body = await parseRequestBody(request)
     console.log('Final parsed body:', body)
 
     if (!body || typeof body !== 'object') {
@@ -106,22 +93,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract email and password from the parsed body
-    let emailValue, passwordValue, rememberMeValue
-
-    // Handle the case where body might still contain _payload as a property
-    if ((body as any)._payload) {
-      const payloadData =
-        typeof (body as any)._payload === 'string'
-          ? JSON.parse((body as any)._payload)
-          : (body as any)._payload
-      emailValue = payloadData.email
-      passwordValue = payloadData.password
-      rememberMeValue = payloadData.rememberMe
-    } else {
-      emailValue = (body as Record<string, unknown>).email
-      passwordValue = (body as Record<string, unknown>).password
-      rememberMeValue = (body as Record<string, unknown>).rememberMe
-    }
+    const emailValue = (body as Record<string, unknown>).email
+    const passwordValue = (body as Record<string, unknown>).password
+    const rememberMeValue = (body as Record<string, unknown>).rememberMe
 
     console.log('Raw email value:', emailValue)
     console.log('Raw password value:', passwordValue)
