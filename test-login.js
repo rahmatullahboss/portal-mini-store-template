@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetch = require('node-fetch')
 
 async function testLogin() {
   try {
@@ -8,16 +8,16 @@ async function testLogin() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        _payload: "{\"email\":\"rahmatullahzisan@gmail.com\",\"password\":\"ZxcAsd1212@\"}"
-      })
-    });
+        _payload: '{"email":"rahmatullahzisan@gmail.com","password":"ZxcAsd1212@"}',
+      }),
+    })
 
-    const data = await response.json();
-    console.log('Response status:', response.status);
-    console.log('Response data:', data);
+    const data = await response.json()
+    console.log('Response status:', response.status)
+    console.log('Response data:', data)
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error:', error)
   }
 }
 
-testLogin();
+testLogin()
