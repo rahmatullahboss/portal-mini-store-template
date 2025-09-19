@@ -1,15 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  BarChart3,
   Users,
   Package,
   ShoppingCart,
   DollarSign,
-  TrendingUp,
-  Clock,
-  CheckCircle2,
-  Truck,
-  AlertCircle,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'

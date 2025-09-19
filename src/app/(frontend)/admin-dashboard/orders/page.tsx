@@ -25,12 +25,11 @@ import {
   Edit,
   Trash2,
   Eye,
+  ShoppingCart,
   Clock,
   Loader2,
   Truck,
   CheckCircle2,
-  XCircle,
-  ShoppingCart,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 

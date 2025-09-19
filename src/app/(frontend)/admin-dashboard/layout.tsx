@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Menu } from 'lucide-react'
+import { User } from '@/payload-types'
 
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const headers = await getHeaders()
@@ -15,7 +16,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const { user } = await payload.auth({ headers })
 
   // Redirect to login if not authenticated or not admin
-  if (!user || (user as any).role !== 'admin') {
+  if (!user || (user as User).role !== 'admin') {
     redirect('/')
   }
 

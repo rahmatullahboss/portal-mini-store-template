@@ -57,9 +57,9 @@ export default function SalesReport() {
         } else {
           throw new Error('Invalid data format received')
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to fetch sales data:', error)
-        setError(error.message || 'Failed to load sales report')
+        setError((error as Error).message || 'Failed to load sales report')
       } finally {
         setLoading(false)
       }
@@ -123,7 +123,7 @@ export default function SalesReport() {
         <h3 className="text-lg font-semibold text-gray-800">Daily Sales Trend</h3>
         <select
           value={period}
-          onChange={(e) => setPeriod(e.target.value as any)}
+          onChange={(e) => setPeriod(e.target.value as '7d' | '30d' | '90d')}
           className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="7d">Last 7 days</option>

@@ -47,7 +47,7 @@ export default function OrderStatusUpdate({ orderId, currentStatus }: OrderStatu
         const errorData = await response.json()
         setError(errorData.message || 'Failed to update status')
       }
-    } catch (err) {
+    } catch (err: unknown) {
       setError('Failed to update status. Please try again.')
     } finally {
       setIsUpdating(false)

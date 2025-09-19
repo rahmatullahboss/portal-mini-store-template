@@ -318,7 +318,21 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
 )
 
 interface CheckoutFormProps {
-  user?: any
+  user?: {
+    customerNumber?: string
+    firstName?: string
+    lastName?: string
+    email?: string
+    address?: {
+      line1?: string
+      line2?: string
+      city?: string
+      state?: string
+      postalCode?: string
+      country?: string
+    }
+    deliveryZone?: 'inside_dhaka' | 'outside_dhaka'
+  }
   deliverySettings?: DeliverySettings
 }
 
@@ -432,7 +446,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       controller.abort()
       clearTimeout(handle)
     }
-  }, [user, state.items, email, customerNumber, firstName, lastName, subtotal, shippingCharge, deliveryZone])
+  }, [user, state.items, email, customerNumber, firstName, lastName])
 
   const normalizeSenderNumberInput = React.useCallback(
     (value: string) => {
