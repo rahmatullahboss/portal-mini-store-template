@@ -1,5 +1,4 @@
-import { CollectionConfig } from 'payload/types'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { CollectionConfig } from 'payload'
 
 const Posts: CollectionConfig = {
   slug: 'posts',
@@ -73,11 +72,6 @@ const Posts: CollectionConfig = {
     {
       name: 'content',
       type: 'richText',
-      editor: lexicalEditor({
-        admin: {
-          placeholder: 'Start writing your blog post...',
-        },
-      }),
     },
     {
       name: 'excerpt',

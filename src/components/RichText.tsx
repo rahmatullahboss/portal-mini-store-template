@@ -1,6 +1,10 @@
 import React from 'react'
 
-const RichText = ({ content }: { content: any }) => {
+interface RichTextProps {
+  content: any
+}
+
+const RichText: React.FC<RichTextProps> = ({ content }) => {
   if (!content) return null
 
   return (

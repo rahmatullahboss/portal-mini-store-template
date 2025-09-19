@@ -384,11 +384,21 @@ export interface Post {
   publishedDate: string;
   category: number | Category;
   featuredImage?: (number | null) | Media;
-  content?:
-    | {
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
         [k: string]: unknown;
-      }[]
-    | null;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   excerpt?: string | null;
   status: 'draft' | 'published';
   updatedAt: string;
