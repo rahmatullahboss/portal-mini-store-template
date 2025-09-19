@@ -28,24 +28,24 @@ export async function POST(req: NextRequest) {
         const sessionCart = await findCartBySession(payload, cartSessionId)
         const cartId = getDocId(cart)
         const sessionId = getDocId(sessionCart)
-        
+
         if (sessionCart && cartId && sessionId && cartId !== sessionId) {
           // Merge items from session cart to user cart
           const userQuantities = extractCartQuantities(cart)
           const sessionQuantities = extractCartQuantities(sessionCart)
-          
+
           // Combine quantities (user cart takes precedence)
           const mergedQuantities = new Map(userQuantities)
           for (const [itemId, quantity] of sessionQuantities.entries()) {
             mergedQuantities.set(itemId, (mergedQuantities.get(itemId) ?? 0) + quantity)
           }
-          
+
           // Convert to cart items format
           const mergedItems = Array.from(mergedQuantities.entries()).map(([item, quantity]) => ({
             item,
-            quantity
+            quantity,
           }))
-          
+
           // Update the user's cart with merged items
           if (cartId) {
             await payload.update({
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
               },
             })
           }
-          
+
           // Mark session cart as recovered
           if (sessionId) {
             await payload.update({
