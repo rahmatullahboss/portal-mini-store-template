@@ -359,35 +359,47 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return
       }
 
-      const existingMap = new Map(state.items.map((item) => [item.id, item] as const))
-      const mergedMap = new Map(existingMap)
-      const previousSnapshot = new Map(serverSnapshotRef.current)
-      const nextSnapshotEntries: [string, number][] = []
+      // Create a map of incoming items by ID for easy lookup
+      const incomingMap = new Map(incomingItems.map((item) => [item.id, item]))
 
-      for (const incoming of incomingItems) {
-        if (!incoming?.id) continue
-        const existing = existingMap.get(incoming.id)
-        const previousServerQuantity = previousSnapshot.get(incoming.id) ?? 0
-        const existingQuantity = existing?.quantity ?? 0
-        const referenceQuantity = Math.max(previousServerQuantity, incoming.quantity)
-        const guestContribution = existingQuantity - referenceQuantity
-        const mergedQuantity = Math.max(incoming.quantity + guestContribution, 0)
-        if (mergedQuantity > 0) {
-          mergedMap.set(incoming.id, {
-            ...(existing ?? incoming),
-            ...incoming,
+      // Merge incoming items with existing items
+      const mergedItems: CartItem[] = []
+      const processedIds = new Set<string>()
+
+      // First, process existing items
+      for (const existingItem of state.items) {
+        const incomingItem = incomingMap.get(existingItem.id)
+        if (incomingItem) {
+          // Item exists both locally and on server - merge quantities
+          const mergedQuantity = existingItem.quantity + incomingItem.quantity
+          mergedItems.push({
+            ...existingItem,
+            ...incomingItem,
             quantity: mergedQuantity,
           })
+          processedIds.add(existingItem.id)
         } else {
-          mergedMap.delete(incoming.id)
+          // Item only exists locally - keep it
+          mergedItems.push(existingItem)
+          processedIds.add(existingItem.id)
         }
-        nextSnapshotEntries.push([incoming.id, incoming.quantity])
       }
 
-      const effectiveSnapshotEntries =
-        snapshotEntries.length > 0 ? snapshotEntries : nextSnapshotEntries
-      serverSnapshotRef.current = new Map(effectiveSnapshotEntries)
-      dispatch({ type: 'SET_ITEMS', payload: Array.from(mergedMap.values()) })
+      // Add items that only exist on server
+      for (const incomingItem of incomingItems) {
+        if (!processedIds.has(incomingItem.id)) {
+          mergedItems.push(incomingItem)
+        }
+      }
+
+      // Update the server snapshot
+      const nextSnapshotEntries: [string, number][] = []
+      for (const item of mergedItems) {
+        nextSnapshotEntries.push([item.id, item.quantity])
+      }
+
+      serverSnapshotRef.current = new Map(nextSnapshotEntries)
+      dispatch({ type: 'SET_ITEMS', payload: mergedItems })
     } catch (error) {
       console.error('Failed to sync cart from server:', error)
       hasSyncedServerCartRef.current = false
@@ -443,18 +455,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async (items: CartItem[]) => {
       if (!hasLoadedLocalCart || typeof window === 'undefined') return
 
-      const currentSnapshot = new Map<string, number>()
+      // Create a map of current items for comparison
+      const currentItemMap = new Map<string, number>()
       for (const item of items) {
         if (!item?.id) continue
         const quantity = Math.max(0, Math.floor(item.quantity))
         if (quantity <= 0) continue
-        currentSnapshot.set(item.id, quantity)
+        currentItemMap.set(item.id, quantity)
       }
 
       const previousSnapshot = serverSnapshotRef.current
-      let isDifferent = currentSnapshot.size !== previousSnapshot.size
+      let isDifferent = currentItemMap.size !== previousSnapshot.size
       if (!isDifferent) {
-        for (const [id, quantity] of currentSnapshot.entries()) {
+        for (const [id, quantity] of currentItemMap.entries()) {
           if ((previousSnapshot.get(id) ?? 0) !== quantity) {
             isDifferent = true
             break
@@ -473,15 +486,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const clientId = ensureClientId()
 
-        // Convert string IDs to numeric IDs for the backend
-        const cartItems = Array.from(currentSnapshot.entries()).map(([id, quantity]) => {
-          // Try to convert string ID to number
-          const numericId = Number(id)
-          return {
-            item: Number.isFinite(numericId) ? numericId : id,
-            quantity,
-          }
-        })
+        // Convert cart items to the format expected by the backend
+        const cartItems = items
+          .filter((item) => item.id && item.quantity > 0)
+          .map((item) => {
+            // Try to convert string ID to number
+            const numericId = Number(item.id)
+            return {
+              item: Number.isFinite(numericId) ? numericId : item.id,
+              quantity: item.quantity,
+            }
+          })
 
         const response = await fetch('/api/cart', {
           method: 'POST',
@@ -521,7 +536,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           serverSnapshotRef.current = new Map(nextEntries)
         } else {
-          serverSnapshotRef.current = new Map(currentSnapshot)
+          // Update snapshot with current items
+          serverSnapshotRef.current = new Map(
+            items
+              .filter((item) => item.id && item.quantity > 0)
+              .map((item) => [item.id, item.quantity]),
+          )
         }
         const nextSessionId =
           isRecord(data) && isNonEmptyString(data.sessionId) ? data.sessionId : null
