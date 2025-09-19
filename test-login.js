@@ -1,24 +1,23 @@
-const { getPayload } = require('payload')
-const config = require('./src/payload.config.ts')
+const fetch = require('node-fetch');
 
 async function testLogin() {
   try {
-    // Initialize Payload
-    const payload = await getPayload({ config })
-
-    // Try to login with a test user
-    const result = await payload.login({
-      collection: 'users',
-      data: {
-        email: 'test@example.com',
-        password: 'password123',
+    const response = await fetch('http://localhost:3001/api/users/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    })
+      body: JSON.stringify({
+        _payload: "{\"email\":\"rahmatullahzisan@gmail.com\",\"password\":\"ZxcAsd1212@\"}"
+      })
+    });
 
-    console.log('Login result:', result)
+    const data = await response.json();
+    console.log('Response status:', response.status);
+    console.log('Response data:', data);
   } catch (error) {
-    console.error('Login error:', error)
+    console.error('Error:', error);
   }
 }
 
-testLogin()
+testLogin();

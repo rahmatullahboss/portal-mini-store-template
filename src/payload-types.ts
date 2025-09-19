@@ -253,7 +253,13 @@ export interface Order {
    */
   customerNumber: string;
   paymentMethod: 'cod' | 'bkash' | 'nagad';
+  /**
+   * Wallet number used to send the payment
+   */
   paymentSenderNumber?: string | null;
+  /**
+   * Reference ID from the mobile wallet payment
+   */
   paymentTransactionId?: string | null;
   items: {
     item: number | Item;
@@ -329,6 +335,9 @@ export interface AbandonedCart {
     | null;
   cartTotal?: number | null;
   status: 'active' | 'abandoned' | 'recovered';
+  /**
+   * How many recovery reminder emails have been sent
+   */
   reminderStage?: number | null;
   lastActivityAt: string;
   recoveredOrder?: (number | null) | Order;
@@ -352,6 +361,12 @@ export interface DeliverySetting {
    * Orders equal to or above this amount receive free delivery.
    */
   freeDeliveryThreshold: number;
+  /**
+   * Applied when the order total is below the free delivery threshold.
+   */
+  digitalPaymentDeliveryCharge: number;
+  shippingHighlightTitle: string;
+  shippingHighlightSubtitle: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -610,6 +625,9 @@ export interface DeliverySettingsSelect<T extends boolean = true> {
   insideDhakaCharge?: T;
   outsideDhakaCharge?: T;
   freeDeliveryThreshold?: T;
+  digitalPaymentDeliveryCharge?: T;
+  shippingHighlightTitle?: T;
+  shippingHighlightSubtitle?: T;
   updatedAt?: T;
   createdAt?: T;
 }
