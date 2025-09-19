@@ -1,6 +1,14 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useEffect, useState, useRef, useCallback } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from 'react'
 
 export interface CartItem {
   id: string
@@ -208,9 +216,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           clientIdRef.current = stored.trim()
           return clientIdRef.current
         }
-        const generated = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-          ? crypto.randomUUID()
-          : Math.random().toString(36).slice(2)
+        const generated =
+          typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : Math.random().toString(36).slice(2)
         clientIdRef.current = generated
         localStorage.setItem('dyad-cart-client-id', generated)
         return generated
@@ -300,7 +309,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (hasSyncedServerCartRef.current) return
     hasSyncedServerCartRef.current = true
     try {
-      const sessionQuery = sessionIdRef.current ? `?sessionId=${encodeURIComponent(sessionIdRef.current)}` : ''
+      const sessionQuery = sessionIdRef.current
+        ? `?sessionId=${encodeURIComponent(sessionIdRef.current)}`
+        : ''
       const response = await fetch(`/api/cart${sessionQuery}`, { credentials: 'include' })
       if (response.status === 401) {
         updateAuthState(false)
@@ -373,7 +384,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         nextSnapshotEntries.push([incoming.id, incoming.quantity])
       }
 
-      const effectiveSnapshotEntries = snapshotEntries.length > 0 ? snapshotEntries : nextSnapshotEntries
+      const effectiveSnapshotEntries =
+        snapshotEntries.length > 0 ? snapshotEntries : nextSnapshotEntries
       serverSnapshotRef.current = new Map(effectiveSnapshotEntries)
       dispatch({ type: 'SET_ITEMS', payload: Array.from(mergedMap.values()) })
     } catch (error) {
@@ -387,73 +399,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     syncCartFromServer()
   }, [hasLoadedLocalCart, syncCartFromServer])
 
+  // Real-time cart synchronization via Server-Sent Events
   useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    if (!isAuthenticated && !sessionToken) {
-      closeEventSource()
-      return
-    }
-
-    let cancelled = false
-
-    const connect = () => {
-      if (cancelled) return
-      closeEventSource()
-
-      const params = new URLSearchParams()
-      if (sessionToken) {
-        params.set('sessionId', sessionToken)
-      }
-      const query = params.toString()
-      const baseUrl = '/api/cart/events'
-      const url = query.length > 0 ? `${baseUrl}?${query}` : baseUrl
-      const source = new EventSource(url, { withCredentials: true })
-      eventSourceRef.current = source
-
-      source.addEventListener('cart_updated', (event) => {
-        try {
-          const parsed = JSON.parse((event as MessageEvent).data ?? '{}') as {
-            sessionId?: string | null
-            originSessionId?: string | null
-            originClientId?: string | null
-          }
-          const originSession = typeof parsed.originSessionId === 'string' && parsed.originSessionId.trim().length > 0 ? parsed.originSessionId.trim() : null
-          const originClient = typeof parsed.originClientId === 'string' && parsed.originClientId.trim().length > 0 ? parsed.originClientId.trim() : null
-          const localClient = clientIdRef.current ?? ensureClientId()
-          if (originClient && localClient && originClient === localClient) {
-            return
-          }
-          if (originSession && sessionIdRef.current && originSession === sessionIdRef.current) {
-            return
-          }
-        } catch {
-          // Ignore malformed payloads
-        }
-        hasSyncedServerCartRef.current = false
-        void syncCartFromServer()
-      })
-
-      source.addEventListener('error', () => {
-        source.close()
-        if (cancelled) return
-        eventSourceRef.current = null
-        if (typeof window !== 'undefined' && reconnectTimerRef.current === null) {
-          reconnectTimerRef.current = window.setTimeout(() => {
-            reconnectTimerRef.current = null
-            connect()
-          }, 2000)
-        }
-      })
-    }
-
-    connect()
-
-    return () => {
-      cancelled = true
-      closeEventSource()
-    }
+    // Removed due to timeout issues on serverless platforms
+    // This functionality was causing Vercel Runtime Timeout Error: Task timed out after 300s
+    return () => {}
   }, [sessionToken, isAuthenticated, syncCartFromServer, closeEventSource, ensureClientId])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const handleAuthChange = () => {
@@ -563,7 +515,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           serverSnapshotRef.current = new Map(currentSnapshot)
         }
-        const nextSessionId = isRecord(data) && isNonEmptyString(data.sessionId) ? data.sessionId : null
+        const nextSessionId =
+          isRecord(data) && isNonEmptyString(data.sessionId) ? data.sessionId : null
         updateSessionId(nextSessionId)
       } catch (error) {
         console.error('Failed to persist cart to server:', error)
@@ -574,30 +527,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [hasLoadedLocalCart, updateSessionId, updateAuthState, ensureClientId],
   )
 
+  // Immediate persistence when cart items change
   useEffect(() => {
     if (!hasLoadedLocalCart) return
-    const itemsSnapshot = state.items
-
-    if (shouldForcePersistRef.current) {
-      void persistCartToServer(itemsSnapshot)
-      return
-    }
-
-    if (persistTimeoutRef.current) {
-      clearTimeout(persistTimeoutRef.current)
-    }
-    const delay = isAuthenticated ? 400 : 400
-    persistTimeoutRef.current = setTimeout(() => {
-      persistTimeoutRef.current = null
-      void persistCartToServer(itemsSnapshot)
-    }, delay)
-    return () => {
-      if (persistTimeoutRef.current) {
-        clearTimeout(persistTimeoutRef.current)
-        persistTimeoutRef.current = null
-      }
-    }
-  }, [state.items, hasLoadedLocalCart, persistCartToServer, isAuthenticated])
+    // Immediately persist cart changes to server
+    void persistCartToServer(state.items)
+  }, [state.items, hasLoadedLocalCart, persistCartToServer])
 
   // Send lightweight cart activity to server (for abandoned cart tracking)
   useEffect(() => {
@@ -634,35 +569,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearTimeout(handle)
   }, [state.items])
 
-  const addItem = (item: CartItemInput) => {
-    const normalizedId = normalizeItemId(item.id)
-    if (!normalizedId) return
+  const addItem = useCallback((item: CartItemInput) => {
+    dispatch({ type: 'ADD_ITEM', payload: item })
+    // Mark that we should force persistence on next sync
+    shouldForcePersistRef.current = true
+  }, [])
 
-    dispatch({
-      type: 'ADD_ITEM',
-      payload: {
-        ...item,
-        id: normalizedId,
-      },
-    })
-  }
-
-  const removeItem = (id: string | number) => {
+  const removeItem = useCallback((id: string | number) => {
     const normalizedId = normalizeItemId(id)
     if (!normalizedId) return
     dispatch({ type: 'REMOVE_ITEM', payload: normalizedId })
-  }
+    // Mark that we should force persistence on next sync
+    shouldForcePersistRef.current = true
+  }, [])
 
-  const updateQuantity = (id: string | number, quantity: number) => {
+  const updateQuantity = useCallback((id: string | number, quantity: number) => {
     const normalizedId = normalizeItemId(id)
     if (!normalizedId) return
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id: normalizedId, quantity } })
-  }
+    // Mark that we should force persistence on next sync
+    shouldForcePersistRef.current = true
+  }, [])
 
-  const clearCart = () => {
-    serverSnapshotRef.current = new Map()
+  const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' })
-  }
+    // Mark that we should force persistence on next sync
+    shouldForcePersistRef.current = true
+  }, [])
 
   const toggleCart = () => {
     dispatch({ type: 'TOGGLE_CART' })
