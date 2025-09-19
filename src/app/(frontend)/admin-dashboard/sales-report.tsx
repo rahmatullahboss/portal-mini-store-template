@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
+import { BarChart3 } from 'lucide-react'
 
 type SalesData = {
   date: string
@@ -38,15 +39,21 @@ export default function SalesReport() {
         const days = period === '7d' ? 7 : period === '30d' ? 30 : 90
         const response = await fetch(`/api/admin/sales-report?days=${days}`)
 
+        console.log('Sales report API response status:', response.status)
+
         if (!response.ok) {
           throw new Error(`Failed to fetch sales data: ${response.status} ${response.statusText}`)
         }
 
         const data = await response.json()
 
+        console.log('Sales report raw data:', data)
+
         if (Array.isArray(data)) {
           // Reverse the data to show latest day first
-          setSalesData(data.reverse())
+          const reversedData = data.reverse()
+          console.log('Sales report processed data:', reversedData)
+          setSalesData(reversedData)
         } else {
           throw new Error('Invalid data format received')
         }
@@ -94,17 +101,20 @@ export default function SalesReport() {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-          <div className="text-sm opacity-90">Total Orders</div>
-          <div className="text-2xl font-bold">{totalOrders}</div>
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white shadow-lg">
+          <div className="text-sm font-medium opacity-90">Total Orders</div>
+          <div className="text-3xl font-bold mt-2">{totalOrders}</div>
+          <div className="text-xs opacity-75 mt-1">in selected period</div>
         </div>
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
-          <div className="text-sm opacity-90">Total Sales</div>
-          <div className="text-2xl font-bold">{formatBDT(totalSales)}</div>
+        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-5 text-white shadow-lg">
+          <div className="text-sm font-medium opacity-90">Total Sales</div>
+          <div className="text-3xl font-bold mt-2">{formatBDT(totalSales)}</div>
+          <div className="text-xs opacity-75 mt-1">revenue generated</div>
         </div>
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
-          <div className="text-sm opacity-90">Avg Daily Sales</div>
-          <div className="text-2xl font-bold">{formatBDT(avgDailySales)}</div>
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
+          <div className="text-sm font-medium opacity-90">Avg Daily Sales</div>
+          <div className="text-3xl font-bold mt-2">{formatBDT(avgDailySales)}</div>
+          <div className="text-xs opacity-75 mt-1">per day average</div>
         </div>
       </div>
 
@@ -122,32 +132,44 @@ export default function SalesReport() {
         </select>
       </div>
 
-      {/* Graph Visualization - Only show if we have data */}
-      {salesData.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-end justify-between h-48 gap-2">
+      {/* Graph Visualization */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Sales Trend Visualization</h3>
+        {salesData.length > 0 ? (
+          <div className="space-y-4">
             {salesData.map((data, index) => {
-              // Calculate bar height as percentage of max sales
+              // Calculate width as percentage of max sales
               const maxSales = Math.max(...salesData.map((d) => d.sales))
-              const barHeight = maxSales > 0 ? (data.sales / maxSales) * 100 : 0
+              const barWidth = maxSales > 0 ? (data.sales / maxSales) * 100 : 0
 
               return (
-                <div key={index} className="flex flex-col items-center flex-1">
-                  <div className="text-xs text-gray-500 mb-1">{getDayOfWeek(data.date)}</div>
-                  <div className="text-xs text-gray-500 mb-1">{formatDate(data.date)}</div>
-                  <div
-                    className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-md transition-all hover:opacity-75"
-                    style={{ height: `${barHeight}%` }}
-                  ></div>
-                  <div className="text-xs font-medium text-gray-700 mt-1">
-                    {formatBDT(data.sales)}
+                <div key={index} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">
+                      {formatDate(data.date)} ({getDayOfWeek(data.date)})
+                    </span>
+                    <span className="font-semibold">{formatBDT(data.sales)}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full"
+                      style={{ width: `${barWidth}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>{data.orders} orders</span>
+                    <span>Avg: {formatBDT(data.avgOrderValue)}</span>
                   </div>
                 </div>
               )
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>No sales data available for visualization</p>
+          </div>
+        )}
+      </div>
 
       {/* Detailed Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">

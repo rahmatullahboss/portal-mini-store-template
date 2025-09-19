@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
-}
-
 function addDays(d: Date, days: number) {
   const nd = new Date(d)
   nd.setDate(nd.getDate() + days)
@@ -24,7 +20,7 @@ export async function GET(req: NextRequest) {
     }
 
     const url = new URL(req.url)
-    const daysParam = url.searchParams.get('days') || '7' // Changed default to 7
+    const daysParam = url.searchParams.get('days') || '7'
     const days = Math.min(Math.max(parseInt(daysParam) || 7, 7), 90)
 
     const now = new Date()
@@ -64,14 +60,18 @@ export async function GET(req: NextRequest) {
 
     // Populate with actual data
     for (const order of orders.docs as any[]) {
-      const orderDate = new Date(order.orderDate)
-      const key = orderDate.toISOString().split('T')[0]
-      if (dailyData.has(key)) {
-        const current = dailyData.get(key)!
-        dailyData.set(key, {
-          orders: current.orders + 1,
-          sales: current.sales + Number(order.totalAmount || 0),
-        })
+      try {
+        const orderDate = new Date(order.orderDate)
+        const key = orderDate.toISOString().split('T')[0]
+        if (dailyData.has(key)) {
+          const current = dailyData.get(key)!
+          dailyData.set(key, {
+            orders: current.orders + 1,
+            sales: current.sales + Number(order.totalAmount || 0),
+          })
+        }
+      } catch (e) {
+        console.error('Error processing order:', order, e)
       }
     }
 
@@ -88,7 +88,11 @@ export async function GET(req: NextRequest) {
   } catch (e: any) {
     console.error('Sales report error:', e)
     return NextResponse.json(
-      { error: 'Failed to load sales report', details: e.message },
+      {
+        error: 'Failed to load sales report',
+        details: e.message,
+        stack: e.stack,
+      },
       { status: 500 },
     )
   }
