@@ -24,12 +24,16 @@ export async function GET(req: NextRequest) {
     }
 
     const url = new URL(req.url)
-    const daysParam = url.searchParams.get('days') || '30'
-    const days = Math.min(Math.max(parseInt(daysParam) || 30, 7), 90)
+    const daysParam = url.searchParams.get('days') || '7' // Changed default to 7
+    const days = Math.min(Math.max(parseInt(daysParam) || 7, 7), 90)
 
     const now = new Date()
     const startDate = addDays(now, -days + 1)
     const endDate = now
+
+    console.log(
+      `Fetching sales report for ${days} days, from ${startDate.toISOString()} to ${endDate.toISOString()}`,
+    )
 
     // Fetch completed orders in the date range
     const orders = await payload.find({
@@ -45,6 +49,8 @@ export async function GET(req: NextRequest) {
       limit: 10000,
       sort: 'orderDate',
     })
+
+    console.log(`Found ${orders.docs.length} completed orders`)
 
     // Group orders by date
     const dailyData = new Map<string, { orders: number; sales: number }>()
@@ -77,9 +83,13 @@ export async function GET(req: NextRequest) {
       avgOrderValue: data.orders > 0 ? data.sales / data.orders : 0,
     }))
 
+    console.log(`Returning ${result.length} days of data`)
     return NextResponse.json(result)
-  } catch (e) {
-    console.error('sales report error', e)
-    return NextResponse.json({ error: 'Failed to load sales report' }, { status: 500 })
+  } catch (e: any) {
+    console.error('Sales report error:', e)
+    return NextResponse.json(
+      { error: 'Failed to load sales report', details: e.message },
+      { status: 500 },
+    )
   }
 }
