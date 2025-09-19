@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
 import { OrderStatusUpdate } from '@/components/lazy-client-components'
 import { DateFilter } from './DateFilter'
+import SalesReport from './sales-report'
 import {
   ArrowLeft,
   Clock,
@@ -135,7 +136,9 @@ export default async function AdminDashboardPage({
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Button asChild variant="ghost" className="mb-4 gap-2">
-            <Link href="/"><ArrowLeft className="size-4" /> Back to Home</Link>
+            <Link href="/">
+              <ArrowLeft className="size-4" /> Back to Home
+            </Link>
           </Button>
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
         </div>
@@ -245,6 +248,23 @@ export default async function AdminDashboardPage({
           </Card>
         </div>
 
+        {/* Sales Report Section */}
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <BarChart3 className="text-white w-6 h-6" />
+                </div>
+                Sales Report
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SalesReport />
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Enhanced Summary Card */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Order Summary */}
@@ -285,16 +305,44 @@ export default async function AdminDashboardPage({
 
               {/* Order Status Progress Bar */}
               <div className="mt-6">
-                <div className="text-sm font-medium text-gray-700 mb-2">Order Status Distribution</div>
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Order Status Distribution
+                </div>
                 <div className="flex h-3 bg-gray-200 rounded-full overflow-hidden">
                   {orders.docs.length > 0 && (
                     <>
-                      <div className="bg-yellow-500" style={{ width: `${(pendingOrders.length / orders.docs.length) * 100}%` }} title={`Pending: ${pendingOrders.length}`} />
-                      <div className="bg-blue-500" style={{ width: `${(processingOrders.length / orders.docs.length) * 100}%` }} title={`Processing: ${processingOrders.length}`} />
-                      <div className="bg-purple-500" style={{ width: `${(shippedOrders.length / orders.docs.length) * 100}%` }} title={`Shipped: ${shippedOrders.length}`} />
-                      <div className="bg-green-500" style={{ width: `${(completedOrders.length / orders.docs.length) * 100}%` }} title={`Completed: ${completedOrders.length}`} />
-                      <div className="bg-red-500" style={{ width: `${(cancelledOrders.length / orders.docs.length) * 100}%` }} title={`Cancelled: ${cancelledOrders.length}`} />
-                      <div className="bg-gray-500" style={{ width: `${(refundedOrders.length / orders.docs.length) * 100}%` }} title={`Refunded: ${refundedOrders.length}`} />
+                      <div
+                        className="bg-yellow-500"
+                        style={{ width: `${(pendingOrders.length / orders.docs.length) * 100}%` }}
+                        title={`Pending: ${pendingOrders.length}`}
+                      />
+                      <div
+                        className="bg-blue-500"
+                        style={{
+                          width: `${(processingOrders.length / orders.docs.length) * 100}%`,
+                        }}
+                        title={`Processing: ${processingOrders.length}`}
+                      />
+                      <div
+                        className="bg-purple-500"
+                        style={{ width: `${(shippedOrders.length / orders.docs.length) * 100}%` }}
+                        title={`Shipped: ${shippedOrders.length}`}
+                      />
+                      <div
+                        className="bg-green-500"
+                        style={{ width: `${(completedOrders.length / orders.docs.length) * 100}%` }}
+                        title={`Completed: ${completedOrders.length}`}
+                      />
+                      <div
+                        className="bg-red-500"
+                        style={{ width: `${(cancelledOrders.length / orders.docs.length) * 100}%` }}
+                        title={`Cancelled: ${cancelledOrders.length}`}
+                      />
+                      <div
+                        className="bg-gray-500"
+                        style={{ width: `${(refundedOrders.length / orders.docs.length) * 100}%` }}
+                        title={`Refunded: ${refundedOrders.length}`}
+                      />
                     </>
                   )}
                 </div>
@@ -329,7 +377,10 @@ export default async function AdminDashboardPage({
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600">
                     {abandonedCarts.length > 0
-                      ? ((abandonedCarts.length / (activeCarts.length + abandonedCarts.length)) * 100).toFixed(1)
+                      ? (
+                          (abandonedCarts.length / (activeCarts.length + abandonedCarts.length)) *
+                          100
+                        ).toFixed(1)
                       : 0}
                     %
                   </div>
@@ -361,28 +412,32 @@ export default async function AdminDashboardPage({
                 : `Orders for ${selectedDateOnly}`}
             </h2>
             <div className="flex items-center gap-2">
-              {!selectedRange && (() => {
-                const cur = new Date(start)
-                const prev = new Date(cur)
-                prev.setUTCDate(cur.getUTCDate() - 1)
-                const next = new Date(cur)
-                next.setUTCDate(cur.getUTCDate() + 1)
-                const today = toDateOnly(new Date())
-                const prevStr = toDateOnly(prev)
-                const nextStr = toDateOnly(next)
-                return (
-                  <>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/admin-dashboard?date=${prevStr}`}>Previous Day</Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm" disabled={nextStr > today}>
-                      <Link aria-disabled={nextStr > today} href={`/admin-dashboard?date=${nextStr}`}>
-                        Next Day
-                      </Link>
-                    </Button>
-                  </>
-                )
-              })()}
+              {!selectedRange &&
+                (() => {
+                  const cur = new Date(start)
+                  const prev = new Date(cur)
+                  prev.setUTCDate(cur.getUTCDate() - 1)
+                  const next = new Date(cur)
+                  next.setUTCDate(cur.getUTCDate() + 1)
+                  const today = toDateOnly(new Date())
+                  const prevStr = toDateOnly(prev)
+                  const nextStr = toDateOnly(next)
+                  return (
+                    <>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/admin-dashboard?date=${prevStr}`}>Previous Day</Link>
+                      </Button>
+                      <Button asChild variant="outline" size="sm" disabled={nextStr > today}>
+                        <Link
+                          aria-disabled={nextStr > today}
+                          href={`/admin-dashboard?date=${nextStr}`}
+                        >
+                          Next Day
+                        </Link>
+                      </Button>
+                    </>
+                  )
+                })()}
               <DateFilter
                 initialMode={selectedRange ? 'range' : 'single'}
                 initialDate={selectedDateOnly}
@@ -405,7 +460,9 @@ export default async function AdminDashboardPage({
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">Order #{String(order.id).slice(-8)}</CardTitle>
+                        <CardTitle className="text-lg">
+                          Order #{String(order.id).slice(-8)}
+                        </CardTitle>
                         <CardDescription className="mt-1">
                           Customer:{' '}
                           {order.user ? (
@@ -419,7 +476,9 @@ export default async function AdminDashboardPage({
                           )}
                         </CardDescription>
                         {order.customerNumber ? (
-                          <p className="text-sm text-gray-600 mt-1">Customer number: {order.customerNumber}</p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Customer number: {order.customerNumber}
+                          </p>
                         ) : null}
                         <p className="text-sm text-gray-500 mt-1">
                           Ordered:{' '}
@@ -474,24 +533,42 @@ export default async function AdminDashboardPage({
                   <CardContent>
                     <div className="space-y-3">
                       {order.items.map((item: any, index: number) => (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          {item.item && typeof item.item === 'object' && item.item.image && typeof item.item.image === 'object' && item.item.image.url && (
-                            <div className="relative w-12 h-12 rounded overflow-hidden">
-                              <Image src={item.item.image.url} alt={item.item.image.alt || item.item.name} fill className="object-cover" />
-                            </div>
-                          )}
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                        >
+                          {item.item &&
+                            typeof item.item === 'object' &&
+                            item.item.image &&
+                            typeof item.item.image === 'object' &&
+                            item.item.image.url && (
+                              <div className="relative w-12 h-12 rounded overflow-hidden">
+                                <Image
+                                  src={item.item.image.url}
+                                  alt={item.item.image.alt || item.item.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
                           <div className="flex-1">
                             <h4 className="font-medium">{item.item?.name || 'Unknown Item'}</h4>
-                            <p className="text-sm text-gray-600">Qty: {item.quantity} • {fmtBDT(item.item?.price || 0)}</p>
+                            <p className="text-sm text-gray-600">
+                              Qty: {item.quantity} • {fmtBDT(item.item?.price || 0)}
+                            </p>
                           </div>
-                          <div className="text-right font-medium">{fmtBDT((item.item?.price || 0) * item.quantity)}</div>
+                          <div className="text-right font-medium">
+                            {fmtBDT((item.item?.price || 0) * item.quantity)}
+                          </div>
                         </div>
                       ))}
                     </div>
 
                     <Separator className="my-4" />
 
-                    <div className={`grid gap-4 my-4 ${order.shippingAddress ? 'sm:grid-cols-2' : ''}`}>
+                    <div
+                      className={`grid gap-4 my-4 ${order.shippingAddress ? 'sm:grid-cols-2' : ''}`}
+                    >
                       <div>
                         <h4 className="font-semibold text-gray-800 mb-1">Payment Details</h4>
                         <div className="space-y-1 text-sm text-gray-700">
@@ -564,39 +641,67 @@ export default async function AdminDashboardPage({
               Abandoned Carts
             </h2>
             <div className="flex gap-3">
-              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">Active: {activeCarts.length}</Badge>
-              <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">Abandoned: {abandonedCarts.length}</Badge>
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">Total: {carts.docs.length}</Badge>
+              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                Active: {activeCarts.length}
+              </Badge>
+              <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
+                Abandoned: {abandonedCarts.length}
+              </Badge>
+              <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
+                Total: {carts.docs.length}
+              </Badge>
             </div>
           </div>
 
           {carts.docs.length === 0 ? (
             <Card>
-              <CardContent className="py-6 text-center text-gray-500">No active or abandoned carts.</CardContent>
+              <CardContent className="py-6 text-center text-gray-500">
+                No active or abandoned carts.
+              </CardContent>
             </Card>
           ) : (
             <div className="space-y-6">
               {(carts.docs as any[]).map((cart: any) => (
-                <Card key={cart.id} className={cart.status === 'abandoned' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
+                <Card
+                  key={cart.id}
+                  className={
+                    cart.status === 'abandoned'
+                      ? 'border-red-200 bg-red-50'
+                      : 'border-green-200 bg-green-50'
+                  }
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <CardTitle className="text-lg flex items-center gap-2">
-                          {cart.status === 'active' ? 'Active Cart' : cart.status === 'abandoned' ? 'Abandoned Cart' : 'Recovered Cart'}
+                          {cart.status === 'active'
+                            ? 'Active Cart'
+                            : cart.status === 'abandoned'
+                              ? 'Abandoned Cart'
+                              : 'Recovered Cart'}
                         </CardTitle>
                         <CardDescription>
-                          Last activity: {new Date(cart.lastActivityAt).toLocaleString('en-US', { timeZone: 'UTC' })}
+                          Last activity:{' '}
+                          {new Date(cart.lastActivityAt).toLocaleString('en-US', {
+                            timeZone: 'UTC',
+                          })}
                         </CardDescription>
                       </div>
                       <div className="flex items-center gap-2">
                         {cart.status === 'recovered' && cart.recoveredOrder ? (
                           <Button asChild variant="outline" size="sm">
-                            <Link href={`/admin/collections/orders/${cart.recoveredOrder?.id || cart.recoveredOrder}`}>View Order</Link>
+                            <Link
+                              href={`/admin/collections/orders/${cart.recoveredOrder?.id || cart.recoveredOrder}`}
+                            >
+                              View Order
+                            </Link>
                           </Button>
                         ) : cart.status === 'abandoned' && cart.cartTotal > 0 ? (
                           <div className="text-right">
                             <div className="text-sm font-medium text-amber-600">Recovery Value</div>
-                            <div className="text-lg font-bold text-gray-800">{fmtBDT(Number(cart.cartTotal || 0))}</div>
+                            <div className="text-lg font-bold text-gray-800">
+                              {fmtBDT(Number(cart.cartTotal || 0))}
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -605,39 +710,63 @@ export default async function AdminDashboardPage({
                   <CardContent>
                     {(cart.items || []).length > 0 ? (
                       <div className="space-y-3">
-                        <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">Cart Items ({(cart.items || []).length})</div>
+                        <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          Cart Items ({(cart.items || []).length})
+                        </div>
                         {(cart.items || []).map((line: any, idx: number) => (
-                          <div key={idx} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                          >
                             <div className="flex items-center gap-3">
-                              {line.item && typeof line.item === 'object' && line.item?.image?.url ? (
+                              {line.item &&
+                              typeof line.item === 'object' &&
+                              line.item?.image?.url ? (
                                 <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
-                                  <Image src={line.item.image.url} alt={line.item.image.alt || line.item.name} fill className="object-cover" />
+                                  <Image
+                                    src={line.item.image.url}
+                                    alt={line.item.image.alt || line.item.name}
+                                    fill
+                                    className="object-cover"
+                                  />
                                 </div>
                               ) : (
                                 <div className="w-12 h-12 bg-gray-100 rounded-lg" />
                               )}
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{line.item?.name || 'Item'}</div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {line.item?.name || 'Item'}
+                                </div>
                                 <div className="text-xs text-gray-500 flex items-center gap-1">
                                   <span>Qty: {line.quantity}</span>
-                                  {typeof line?.item?.price === 'number' && <span>• {fmtBDT(line.item.price)} each</span>}
+                                  {typeof line?.item?.price === 'number' && (
+                                    <span>• {fmtBDT(line.item.price)} each</span>
+                                  )}
                                 </div>
                               </div>
                             </div>
                             <div className="text-sm font-semibold text-gray-800">
-                              {typeof line?.item?.price === 'number' ? fmtBDT(line.item.price * (line.quantity || 1)) : '—'}
+                              {typeof line?.item?.price === 'number'
+                                ? fmtBDT(line.item.price * (line.quantity || 1))
+                                : '—'}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-gray-500"><p className="text-sm">No items in cart</p></div>
+                      <div className="text-center py-4 text-gray-500">
+                        <p className="text-sm">No items in cart</p>
+                      </div>
                     )}
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600 flex items-center gap-1">Session: {String(cart.sessionId).slice(0, 16)}…</div>
+                      <div className="text-sm text-gray-600 flex items-center gap-1">
+                        Session: {String(cart.sessionId).slice(0, 16)}…
+                      </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-gray-800">Total: {fmtBDT(Number(cart.cartTotal || 0))}</div>
+                        <div className="text-lg font-bold text-gray-800">
+                          Total: {fmtBDT(Number(cart.cartTotal || 0))}
+                        </div>
                         {cart.status === 'abandoned' && cart.cartTotal > 0 && (
                           <div className="text-xs text-red-600 mt-1">Revenue at risk</div>
                         )}
@@ -653,4 +782,3 @@ export default async function AdminDashboardPage({
     </div>
   )
 }
-
