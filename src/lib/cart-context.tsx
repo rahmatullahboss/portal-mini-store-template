@@ -193,6 +193,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const eventSourceRef = useRef<EventSource | null>(null)
   const reconnectTimerRef = useRef<number | null>(null)
   const clientIdRef = useRef<string | null>(null)
+
+  // Add a ref to track if we're currently syncing from server
+  const isSyncingFromServerRef = useRef(false)
+
   const updateSessionId = useCallback((value: string | null) => {
     sessionIdRef.current = value
     setSessionToken(value)
@@ -308,6 +312,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!hasLoadedLocalCart || typeof window === 'undefined') return
     if (hasSyncedServerCartRef.current) return
     hasSyncedServerCartRef.current = true
+
+    // Mark that we're syncing from server to avoid persistence loop
+    isSyncingFromServerRef.current = true
+
     try {
       const sessionQuery = sessionIdRef.current
         ? `?sessionId=${encodeURIComponent(sessionIdRef.current)}`
@@ -317,11 +325,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateAuthState(false)
         hasSyncedServerCartRef.current = false
         updateSessionId(null)
+        isSyncingFromServerRef.current = false
         return
       }
       if (!response.ok) {
         // Allow retry on future attempts
         hasSyncedServerCartRef.current = false
+        isSyncingFromServerRef.current = false
         return
       }
       updateAuthState(true)
@@ -329,6 +339,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!isRecord(data)) {
         updateSessionId(null)
         serverSnapshotRef.current = new Map()
+        isSyncingFromServerRef.current = false
         return
       }
       const dataRecord = data as Record<string, unknown>
@@ -349,6 +360,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const itemsCandidate = dataRecord['items']
       if (!Array.isArray(itemsCandidate)) {
         serverSnapshotRef.current = new Map(snapshotEntries)
+        isSyncingFromServerRef.current = false
         return
       }
       const incomingItems: CartItem[] = itemsCandidate
@@ -356,53 +368,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .filter((item): item is CartItem => item !== null)
       if (incomingItems.length === 0) {
         serverSnapshotRef.current = new Map(snapshotEntries)
+        isSyncingFromServerRef.current = false
         return
       }
 
-      // Create a map of incoming items by ID for easy lookup
-      const incomingMap = new Map(incomingItems.map((item) => [item.id, item]))
+      // Replace local cart with server cart to avoid duplication
+      // The server cart is the source of truth
+      serverSnapshotRef.current = new Map(incomingItems.map((item) => [item.id, item.quantity]))
 
-      // Merge incoming items with existing items
-      const mergedItems: CartItem[] = []
-      const processedIds = new Set<string>()
-
-      // First, process existing items
-      for (const existingItem of state.items) {
-        const incomingItem = incomingMap.get(existingItem.id)
-        if (incomingItem) {
-          // Item exists both locally and on server - merge quantities
-          const mergedQuantity = existingItem.quantity + incomingItem.quantity
-          mergedItems.push({
-            ...existingItem,
-            ...incomingItem,
-            quantity: mergedQuantity,
-          })
-          processedIds.add(existingItem.id)
-        } else {
-          // Item only exists locally - keep it
-          mergedItems.push(existingItem)
-          processedIds.add(existingItem.id)
-        }
-      }
-
-      // Add items that only exist on server
-      for (const incomingItem of incomingItems) {
-        if (!processedIds.has(incomingItem.id)) {
-          mergedItems.push(incomingItem)
-        }
-      }
-
-      // Update the server snapshot
-      const nextSnapshotEntries: [string, number][] = []
-      for (const item of mergedItems) {
-        nextSnapshotEntries.push([item.id, item.quantity])
-      }
-
-      serverSnapshotRef.current = new Map(nextSnapshotEntries)
-      dispatch({ type: 'SET_ITEMS', payload: mergedItems })
+      // Set skipNextPersistRef to true to prevent persistence of server-synced items
+      skipNextPersistRef.current = true
+      dispatch({ type: 'SET_ITEMS', payload: incomingItems })
     } catch (error) {
       console.error('Failed to sync cart from server:', error)
       hasSyncedServerCartRef.current = false
+    } finally {
+      isSyncingFromServerRef.current = false
     }
   }, [hasLoadedLocalCart, state.items, updateSessionId, updateAuthState])
 
@@ -475,11 +456,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      if (!isDifferent && shouldForcePersistRef.current) {
-        isDifferent = true
-      }
-
-      if (!isDifferent) {
+      if (!isDifferent && !shouldForcePersistRef.current) {
         return
       }
 
@@ -558,6 +535,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Immediate persistence when cart items change
   useEffect(() => {
     if (!hasLoadedLocalCart) return
+    // Don't persist if we're currently syncing from server
+    if (isSyncingFromServerRef.current) return
+    // Don't persist if we just loaded from server
+    if (skipNextPersistRef.current) {
+      skipNextPersistRef.current = false
+      return
+    }
     // Immediately persist cart changes to server
     void persistCartToServer(state.items)
   }, [state.items, hasLoadedLocalCart, persistCartToServer])
