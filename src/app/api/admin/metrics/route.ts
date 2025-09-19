@@ -12,6 +12,16 @@ function addMonths(d: Date, months: number) {
   return nd
 }
 
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function addDays(d: Date, days: number) {
+  const nd = new Date(d)
+  nd.setDate(nd.getDate() + days)
+  return nd
+}
+
 export async function GET(req: NextRequest) {
   try {
     const payloadConfig = await config
@@ -28,8 +38,15 @@ export async function GET(req: NextRequest) {
     const abandonedHours = Number(url.searchParams.get('abandonedHours') || '24')
 
     const now = new Date()
-    const from = range === 'all-time' ? new Date(2000, 0, 1) : startOfMonth(now)
-    const to = now
+    let from, to
+
+    if (range === 'all-time') {
+      from = new Date(2000, 0, 1)
+      to = now
+    } else {
+      from = startOfMonth(now)
+      to = now
+    }
 
     // Helper to fetch orders by where clause
     const findOrders = async (where: any, limit = 5000) => {
@@ -49,9 +66,15 @@ export async function GET(req: NextRequest) {
     const cancelled = await findOrders({ and: [{ status: { equals: 'cancelled' } }, dateFilter] })
 
     const sum = (rows: any[]) => rows.reduce((a, r) => a + Number(r.totalAmount || 0), 0)
+    const sumSubtotal = (rows: any[]) => rows.reduce((a, r) => a + Number(r.subtotal || 0), 0)
+    const sumShipping = (rows: any[]) => rows.reduce((a, r) => a + Number(r.shippingCharge || 0), 0)
+
+    const grossSales = sum(completed)
+    const subtotalAmount = sumSubtotal(completed)
+    const shippingAmount = sumShipping(completed)
 
     const totals = {
-      grossSales: sum(completed),
+      grossSales,
       totalOrders: completed.length + pending.length + cancelled.length,
       activeOrders: pending.length,
       fulfilledOrders: completed.length,
@@ -82,21 +105,40 @@ export async function GET(req: NextRequest) {
         and: [{ status: { equals: 'abandoned' } }],
       }
       if (range !== 'all-time') {
-        ;(abandonedWhere.and as any[]).push({ lastActivityAt: { greater_than_equal: from.toISOString() } })
-        ;(abandonedWhere.and as any[]).push({ lastActivityAt: { less_than_equal: to.toISOString() } })
+        ;(abandonedWhere.and as any[]).push({
+          lastActivityAt: { greater_than_equal: from.toISOString() },
+        })
+        ;(abandonedWhere.and as any[]).push({
+          lastActivityAt: { less_than_equal: to.toISOString() },
+        })
       }
-      const res = await payload.find({ collection: 'abandoned-carts', where: abandonedWhere, depth: 0, limit: 1 })
+      const res = await payload.find({
+        collection: 'abandoned-carts',
+        where: abandonedWhere,
+        depth: 0,
+        limit: 1,
+      })
       abandonedCount = res.totalDocs ?? res.docs.length
     } catch (e: any) {
       const msg = String(e?.message || '')
       // If the table/columns don't exist yet (42P01/42703), fallback to pending order heuristic
-      if (msg.includes('relation "abandoned_carts" does not exist') || msg.includes('42703') || msg.includes('42P01')) {
+      if (
+        msg.includes('relation "abandoned_carts" does not exist') ||
+        msg.includes('42703') ||
+        msg.includes('42P01')
+      ) {
         const fallback = await payload.find({
           collection: 'orders',
           where: {
             and: [
               { status: { equals: 'pending' } },
-              { orderDate: { less_than_equal: new Date(Date.now() - abandonedHours * 60 * 60 * 1000).toISOString() } },
+              {
+                orderDate: {
+                  less_than_equal: new Date(
+                    Date.now() - abandonedHours * 60 * 60 * 1000,
+                  ).toISOString(),
+                },
+              },
             ],
           },
           depth: 0,
@@ -154,17 +196,57 @@ export async function GET(req: NextRequest) {
       value,
     }))
 
+    // Daily sales data for the last 30 days
+    const dailySalesData = []
+    if (range !== 'all-time') {
+      const startDate = addDays(now, -30)
+      const dailyMap = new Map<string, { orders: number; sales: number }>()
+
+      // Initialize map with last 30 days
+      for (let i = 0; i < 30; i++) {
+        const d = addDays(startDate, i)
+        const key = d.toISOString().split('T')[0]
+        dailyMap.set(key, { orders: 0, sales: 0 })
+      }
+
+      // Populate with actual data
+      for (const order of completed) {
+        const orderDate = new Date(order.orderDate)
+        const key = orderDate.toISOString().split('T')[0]
+        if (dailyMap.has(key)) {
+          const current = dailyMap.get(key)!
+          dailyMap.set(key, {
+            orders: current.orders + 1,
+            sales: current.sales + Number(order.totalAmount || 0),
+          })
+        }
+      }
+
+      // Convert to array
+      dailySalesData.push(
+        ...Array.from(dailyMap.entries()).map(([date, data]) => ({
+          date,
+          orders: data.orders,
+          sales: data.sales,
+          avgOrderValue: data.orders > 0 ? data.sales / data.orders : 0,
+        })),
+      )
+    }
+
     return NextResponse.json({
       range,
       from: from.toISOString(),
       to: to.toISOString(),
       totals: { ...totals, avgOrderValue, conversionRate },
       salesSeries,
+      dailySalesData,
       breakdown: {
         grossSales: totals.grossSales,
+        subtotal: subtotalAmount,
+        shipping: shippingAmount,
         discounts: 0,
         returns: 0,
-        deliveryCharge: 0,
+        deliveryCharge: shippingAmount,
       },
       users: { newUsers: users.totalDocs ?? users.docs.length },
       devices: deviceCounts,

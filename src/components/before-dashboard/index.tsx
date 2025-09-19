@@ -1,7 +1,8 @@
-"use client"
+'use client'
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import GlobalNotificationProvider from '../admin/GlobalNotificationProvider'
+import SalesReport from './sales-report'
 import './index.scss'
 
 type Metrics = {
@@ -18,7 +19,14 @@ type Metrics = {
     conversionRate?: number
   }
   salesSeries: { month: string; value: number }[]
-  breakdown: { grossSales: number; discounts: number; returns: number; deliveryCharge: number }
+  breakdown: {
+    grossSales: number
+    discounts: number
+    returns: number
+    deliveryCharge: number
+    subtotal: number
+    shipping: number
+  }
   users?: { newUsers: number }
   devices?: { mobile: number; desktop: number; tablet: number; other: number }
   carts?: { abandoned: number }
@@ -36,11 +44,24 @@ const cardStyle: React.CSSProperties = {
 const smallText: React.CSSProperties = { fontSize: 12, color: 'var(--theme-text-400, #6b7280)' }
 const bigText: React.CSSProperties = { fontSize: 22, fontWeight: 700 }
 
-function Card({ title, value, color }: { title: string; value: string; color?: string }) {
+function Card({
+  title,
+  value,
+  color,
+  description,
+}: {
+  title: string
+  value: string
+  color?: string
+  description?: string
+}) {
   return (
     <div style={cardStyle}>
       <div style={smallText}>{title}</div>
       <div style={{ ...bigText, color: color || 'inherit', marginTop: 4 }}>{value}</div>
+      {description && (
+        <div style={{ ...smallText, marginTop: 4, fontStyle: 'italic' }}>{description}</div>
+      )}
     </div>
   )
 }
@@ -92,13 +113,22 @@ export default function BeforeDashboard() {
   const sparkData = useMemo(() => metrics?.salesSeries?.map((s) => s.value) || [], [metrics])
 
   const container: React.CSSProperties = { display: 'grid', gap: 16 }
-  const headerRow: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
+  const headerRow: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  }
   const kpiGrid: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
     gap: 12,
   }
-  const twoCol: React.CSSProperties = { display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, alignItems: 'start' }
+  const twoCol: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: '2fr 1fr',
+    gap: 12,
+    alignItems: 'start',
+  }
 
   return (
     <>
@@ -106,53 +136,163 @@ export default function BeforeDashboard() {
       <div style={container} suppressHydrationWarning>
         <div style={headerRow}>
           <h2 style={{ margin: 0 }}>Store Overview</h2>
-          <select value={range} onChange={(e) => setRange(e.target.value as any)} style={{ padding: '6px 8px', borderRadius: 6 }}>
+          <select
+            value={range}
+            onChange={(e) => setRange(e.target.value as any)}
+            style={{ padding: '6px 8px', borderRadius: 6 }}
+          >
             <option value="this-month">This Month</option>
             <option value="all-time">All Time</option>
           </select>
         </div>
 
-      {!mounted || loading ? (
-        <div style={smallText}>Loading metrics…</div>
-      ) : err ? (
-        <div style={{ color: '#dc2626', fontSize: 13 }}>{err}</div>
-      ) : metrics ? (
-        <>
-          <div style={kpiGrid}>
-            <Card title="Gross Sales" value={formatBDT(metrics.totals.grossSales)} color="#2563eb" />
-            <Card title="Avg Order Value" value={formatBDT(metrics.totals.avgOrderValue || 0)} color="#7c3aed" />
-            <Card title="Conversion Rate" value={`${(metrics.totals.conversionRate || 0).toFixed(1)}%`} color="#16a34a" />
-            <Card title="New Users" value={String(metrics.users?.newUsers ?? 0)} color="#f59e0b" />
-            <Card title="Active Orders" value={String(metrics.totals.activeOrders)} color="#0891b2" />
-            <Card title="Abandoned Carts" value={String(metrics.carts?.abandoned ?? 0)} color="#dc2626" />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Link href="/admin/collections/abandoned-carts" className="text-blue-600 underline text-xs">
-              View Abandoned Carts
-            </Link>
-          </div>
-
-          <div style={twoCol}>
-            <div style={cardStyle}>
-              <div style={{ ...smallText, marginBottom: 8 }}>Total sales</div>
-              <div style={{ ...bigText, marginBottom: 8 }}>{formatBDT(metrics.totals.grossSales)}</div>
-              <Spark data={sparkData.length ? sparkData : [0]} />
-              <div style={{ ...smallText, marginTop: 8 }}>Last 12 months</div>
+        {!mounted || loading ? (
+          <div style={smallText}>Loading metrics…</div>
+        ) : err ? (
+          <div style={{ color: '#dc2626', fontSize: 13 }}>{err}</div>
+        ) : metrics ? (
+          <>
+            <div style={kpiGrid}>
+              <Card
+                title="Gross Sales"
+                value={formatBDT(metrics.totals.grossSales)}
+                color="#2563eb"
+                description={`${metrics.totals.fulfilledOrders} completed orders`}
+              />
+              <Card
+                title="Avg Order Value"
+                value={formatBDT(metrics.totals.avgOrderValue || 0)}
+                color="#7c3aed"
+              />
+              <Card
+                title="Conversion Rate"
+                value={`${(metrics.totals.conversionRate || 0).toFixed(1)}%`}
+                color="#16a34a"
+                description={`${metrics.totals.totalOrders} total orders`}
+              />
+              <Card
+                title="New Users"
+                value={String(metrics.users?.newUsers ?? 0)}
+                color="#f59e0b"
+              />
+              <Card
+                title="Active Orders"
+                value={String(metrics.totals.activeOrders)}
+                color="#0891b2"
+              />
+              <Card
+                title="Abandoned Carts"
+                value={String(metrics.carts?.abandoned ?? 0)}
+                color="#dc2626"
+              />
             </div>
-            <div style={cardStyle}>
-              <div style={{ ...smallText, marginBottom: 8 }}>Device sessions</div>
-              <DeviceDonut devices={metrics.devices || { mobile: 0, desktop: 0, tablet: 0, other: 0 }} />
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Link
+                href="/admin/collections/abandoned-carts"
+                className="text-blue-600 underline text-xs"
+              >
+                View Abandoned Carts
+              </Link>
             </div>
-          </div>
-        </>
-      ) : null}
+
+            <div style={twoCol}>
+              <div style={cardStyle}>
+                <div style={{ ...smallText, marginBottom: 8 }}>Total sales</div>
+                <div style={{ ...bigText, marginBottom: 8, color: '#2563eb' }}>
+                  {formatBDT(metrics.totals.grossSales)}
+                </div>
+                <Spark data={sparkData.length ? sparkData : [0]} />
+                <div style={{ ...smallText, marginTop: 8 }}>Last 12 months</div>
+              </div>
+              <div style={cardStyle}>
+                <div style={{ ...smallText, marginBottom: 8 }}>Device sessions</div>
+                <DeviceDonut
+                  devices={metrics.devices || { mobile: 0, desktop: 0, tablet: 0, other: 0 }}
+                />
+              </div>
+            </div>
+
+            {/* Sales breakdown */}
+            <div style={cardStyle}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: 16 }}>Sales Breakdown</h3>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div style={smallText}>Subtotal</div>
+                  <div style={{ ...bigText, color: '#2563eb' }}>
+                    {formatBDT(metrics.breakdown.subtotal)}
+                  </div>
+                </div>
+                <div>
+                  <div style={smallText}>Shipping</div>
+                  <div style={{ ...bigText, color: '#16a34a' }}>
+                    {formatBDT(metrics.breakdown.shipping)}
+                  </div>
+                </div>
+                <div>
+                  <div style={smallText}>Gross Sales</div>
+                  <div style={{ ...bigText, color: '#7c3aed' }}>
+                    {formatBDT(metrics.breakdown.grossSales)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional metrics section */}
+            <div style={cardStyle}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: 16 }}>Order Statistics</h3>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div style={smallText}>Completed</div>
+                  <div style={{ ...bigText, color: '#16a34a' }}>
+                    {metrics.totals.fulfilledOrders}
+                  </div>
+                </div>
+                <div>
+                  <div style={smallText}>Pending</div>
+                  <div style={{ ...bigText, color: '#f59e0b' }}>{metrics.totals.activeOrders}</div>
+                </div>
+                <div>
+                  <div style={smallText}>Cancelled</div>
+                  <div style={{ ...bigText, color: '#dc2626' }}>
+                    {metrics.totals.cancelledOrders}
+                  </div>
+                </div>
+                <div>
+                  <div style={smallText}>Total Orders</div>
+                  <div style={{ ...bigText }}>{metrics.totals.totalOrders}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sales report */}
+            <div style={cardStyle}>
+              <SalesReport />
+            </div>
+          </>
+        ) : null}
       </div>
     </>
   )
 }
 
-function DeviceDonut({ devices }: { devices: { mobile: number; desktop: number; tablet: number; other: number } }) {
+function DeviceDonut({
+  devices,
+}: {
+  devices: { mobile: number; desktop: number; tablet: number; other: number }
+}) {
   const total = Object.values(devices).reduce((a, b) => a + b, 0) || 1
   const pct = (n: number) => Math.round((n / total) * 100)
   const slices = [
@@ -164,7 +304,12 @@ function DeviceDonut({ devices }: { devices: { mobile: number; desktop: number; 
   const size = 140
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <svg viewBox="0 0 36 36" width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+      <svg
+        viewBox="0 0 36 36"
+        width={size}
+        height={size}
+        style={{ transform: 'rotate(-90deg)', display: 'block' }}
+      >
         {(() => {
           let acc = 0
           return slices.map((s, i) => {
@@ -192,7 +337,15 @@ function DeviceDonut({ devices }: { devices: { mobile: number; desktop: number; 
       <div style={{ fontSize: 12 }}>
         {slices.map((s) => (
           <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 8, height: 8, background: s.color, display: 'inline-block', borderRadius: 2 }} />
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                background: s.color,
+                display: 'inline-block',
+                borderRadius: 2,
+              }}
+            />
             <span style={{ width: 60, color: 'var(--theme-text-400, #6b7280)' }}>{s.key}</span>
             <span style={{ fontWeight: 600 }}>{pct(s.value)}%</span>
           </div>
