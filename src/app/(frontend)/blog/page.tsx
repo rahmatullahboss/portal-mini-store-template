@@ -23,6 +23,32 @@ export default async function BlogPage() {
     sort: '-publishedDate',
   })
 
+  // Function to render rich text content as plain text for excerpt
+  const renderPlainText = (content: any): string => {
+    if (!content) return ''
+
+    if (Array.isArray(content)) {
+      return content
+        .map((node) => {
+          if (typeof node === 'string') {
+            return node
+          }
+          if (typeof node === 'object' && node !== null) {
+            if (node.text) {
+              return node.text
+            }
+            if (node.children) {
+              return renderPlainText(node.children)
+            }
+          }
+          return ''
+        })
+        .join(' ')
+    }
+
+    return ''
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Blog</h1>
@@ -50,7 +76,21 @@ export default async function BlogPage() {
               <p className="text-gray-600 text-sm mb-2">
                 {post.publishedDate && new Date(post.publishedDate).toLocaleDateString()}
               </p>
-              {post.excerpt && <p className="text-gray-700">{post.excerpt}</p>}
+              {post.excerpt ? (
+                <p className="text-gray-700">{post.excerpt}</p>
+              ) : post.content ? (
+                <p className="text-gray-700">
+                  {renderPlainText(post.content).substring(0, 150)}...
+                </p>
+              ) : null}
+              <div className="mt-4">
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Read more →
+                </Link>
+              </div>
             </div>
           </div>
         ))}

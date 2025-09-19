@@ -41,13 +41,14 @@ export function SiteHeader({
                 </span>
                 <div className="absolute inset-0 rounded-full blur-sm sm:blur-lg opacity-0 group-hover:opacity-30 sm:group-hover:opacity-40 transition-opacity duration-300 brand-glow"></div>
               </div>
-              <h1 className="text-2xl font-bold brand-text tracking-tight">
-                Online Bazar
-              </h1>
+              <h1 className="text-2xl font-bold brand-text tracking-tight">Online Bazar</h1>
             </Link>
 
             {/* Navigation and User Actions */}
             <div className="flex items-center gap-4">
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/blog">Blog</Link>
+              </Button>
               {user ? (
                 <>
                   <div className="hidden sm:flex items-center gap-4">
@@ -75,6 +76,9 @@ export function SiteHeader({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href="/blog">Blog</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/profile">Profile</Link>
                         </DropdownMenuItem>
@@ -147,8 +151,3 @@ export function SiteHeader({
     </div>
   )
 }
-
-
-
-
-

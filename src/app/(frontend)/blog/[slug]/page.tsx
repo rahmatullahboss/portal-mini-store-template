@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
@@ -36,14 +37,24 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   return (
     <div className="container mx-auto px-4 py-8">
       <article className="max-w-3xl mx-auto">
+        <Link
+          href="/blog"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
+        >
+          ← Back to Blog
+        </Link>
+
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
 
-        <div className="flex items-center text-gray-600 mb-6">
+        <div className="flex flex-wrap items-center text-gray-600 mb-6 gap-4">
           <span>{post.publishedDate && new Date(post.publishedDate).toLocaleDateString()}</span>
           {post.author && typeof post.author !== 'number' && (
-            <span className="ml-4">
+            <span>
               By {post.author.firstName} {post.author.lastName}
             </span>
+          )}
+          {post.category && typeof post.category !== 'number' && (
+            <span className="bg-gray-100 px-2 py-1 rounded text-sm">{post.category.name}</span>
           )}
         </div>
 
@@ -67,6 +78,12 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <p>{post.excerpt}</p>
           </div>
         )}
+
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <Link href="/blog" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+            ← Back to Blog
+          </Link>
+        </div>
       </article>
     </div>
   )

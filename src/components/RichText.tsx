@@ -18,25 +18,65 @@ const RichText: React.FC<RichTextProps> = ({ content }) => {
           if (typeof node === 'object' && node !== null) {
             switch (node.type) {
               case 'h1':
-                return <h1 key={index}>{renderChildren(node.children)}</h1>
+                return (
+                  <h1 key={index} className="text-3xl font-bold mt-6 mb-4">
+                    {renderChildren(node.children)}
+                  </h1>
+                )
               case 'h2':
-                return <h2 key={index}>{renderChildren(node.children)}</h2>
+                return (
+                  <h2 key={index} className="text-2xl font-bold mt-5 mb-3">
+                    {renderChildren(node.children)}
+                  </h2>
+                )
               case 'h3':
-                return <h3 key={index}>{renderChildren(node.children)}</h3>
+                return (
+                  <h3 key={index} className="text-xl font-bold mt-4 mb-2">
+                    {renderChildren(node.children)}
+                  </h3>
+                )
               case 'h4':
-                return <h4 key={index}>{renderChildren(node.children)}</h4>
+                return (
+                  <h4 key={index} className="text-lg font-bold mt-3 mb-2">
+                    {renderChildren(node.children)}
+                  </h4>
+                )
               case 'h5':
-                return <h5 key={index}>{renderChildren(node.children)}</h5>
+                return (
+                  <h5 key={index} className="text-base font-bold mt-3 mb-1">
+                    {renderChildren(node.children)}
+                  </h5>
+                )
               case 'h6':
-                return <h6 key={index}>{renderChildren(node.children)}</h6>
+                return (
+                  <h6 key={index} className="text-sm font-bold mt-3 mb-1">
+                    {renderChildren(node.children)}
+                  </h6>
+                )
               case 'p':
-                return <p key={index}>{renderChildren(node.children)}</p>
+                return (
+                  <p key={index} className="mb-4">
+                    {renderChildren(node.children)}
+                  </p>
+                )
               case 'ul':
-                return <ul key={index}>{renderChildren(node.children)}</ul>
+                return (
+                  <ul key={index} className="list-disc pl-5 mb-4">
+                    {renderChildren(node.children)}
+                  </ul>
+                )
               case 'ol':
-                return <ol key={index}>{renderChildren(node.children)}</ol>
+                return (
+                  <ol key={index} className="list-decimal pl-5 mb-4">
+                    {renderChildren(node.children)}
+                  </ol>
+                )
               case 'li':
-                return <li key={index}>{renderChildren(node.children)}</li>
+                return (
+                  <li key={index} className="mb-1">
+                    {renderChildren(node.children)}
+                  </li>
+                )
               case 'link':
                 return (
                   <a
@@ -44,6 +84,7 @@ const RichText: React.FC<RichTextProps> = ({ content }) => {
                     href={node.url}
                     target={node.newTab ? '_blank' : '_self'}
                     rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
                   >
                     {renderChildren(node.children)}
                   </a>
@@ -88,7 +129,11 @@ const renderChildren = (children: any) => {
             return <s key={index}>{child.text}</s>
           }
           if (child.code) {
-            return <code key={index}>{child.text}</code>
+            return (
+              <code key={index} className="bg-gray-100 px-1 py-0.5 rounded">
+                {child.text}
+              </code>
+            )
           }
           return child.text || ''
         }
