@@ -47,17 +47,62 @@ function buildAuthCookie({
   return cookieParts.join("; ")
 }
 
-export async function POST(request: NextRequest) {
-  let body: any
+async function parseRequestBody(
+  request: NextRequest,
+): Promise<Record<string, unknown> | null> {
+  const contentType = request.headers.get("content-type") || ""
+
   try {
-    body = await request.json()
-  } catch {
+    if (contentType.includes("application/json") || contentType === "") {
+      return await request.json()
+    }
+
+    if (
+      contentType.includes("application/x-www-form-urlencoded") ||
+      contentType.includes("multipart/form-data")
+    ) {
+      const formData = await request.formData()
+      const result: Record<string, unknown> = {}
+
+      for (const [key, value] of formData.entries()) {
+        result[key] = typeof value === "string" ? value : value.name
+      }
+
+      return result
+    }
+
+    if (contentType.includes("text/plain")) {
+      const text = await request.text()
+      if (text.trim().length === 0) return {}
+      return JSON.parse(text)
+    }
+  } catch (error) {
+    console.error("Failed to parse login request body", error)
+    return null
+  }
+
+  return null
+}
+
+export async function POST(request: NextRequest) {
+  const body = await parseRequestBody(request)
+
+  if (!body || typeof body !== "object") {
     return NextResponse.json({ message: "Invalid request body" }, { status: 400 })
   }
 
-  const email = typeof body?.email === "string" ? body.email.trim() : ""
-  const password = typeof body?.password === "string" ? body.password : ""
-  const rememberMe = body?.rememberMe === true
+  const emailValue = (body as Record<string, unknown>).email
+  const passwordValue = (body as Record<string, unknown>).password
+  const rememberMeValue = (body as Record<string, unknown>).rememberMe
+
+  const email = typeof emailValue === "string" ? emailValue.trim() : ""
+  const password = typeof passwordValue === "string" ? passwordValue : ""
+  const rememberMe =
+    rememberMeValue === true ||
+    rememberMeValue === "true" ||
+    rememberMeValue === "1" ||
+    rememberMeValue === "on" ||
+    rememberMeValue === 1
 
   if (!email || !password) {
     return NextResponse.json({ message: "Email and password are required" }, { status: 400 })
