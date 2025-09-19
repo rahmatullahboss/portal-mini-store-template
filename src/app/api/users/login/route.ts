@@ -83,21 +83,23 @@ async function parseRequestBody(request: NextRequest): Promise<Record<string, un
 }
 
 export async function POST(request: NextRequest) {
+  console.log('Login request received')
+
   const body = await parseRequestBody(request)
 
+  console.log('Parsed body:', body)
+
   if (!body || typeof body !== 'object') {
+    console.log('Invalid request body')
     return NextResponse.json({ message: 'Invalid request body' }, { status: 400 })
   }
-
-  // Debug logging
-  console.log('Login request body:', body)
 
   const emailValue = (body as Record<string, unknown>).email
   const passwordValue = (body as Record<string, unknown>).password
   const rememberMeValue = (body as Record<string, unknown>).rememberMe
 
-  console.log('Email value:', emailValue)
-  console.log('Password value:', passwordValue)
+  console.log('Raw email value:', emailValue)
+  console.log('Raw password value:', passwordValue)
 
   const email = typeof emailValue === 'string' ? emailValue.trim() : ''
   const password = typeof passwordValue === 'string' ? passwordValue : ''
@@ -108,10 +110,13 @@ export async function POST(request: NextRequest) {
     rememberMeValue === 'on' ||
     rememberMeValue === 1
 
-  console.log('Processed email:', email)
-  console.log('Processed password:', password)
+  console.log('Processed email:', JSON.stringify(email))
+  console.log('Processed password:', JSON.stringify(password))
+  console.log('Email length:', email.length)
+  console.log('Password length:', password.length)
 
   if (!email || !password) {
+    console.log('Email or password missing/empty')
     return NextResponse.json({ message: 'Email and password are required' }, { status: 400 })
   }
 
@@ -120,6 +125,7 @@ export async function POST(request: NextRequest) {
   const usersCollection = payload.collections['users']
 
   if (!usersCollection?.config?.auth) {
+    console.log('Authentication not enabled for users')
     return NextResponse.json(
       { message: 'Authentication is not enabled for users.' },
       { status: 500 },
@@ -139,13 +145,17 @@ export async function POST(request: NextRequest) {
   ;(authConfig as any).removeTokenFromResponses = false
 
   try {
+    console.log('Attempting login with email:', email)
     const result = (await payload.login({
       collection: 'users',
       data: { email, password },
       depth: 0,
     })) as any
 
+    console.log('Login result:', result)
+
     if (!result?.token) {
+      console.log('No token in login result')
       throw new Error('Authentication token was not generated')
     }
 
@@ -156,6 +166,8 @@ export async function POST(request: NextRequest) {
       expiresInSeconds: effectiveExpiration,
     })
 
+    console.log('Token cookie:', tokenCookie)
+
     const responseBody: Record<string, unknown> = {
       message: 'Login successful',
       user: result.user,
@@ -164,8 +176,10 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json(responseBody, { status: 200 })
     response.headers.append('Set-Cookie', tokenCookie)
+    console.log('Login successful, sending response')
     return response
   } catch (error: any) {
+    console.error('Login error:', error)
     const status = error?.status ?? error?.statusCode ?? 401
     const message =
       typeof error?.message === 'string' && error.message.trim().length > 0

@@ -94,8 +94,10 @@ export default buildConfig({
     },
   },
   serverURL: getServerSideURL(),
-  // Allow current deployment URL and localhost for dev
-  cors: [getServerSideURL(), 'http://localhost:3000'].filter(Boolean) as string[],
+  // Allow current deployment URL, production domain, and localhost for dev
+  cors: [getServerSideURL(), 'https://online-bazar.top', 'http://localhost:3000'].filter(
+    Boolean,
+  ) as string[],
   plugins: storagePlugins,
   collections: [Users, Media, Items, Categories, Orders, Reviews, AbandonedCarts, DeliverySettings],
   editor: lexicalEditor(),
@@ -110,7 +112,12 @@ export default buildConfig({
     },
     // When set to undefined or true, Payload will automatically push DB
     // changes in dev environment.
-    push: process.env.NODE_ENV === 'production' ? false : (process.env.DYAD_DISABLE_DB_PUSH === 'true' ? false : undefined),
+    push:
+      process.env.NODE_ENV === 'production'
+        ? false
+        : process.env.DYAD_DISABLE_DB_PUSH === 'true'
+          ? false
+          : undefined,
   }),
   sharp,
   email: nodemailerAdapter({
@@ -125,4 +132,3 @@ export default buildConfig({
     }),
   }),
 })
-
