@@ -51,8 +51,24 @@ async function parseRequestBody(request: NextRequest): Promise<Record<string, un
   const contentType = request.headers.get('content-type') || ''
 
   try {
+    // Handle the case where body is sent as { _payload: "jsonString" }
     if (contentType.includes('application/json') || contentType === '') {
-      return await request.json()
+      const rawBody = await request.text()
+      console.log('Raw body text:', rawBody)
+
+      // Try to parse as JSON first
+      try {
+        const parsed = JSON.parse(rawBody)
+        // If it has a _payload property, parse that as JSON too
+        if (parsed._payload && typeof parsed._payload === 'string') {
+          console.log('Parsing _payload as JSON:', parsed._payload)
+          return JSON.parse(parsed._payload)
+        }
+        return parsed
+      } catch (jsonError) {
+        console.error('Failed to parse as JSON:', jsonError)
+        return null
+      }
     }
 
     if (
