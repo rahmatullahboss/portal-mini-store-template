@@ -20,11 +20,11 @@ export async function up({ payload }: MigrateUpArgs): Promise<void> {
     CREATE INDEX IF NOT EXISTS posts_slug_idx ON posts(slug);
     CREATE INDEX IF NOT EXISTS posts_status_idx ON posts(status);
     CREATE INDEX IF NOT EXISTS posts_published_date_idx ON posts(published_date);
-  `);
+  `)
 }
 
 export async function down({ payload }: MigrateDownArgs): Promise<void> {
   await payload.db.drizzle.execute(`
     DROP TABLE IF EXISTS posts;
-  `);
+  `)
 }
