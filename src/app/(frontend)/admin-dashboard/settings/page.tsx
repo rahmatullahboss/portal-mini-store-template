@@ -221,9 +221,7 @@ export default function SettingsPage() {
                 <Textarea
                   id="delivery-zones"
                   placeholder="Enter delivery zones and restrictions"
-                  defaultValue="Zone 1: Downtown - Free delivery
-Zone 2: Suburbs - □50 delivery charge
-Zone 3: Outskirts - □100 delivery charge"
+                  defaultValue="Zone 1: Downtown - Free delivery&#10;Zone 2: Suburbs - ৳50 delivery charge&#10;Zone 3: Outskirts - ৳100 delivery charge"
                   className="min-h-[120px]"
                 />
               </div>

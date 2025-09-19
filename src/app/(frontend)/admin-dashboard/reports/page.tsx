@@ -9,6 +9,8 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
   AreaChart,
   Area,
 } from 'recharts'
@@ -22,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Download, Calendar, BarChart3, TrendingUp } from 'lucide-react'
+import { ChevronDown, Download, Calendar, BarChart3, PieChartIcon, TrendingUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 // Mock data for reports

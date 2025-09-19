@@ -9,24 +9,6 @@ import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/deli
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { Check } from 'lucide-react'
-import { User } from '@/payload-types'
-
-// Define a type that matches what CheckoutForm expects
-interface CheckoutUser {
-  customerNumber?: string
-  firstName?: string
-  lastName?: string
-  email?: string
-  address?: {
-    line1?: string
-    line2?: string
-    city?: string
-    state?: string
-    postalCode?: string
-    country?: string
-  }
-  deliveryZone?: 'inside_dhaka' | 'outside_dhaka'
-}
 
 export const dynamic = 'force-dynamic'
 
@@ -36,39 +18,22 @@ export default async function CheckoutPage() {
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
   const fullUser = user
-    ? await payload.findByID({ collection: 'users', id: (user as User).id }).catch(() => null)
+    ? await payload.findByID({ collection: 'users', id: (user as any).id }).catch(() => null)
     : null
   const deliverySettingsResult = await payload
     .find({ collection: 'delivery-settings', limit: 1 })
     .catch(() => null)
-  const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as { docs: any[] } | null)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
+  const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
 
   const steps = [
     { label: 'Cart', status: 'done' as const },
     { label: 'Checkout', status: 'current' as const },
   ]
 
-  // Transform the user data to match CheckoutUser interface
-  const checkoutUser: CheckoutUser | null = fullUser || user ? {
-    customerNumber: (fullUser || user)?.customerNumber || undefined,
-    firstName: (fullUser || user)?.firstName || undefined,
-    lastName: (fullUser || user)?.lastName || undefined,
-    email: (fullUser || user)?.email || undefined,
-    address: (fullUser || user)?.address ? {
-      line1: (fullUser || user)?.address?.line1 || undefined,
-      line2: (fullUser || user)?.address?.line2 || undefined,
-      city: (fullUser || user)?.address?.city || undefined,
-      state: (fullUser || user)?.address?.state || undefined,
-      postalCode: (fullUser || user)?.address?.postalCode || undefined,
-      country: (fullUser || user)?.address?.country || undefined,
-    } : undefined,
-    deliveryZone: (fullUser || user)?.deliveryZone || undefined,
-  } : null;
-
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_80%_at_50%_0%,rgba(251,191,36,0.14),transparent)]" />
-      <SiteHeader variant="full" user={(fullUser as User) || (user as User)} />
+      <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-10 lg:px-8 lg:pt-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <Button
@@ -106,7 +71,7 @@ export default async function CheckoutPage() {
           </div>
         </div>
 
-        <CheckoutForm user={checkoutUser || undefined} deliverySettings={deliverySettings} />
+        <CheckoutForm user={(fullUser as any) || (user as any)} deliverySettings={deliverySettings} />
       </div>
     </div>
   )
