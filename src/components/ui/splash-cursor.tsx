@@ -24,17 +24,17 @@ function SplashCursor({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    class Pointer {
-      id: number = -1
-      texcoordX: number = 0
-      texcoordY: number = 0
-      prevTexcoordX: number = 0
-      prevTexcoordY: number = 0
-      deltaX: number = 0
-      deltaY: number = 0
-      down: boolean = false
-      moved: boolean = false
-      color: [number, number, number] = [0, 0, 0]
+    function pointerPrototype() {
+      this.id = -1
+      this.texcoordX = 0
+      this.texcoordY = 0
+      this.prevTexcoordX = 0
+      this.prevTexcoordY = 0
+      this.deltaX = 0
+      this.deltaY = 0
+      this.down = false
+      this.moved = false
+      this.color = [0, 0, 0]
     }
 
     const config = {
@@ -55,7 +55,7 @@ function SplashCursor({
       TRANSPARENT,
     }
 
-    const pointers: Pointer[] = [new Pointer()]
+    const pointers = [new pointerPrototype()]
 
     const { gl, ext } = getWebGLContext(canvas)
     if (!ext.supportLinearFiltering) {
@@ -63,10 +63,7 @@ function SplashCursor({
       config.SHADING = false
     }
 
-    function getWebGLContext(canvas: HTMLCanvasElement): {
-      gl: WebGLRenderingContext | WebGL2RenderingContext
-      ext: any
-    } {
+    function getWebGLContext(canvas) {
       const params = {
         alpha: true,
         depth: false,
@@ -75,35 +72,28 @@ function SplashCursor({
         preserveDrawingBuffer: false,
       }
       let gl = canvas.getContext('webgl2', params)
-      let isWebGL2 = !!gl
-      if (!isWebGL2) {
+      const isWebGL2 = !!gl
+      if (!isWebGL2)
         gl = canvas.getContext('webgl', params) || canvas.getContext('experimental-webgl', params)
-        isWebGL2 = false
-      }
-      if (!gl || !(gl instanceof WebGLRenderingContext)) {
-        throw new Error('Unable to get WebGL context')
-      }
-      let halfFloat: any
-      let supportLinearFiltering: any
+      let halfFloat
+      let supportLinearFiltering
       if (isWebGL2) {
-        ;(gl as WebGL2RenderingContext).getExtension('EXT_color_buffer_float')
+        gl.getExtension('EXT_color_buffer_float')
         supportLinearFiltering = gl.getExtension('OES_texture_float_linear')
       } else {
         halfFloat = gl.getExtension('OES_texture_half_float')
         supportLinearFiltering = gl.getExtension('OES_texture_half_float_linear')
       }
       gl.clearColor(0.0, 0.0, 0.0, 1.0)
-      const halfFloatTexType = isWebGL2
-        ? (gl as any).HALF_FLOAT
-        : halfFloat && halfFloat.HALF_FLOAT_OES
-      let formatRGBA: any
-      let formatRG: any
-      let formatR: any
+      const halfFloatTexType = isWebGL2 ? gl.HALF_FLOAT : halfFloat && halfFloat.HALF_FLOAT_OES
+      let formatRGBA
+      let formatRG
+      let formatR
 
       if (isWebGL2) {
-        formatRGBA = getSupportedFormat(gl, (gl as any).RGBA16F, gl.RGBA, halfFloatTexType)
-        formatRG = getSupportedFormat(gl, (gl as any).RG16F, (gl as any).RG, halfFloatTexType)
-        formatR = getSupportedFormat(gl, (gl as any).R16F, (gl as any).RED, halfFloatTexType)
+        formatRGBA = getSupportedFormat(gl, gl.RGBA16F, gl.RGBA, halfFloatTexType)
+        formatRG = getSupportedFormat(gl, gl.RG16F, gl.RG, halfFloatTexType)
+        formatR = getSupportedFormat(gl, gl.R16F, gl.RED, halfFloatTexType)
       } else {
         formatRGBA = getSupportedFormat(gl, gl.RGBA, gl.RGBA, halfFloatTexType)
         formatRG = getSupportedFormat(gl, gl.RGBA, gl.RGBA, halfFloatTexType)
@@ -111,7 +101,7 @@ function SplashCursor({
       }
 
       return {
-        gl: gl as WebGLRenderingContext | WebGL2RenderingContext,
+        gl,
         ext: {
           formatRGBA,
           formatRG,
@@ -122,7 +112,7 @@ function SplashCursor({
       }
     }
 
-    function getSupportedFormat(gl: any, internalFormat: any, format: any, type: any): any {
+    function getSupportedFormat(gl, internalFormat, format, type) {
       if (!supportRenderTextureFormat(gl, internalFormat, format, type)) {
         switch (internalFormat) {
           case gl.R16F:
@@ -139,12 +129,7 @@ function SplashCursor({
       }
     }
 
-    function supportRenderTextureFormat(
-      gl: any,
-      internalFormat: any,
-      format: any,
-      type: any,
-    ): boolean {
+    function supportRenderTextureFormat(gl, internalFormat, format, type) {
       const texture = gl.createTexture()
       gl.bindTexture(gl.TEXTURE_2D, texture)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
@@ -160,19 +145,14 @@ function SplashCursor({
     }
 
     class Material {
-      vertexShader: any
-      fragmentShaderSource: any
-      programs: any[]
-      activeProgram: any
-      uniforms: Record<string, any>
-      constructor(vertexShader: any, fragmentShaderSource: any) {
+      constructor(vertexShader, fragmentShaderSource) {
         this.vertexShader = vertexShader
         this.fragmentShaderSource = fragmentShaderSource
         this.programs = []
         this.activeProgram = null
-        this.uniforms = {}
+        this.uniforms = []
       }
-      setKeywords(keywords: string[]) {
+      setKeywords(keywords) {
         let hash = 0
         for (let i = 0; i < keywords.length; i++) hash += hashCode(keywords[i])
         let program = this.programs[hash]
@@ -195,9 +175,7 @@ function SplashCursor({
     }
 
     class Program {
-      uniforms: Record<string, any>
-      program: any
-      constructor(vertexShader: any, fragmentShader: any) {
+      constructor(vertexShader, fragmentShader) {
         this.uniforms = {}
         this.program = createProgram(vertexShader, fragmentShader)
         this.uniforms = getUniforms(this.program)
@@ -207,7 +185,7 @@ function SplashCursor({
       }
     }
 
-    function createProgram(vertexShader: any, fragmentShader: any): any {
+    function createProgram(vertexShader, fragmentShader) {
       let program = gl.createProgram()
       gl.attachShader(program, vertexShader)
       gl.attachShader(program, fragmentShader)
@@ -217,25 +195,19 @@ function SplashCursor({
       return program
     }
 
-    function getUniforms(program: any): Record<string, any> {
-      let uniforms: Record<string, any> = {}
+    function getUniforms(program) {
+      let uniforms = []
       let uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS)
       for (let i = 0; i < uniformCount; i++) {
-        const uniformInfo = gl.getActiveUniform(program, i)
-        if (uniformInfo && uniformInfo.name) {
-          const uniformName = uniformInfo.name
-          uniforms[uniformName] = gl.getUniformLocation(program, uniformName)
-        }
+        let uniformName = gl.getActiveUniform(program, i).name
+        uniforms[uniformName] = gl.getUniformLocation(program, uniformName)
       }
       return uniforms
     }
 
-    function compileShader(type: any, source: string, keywords?: string[]): WebGLShader {
+    function compileShader(type, source, keywords) {
       source = addKeywords(source, keywords)
       const shader = gl.createShader(type)
-      if (!shader) {
-        throw new Error('Unable to create shader')
-      }
       gl.shaderSource(shader, source)
       gl.compileShader(shader)
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
@@ -243,7 +215,7 @@ function SplashCursor({
       return shader
     }
 
-    function addKeywords(source: string, keywords?: string[]): string {
+    function addKeywords(source, keywords) {
       if (!keywords) return source
       let keywordsString = ''
       keywords.forEach((keyword) => {
@@ -405,7 +377,7 @@ function SplashCursor({
             gl_FragColor = result / decay;
         }
       `,
-      ext.supportLinearFiltering ? undefined : ['MANUAL_FILTERING'],
+      ext.supportLinearFiltering ? null : ['MANUAL_FILTERING'],
     )
 
     const divergenceShader = compileShader(
@@ -554,7 +526,7 @@ function SplashCursor({
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW)
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
       gl.enableVertexAttribArray(0)
-      return (target: any, clear: boolean = false) => {
+      return (target, clear = false) => {
         if (target == null) {
           gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
           gl.bindFramebuffer(gl.FRAMEBUFFER, null)
@@ -570,7 +542,7 @@ function SplashCursor({
       }
     })()
 
-    let dye: any, velocity: any, divergence: any, curl: any, pressure: any
+    let dye, velocity, divergence, curl, pressure
 
     const copyProgram = new Program(baseVertexShader, copyShader)
     const clearProgram = new Program(baseVertexShader, clearShader)
@@ -652,14 +624,7 @@ function SplashCursor({
       )
     }
 
-    function createFBO(
-      w: number,
-      h: number,
-      internalFormat: any,
-      format: any,
-      type: any,
-      param: any,
-    ) {
+    function createFBO(w, h, internalFormat, format, type, param) {
       gl.activeTexture(gl.TEXTURE0)
       let texture = gl.createTexture()
       gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -684,7 +649,7 @@ function SplashCursor({
         height: h,
         texelSizeX,
         texelSizeY,
-        attach(id: number) {
+        attach(id) {
           gl.activeTexture(gl.TEXTURE0 + id)
           gl.bindTexture(gl.TEXTURE_2D, texture)
           return id
@@ -692,14 +657,7 @@ function SplashCursor({
       }
     }
 
-    function createDoubleFBO(
-      w: number,
-      h: number,
-      internalFormat: any,
-      format: any,
-      type: any,
-      param: any,
-    ) {
+    function createDoubleFBO(w, h, internalFormat, format, type, param) {
       let fbo1 = createFBO(w, h, internalFormat, format, type, param)
       let fbo2 = createFBO(w, h, internalFormat, format, type, param)
       return {
@@ -727,15 +685,7 @@ function SplashCursor({
       }
     }
 
-    function resizeFBO(
-      target: any,
-      w: number,
-      h: number,
-      internalFormat: any,
-      format: any,
-      type: any,
-      param: any,
-    ) {
+    function resizeFBO(target, w, h, internalFormat, format, type, param) {
       let newFBO = createFBO(w, h, internalFormat, format, type, param)
       copyProgram.bind()
       gl.uniform1i(copyProgram.uniforms.uTexture, target.attach(0))
@@ -743,15 +693,7 @@ function SplashCursor({
       return newFBO
     }
 
-    function resizeDoubleFBO(
-      target: any,
-      w: number,
-      h: number,
-      internalFormat: any,
-      format: any,
-      type: any,
-      param: any,
-    ) {
+    function resizeDoubleFBO(target, w, h, internalFormat, format, type, param) {
       if (target.width === w && target.height === h) return target
       target.read = resizeFBO(target.read, w, h, internalFormat, format, type, param)
       target.write = createFBO(w, h, internalFormat, format, type, param)
@@ -792,8 +734,6 @@ function SplashCursor({
     }
 
     function resizeCanvas() {
-      const canvas = canvasRef.current as HTMLCanvasElement | null
-      if (!canvas) return false
       let width = scaleByPixelRatio(canvas.clientWidth)
       let height = scaleByPixelRatio(canvas.clientHeight)
       if (canvas.width !== width || canvas.height !== height) {
@@ -804,7 +744,7 @@ function SplashCursor({
       return false
     }
 
-    function updateColors(dt: number) {
+    function updateColors(dt) {
       colorUpdateTimer += dt * config.COLOR_UPDATE_SPEED
       if (colorUpdateTimer >= 1) {
         colorUpdateTimer = wrap(colorUpdateTimer, 0, 1)
@@ -823,7 +763,7 @@ function SplashCursor({
       })
     }
 
-    function step(dt: number) {
+    function step(dt) {
       gl.disable(gl.BLEND)
       // Curl
       curlProgram.bind()
@@ -902,13 +842,13 @@ function SplashCursor({
       dye.swap()
     }
 
-    function render(target: any) {
+    function render(target) {
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
       gl.enable(gl.BLEND)
       drawDisplay(target)
     }
 
-    function drawDisplay(target: any) {
+    function drawDisplay(target) {
       let width = target == null ? gl.drawingBufferWidth : target.width
       let height = target == null ? gl.drawingBufferHeight : target.height
       displayMaterial.bind()
@@ -918,25 +858,26 @@ function SplashCursor({
       blit(target)
     }
 
-    function splatPointer(pointer: Pointer) {
+    function splatPointer(pointer) {
       let dx = pointer.deltaX * config.SPLAT_FORCE
       let dy = pointer.deltaY * config.SPLAT_FORCE
       splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color)
     }
 
-    function clickSplat(pointer: Pointer) {
+    function clickSplat(pointer) {
       const color = generateColor()
-      color[0] *= 10.0
-      color[1] *= 10.0
-      color[2] *= 10.0
+      color.r *= 10.0
+      color.g *= 10.0
+      color.b *= 10.0
       let dx = 10 * (Math.random() - 0.5)
       let dy = 30 * (Math.random() - 0.5)
       splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color)
     }
 
-    function splat(x: number, y: number, dx: number, dy: number, color: [number, number, number]) {
+    function splat(x, y, dx, dy, color) {
       splatProgram.bind()
       gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0))
+      gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height)
       gl.uniform2f(splatProgram.uniforms.point, x, y)
       gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0.0)
       gl.uniform1f(splatProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0))
@@ -944,29 +885,23 @@ function SplashCursor({
       velocity.swap()
 
       gl.uniform1i(splatProgram.uniforms.uTarget, dye.read.attach(0))
-      gl.uniform3f(splatProgram.uniforms.color, color[0], color[1], color[2])
+      gl.uniform3f(splatProgram.uniforms.color, color.r, color.g, color.b)
       blit(dye.write)
       dye.swap()
-      const canvas = canvasRef.current as HTMLCanvasElement | null
-      if (!canvas) return
-      gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height)
     }
 
-    function correctRadius(radius: number) {
-      const canvas = canvasRef.current as HTMLCanvasElement | null
-      if (!canvas) return radius
+    function correctRadius(radius) {
       let aspectRatio = canvas.width / canvas.height
       if (aspectRatio > 1) radius *= aspectRatio
       return radius
     }
 
-    function updatePointerDownData(pointer: Pointer, id: number, posX: number, posY: number) {
-      const canvas = canvasRef.current as HTMLCanvasElement | null
+    function updatePointerDownData(pointer, id, posX, posY) {
       pointer.id = id
       pointer.down = true
       pointer.moved = false
-      pointer.texcoordX = canvas ? posX / canvas.width : 0
-      pointer.texcoordY = canvas ? 1.0 - posY / canvas.height : 0
+      pointer.texcoordX = posX / canvas.width
+      pointer.texcoordY = 1.0 - posY / canvas.height
       pointer.prevTexcoordX = pointer.texcoordX
       pointer.prevTexcoordY = pointer.texcoordY
       pointer.deltaX = 0
@@ -974,61 +909,43 @@ function SplashCursor({
       pointer.color = generateColor()
     }
 
-    function updatePointerMoveData(
-      pointer: Pointer,
-      posX: number,
-      posY: number,
-      color: [number, number, number],
-    ) {
-      const canvas = canvasRef.current as HTMLCanvasElement | null
+    function updatePointerMoveData(pointer, posX, posY, color) {
       pointer.prevTexcoordX = pointer.texcoordX
       pointer.prevTexcoordY = pointer.texcoordY
-      pointer.texcoordX = canvas ? posX / canvas.width : 0
-      pointer.texcoordY = canvas ? 1.0 - posY / canvas.height : 0
+      pointer.texcoordX = posX / canvas.width
+      pointer.texcoordY = 1.0 - posY / canvas.height
       pointer.deltaX = correctDeltaX(pointer.texcoordX - pointer.prevTexcoordX)
       pointer.deltaY = correctDeltaY(pointer.texcoordY - pointer.prevTexcoordY)
       pointer.moved = Math.abs(pointer.deltaX) > 0 || Math.abs(pointer.deltaY) > 0
       pointer.color = color
     }
 
-    function updatePointerUpData(pointer: Pointer) {
+    function updatePointerUpData(pointer) {
       pointer.down = false
     }
 
-    function correctDeltaX(delta: number) {
-      const canvas = canvasRef.current as HTMLCanvasElement | null
-      if (!canvas) return delta
+    function correctDeltaX(delta) {
       let aspectRatio = canvas.width / canvas.height
       if (aspectRatio < 1) delta *= aspectRatio
       return delta
     }
 
-    function correctDeltaY(delta: number) {
-      const canvas = canvasRef.current as HTMLCanvasElement | null
-      if (!canvas) return delta
+    function correctDeltaY(delta) {
       let aspectRatio = canvas.width / canvas.height
       if (aspectRatio > 1) delta /= aspectRatio
       return delta
     }
 
-    function generateColor(): [number, number, number] {
-      const c = HSVtoRGB(Math.random(), 1.0, 1.0)
-      return [
-        (typeof c.r === 'number' ? c.r : 0) * 0.15,
-        (typeof c.g === 'number' ? c.g : 0) * 0.15,
-        (typeof c.b === 'number' ? c.b : 0) * 0.15,
-      ]
+    function generateColor() {
+      let c = HSVtoRGB(Math.random(), 1.0, 1.0)
+      c.r *= 0.15
+      c.g *= 0.15
+      c.b *= 0.15
+      return c
     }
 
-    function HSVtoRGB(h: number, s: number, v: number) {
-      let r: number = 0,
-        g: number = 0,
-        b: number = 0,
-        i,
-        f,
-        p,
-        q,
-        t
+    function HSVtoRGB(h, s, v) {
+      let r, g, b, i, f, p, q, t
       i = Math.floor(h * 6)
       f = h * 6 - i
       p = v * (1 - s)
@@ -1071,13 +988,13 @@ function SplashCursor({
       return { r, g, b }
     }
 
-    function wrap(value: number, min: number, max: number): number {
+    function wrap(value, min, max) {
       const range = max - min
       if (range === 0) return min
       return ((value - min) % range) + min
     }
 
-    function getResolution(resolution: number) {
+    function getResolution(resolution) {
       let aspectRatio = gl.drawingBufferWidth / gl.drawingBufferHeight
       if (aspectRatio < 1) aspectRatio = 1.0 / aspectRatio
       const min = Math.round(resolution)
@@ -1086,12 +1003,12 @@ function SplashCursor({
       else return { width: min, height: max }
     }
 
-    function scaleByPixelRatio(input: number): number {
+    function scaleByPixelRatio(input) {
       const pixelRatio = window.devicePixelRatio || 1
       return Math.floor(input * pixelRatio)
     }
 
-    function hashCode(s: string): number {
+    function hashCode(s) {
       if (s.length === 0) return 0
       let hash = 0
       for (let i = 0; i < s.length; i++) {
