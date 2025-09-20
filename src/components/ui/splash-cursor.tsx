@@ -65,7 +65,13 @@ function SplashCursor({
 
     function getWebGLContext(canvas: HTMLCanvasElement): {
       gl: WebGLRenderingContext | WebGL2RenderingContext
-      ext: any
+      ext: {
+        formatRGBA: { internalFormat: number; format: number } | null
+        formatRG: { internalFormat: number; format: number } | null
+        formatR: { internalFormat: number; format: number } | null
+        halfFloatTexType: number | undefined
+        supportLinearFiltering: boolean | null
+      }
     } {
       const params = {
         alpha: true,
@@ -74,44 +80,60 @@ function SplashCursor({
         antialias: false,
         preserveDrawingBuffer: false,
       }
-      let gl = canvas.getContext('webgl2', params)
+      const gl = canvas.getContext('webgl2', params) as WebGL2RenderingContext | null
       let isWebGL2 = !!gl
-      if (!isWebGL2) {
-        gl = canvas.getContext('webgl', params) || canvas.getContext('experimental-webgl', params)
+      let _gl: WebGLRenderingContext | WebGL2RenderingContext | null = gl
+      if (!_gl) {
+        _gl =
+          (canvas.getContext('webgl', params) as WebGLRenderingContext | null) ||
+          (canvas.getContext('experimental-webgl', params) as WebGLRenderingContext | null)
         isWebGL2 = false
       }
-      if (!gl || !(gl instanceof WebGLRenderingContext)) {
+      if (!_gl || !(_gl instanceof WebGLRenderingContext)) {
         throw new Error('Unable to get WebGL context')
       }
-      let halfFloat: any
-      let supportLinearFiltering: any
+      let halfFloat: { HALF_FLOAT_OES: number } | undefined = undefined
+      let supportLinearFiltering: boolean | null = null
       if (isWebGL2) {
-        ;(gl as WebGL2RenderingContext).getExtension('EXT_color_buffer_float')
-        supportLinearFiltering = gl.getExtension('OES_texture_float_linear')
+        ;(_gl as WebGL2RenderingContext).getExtension('EXT_color_buffer_float')
+        supportLinearFiltering = !!_gl.getExtension('OES_texture_float_linear')
       } else {
-        halfFloat = gl.getExtension('OES_texture_half_float')
-        supportLinearFiltering = gl.getExtension('OES_texture_half_float_linear')
+        halfFloat =
+          (_gl.getExtension('OES_texture_half_float') as { HALF_FLOAT_OES: number } | null) ||
+          undefined
+        supportLinearFiltering = !!_gl.getExtension('OES_texture_half_float_linear')
       }
-      gl.clearColor(0.0, 0.0, 0.0, 1.0)
+      _gl.clearColor(0.0, 0.0, 0.0, 1.0)
       const halfFloatTexType = isWebGL2
-        ? (gl as any).HALF_FLOAT
-        : halfFloat && halfFloat.HALF_FLOAT_OES
-      let formatRGBA: any
-      let formatRG: any
-      let formatR: any
-
-      if (isWebGL2) {
-        formatRGBA = getSupportedFormat(gl, (gl as any).RGBA16F, gl.RGBA, halfFloatTexType)
-        formatRG = getSupportedFormat(gl, (gl as any).RG16F, (gl as any).RG, halfFloatTexType)
-        formatR = getSupportedFormat(gl, (gl as any).R16F, (gl as any).RED, halfFloatTexType)
-      } else {
-        formatRGBA = getSupportedFormat(gl, gl.RGBA, gl.RGBA, halfFloatTexType)
-        formatRG = getSupportedFormat(gl, gl.RGBA, gl.RGBA, halfFloatTexType)
-        formatR = getSupportedFormat(gl, gl.RGBA, gl.RGBA, halfFloatTexType)
-      }
+        ? (_gl as WebGL2RenderingContext).HALF_FLOAT
+        : halfFloat?.HALF_FLOAT_OES
+      const formatRGBA = isWebGL2
+        ? getSupportedFormat(
+            _gl,
+            (_gl as WebGL2RenderingContext).RGBA16F,
+            _gl.RGBA,
+            halfFloatTexType,
+          )
+        : getSupportedFormat(_gl, _gl.RGBA, _gl.RGBA, halfFloatTexType)
+      const formatRG = isWebGL2
+        ? getSupportedFormat(
+            _gl,
+            (_gl as WebGL2RenderingContext).RG16F,
+            (_gl as WebGL2RenderingContext).RG,
+            halfFloatTexType,
+          )
+        : getSupportedFormat(_gl, _gl.RGBA, _gl.RGBA, halfFloatTexType)
+      const formatR = isWebGL2
+        ? getSupportedFormat(
+            _gl,
+            (_gl as WebGL2RenderingContext).R16F,
+            (_gl as WebGL2RenderingContext).RED,
+            halfFloatTexType,
+          )
+        : getSupportedFormat(_gl, _gl.RGBA, _gl.RGBA, halfFloatTexType)
 
       return {
-        gl: gl as WebGLRenderingContext | WebGL2RenderingContext,
+        gl: _gl,
         ext: {
           formatRGBA,
           formatRG,
@@ -122,15 +144,25 @@ function SplashCursor({
       }
     }
 
-    function getSupportedFormat(gl: any, internalFormat: any, format: any, type: any): any {
+    function getSupportedFormat(
+      gl: WebGLRenderingContext | WebGL2RenderingContext,
+      internalFormat: number,
+      format: number,
+      type: number | undefined,
+    ): { internalFormat: number; format: number } | null {
       if (!supportRenderTextureFormat(gl, internalFormat, format, type)) {
-        switch (internalFormat) {
-          case gl.R16F:
-            return getSupportedFormat(gl, gl.RG16F, gl.RG, type)
-          case gl.RG16F:
-            return getSupportedFormat(gl, gl.RGBA16F, gl.RGBA, type)
-          default:
-            return null
+        // Only WebGL2RenderingContext has R16F, RG16F, RGBA16F, RG, RED
+        if (gl instanceof WebGL2RenderingContext) {
+          switch (internalFormat) {
+            case gl.R16F:
+              return getSupportedFormat(gl, gl.RG16F, gl.RG, type)
+            case gl.RG16F:
+              return getSupportedFormat(gl, gl.RGBA16F, gl.RGBA, type)
+            default:
+              return null
+          }
+        } else {
+          return null
         }
       }
       return {
@@ -593,63 +625,74 @@ function SplashCursor({
       const filtering = ext.supportLinearFiltering ? gl.LINEAR : gl.NEAREST
       gl.disable(gl.BLEND)
 
-      if (!dye)
-        dye = createDoubleFBO(
-          dyeRes.width,
-          dyeRes.height,
-          rgba.internalFormat,
-          rgba.format,
-          texType,
-          filtering,
-        )
-      else
-        dye = resizeDoubleFBO(
-          dye,
-          dyeRes.width,
-          dyeRes.height,
-          rgba.internalFormat,
-          rgba.format,
-          texType,
-          filtering,
-        )
+      if (rgba && rg && r) {
+        if (!dye)
+          dye = createDoubleFBO(
+            dyeRes.width,
+            dyeRes.height,
+            rgba.internalFormat,
+            rgba.format,
+            texType,
+            filtering,
+          )
+        else
+          dye = resizeDoubleFBO(
+            dye,
+            dyeRes.width,
+            dyeRes.height,
+            rgba.internalFormat,
+            rgba.format,
+            texType,
+            filtering,
+          )
 
-      if (!velocity)
-        velocity = createDoubleFBO(
+        if (!velocity)
+          velocity = createDoubleFBO(
+            simRes.width,
+            simRes.height,
+            rg.internalFormat,
+            rg.format,
+            texType,
+            filtering,
+          )
+        else
+          velocity = resizeDoubleFBO(
+            velocity,
+            simRes.width,
+            simRes.height,
+            rg.internalFormat,
+            rg.format,
+            texType,
+            filtering,
+          )
+
+        divergence = createFBO(
           simRes.width,
           simRes.height,
-          rg.internalFormat,
-          rg.format,
+          r.internalFormat,
+          r.format,
           texType,
-          filtering,
+          gl.NEAREST,
         )
-      else
-        velocity = resizeDoubleFBO(
-          velocity,
+        curl = createFBO(
           simRes.width,
           simRes.height,
-          rg.internalFormat,
-          rg.format,
+          r.internalFormat,
+          r.format,
           texType,
-          filtering,
+          gl.NEAREST,
         )
-
-      divergence = createFBO(
-        simRes.width,
-        simRes.height,
-        r.internalFormat,
-        r.format,
-        texType,
-        gl.NEAREST,
-      )
-      curl = createFBO(simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST)
-      pressure = createDoubleFBO(
-        simRes.width,
-        simRes.height,
-        r.internalFormat,
-        r.format,
-        texType,
-        gl.NEAREST,
-      )
+        pressure = createDoubleFBO(
+          simRes.width,
+          simRes.height,
+          r.internalFormat,
+          r.format,
+          texType,
+          gl.NEAREST,
+        )
+      } else {
+        throw new Error('Required framebuffer formats are not supported by this device/browser.')
+      }
     }
 
     function createFBO(
