@@ -96,11 +96,17 @@ export async function generateMetadata({
         description: item.shortDescription || item.description,
         images: [imageUrl],
       },
+      other: {
+        'fb:app_id': process.env.FACEBOOK_APP_ID || 'your-facebook-app-id',
+      },
     }
   } catch (error) {
     return {
       title: 'Product',
       description: 'View our premium products.',
+      other: {
+        'fb:app_id': process.env.FACEBOOK_APP_ID || 'your-facebook-app-id',
+      },
     }
   }
 }

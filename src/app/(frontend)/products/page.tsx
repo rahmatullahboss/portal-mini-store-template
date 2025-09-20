@@ -11,8 +11,45 @@ import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { OrderNowButton } from '@/components/order-now-button'
 import { SiteHeader } from '@/components/site-header'
+import type { Metadata } from 'next'
 
 export const revalidate = 3600
+
+// Add proper metadata for the products page
+export async function generateMetadata(): Promise<Metadata> {
+  const payloadConfig = await config
+  const payload = await getPayload({ config: payloadConfig })
+  const serverURL = payload.config.serverURL || 'https://online-bazar.top'
+
+  return {
+    title: 'Our Products | Online Bazar',
+    description: 'Discover our complete collection of premium items',
+    openGraph: {
+      title: 'Our Products | Online Bazar',
+      description: 'Discover our complete collection of premium items',
+      url: `${serverURL}/products`,
+      siteName: 'Online Bazar',
+      images: [
+        {
+          url: `${serverURL}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: 'Online Bazar Products',
+        },
+      ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Our Products | Online Bazar',
+      description: 'Discover our complete collection of premium items',
+      images: [`${serverURL}/og-image.png`],
+    },
+    other: {
+      'fb:app_id': process.env.FACEBOOK_APP_ID || 'your-facebook-app-id',
+    },
+  }
+}
 
 const getItemsCached = unstableCache(
   async () => {

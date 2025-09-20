@@ -27,7 +27,12 @@ interface SectionCardProps {
 }
 
 const SectionCard: React.FC<SectionCardProps> = ({ title, description, children, className }) => (
-  <div className={cn('rounded-3xl border border-amber-100/70 bg-white/85 p-6 shadow-sm shadow-amber-200/40', className)}>
+  <div
+    className={cn(
+      'rounded-3xl border border-amber-100/70 bg-white/85 p-6 shadow-sm shadow-amber-200/40',
+      className,
+    )}
+  >
     <div className="space-y-1">
       <h3 className="text-lg font-semibold text-stone-900">{title}</h3>
       {description ? <p className="text-sm text-stone-500">{description}</p> : null}
@@ -44,9 +49,13 @@ const ProductOverviewCard: React.FC<ProductOverviewCardProps> = ({ item }) => (
   <div className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">Product overview</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">
+          Product overview
+        </p>
         <h2 className="text-2xl font-semibold text-stone-900">{item.name}</h2>
-        <p className="text-sm text-stone-500">Review the product details before confirming your order.</p>
+        <p className="text-sm text-stone-500">
+          Review the product details before confirming your order.
+        </p>
       </div>
       {typeof (item as any).category === 'object' || (item as any).category ? (
         <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
@@ -75,7 +84,9 @@ const ProductOverviewCard: React.FC<ProductOverviewCardProps> = ({ item }) => (
       ) : null}
       <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-sm text-amber-700">
         <span className="font-medium">Unit price</span>
-        <span className="text-base font-semibold text-rose-600">৳{Number(item.price).toFixed(2)}</span>
+        <span className="text-base font-semibold text-rose-600">
+          ৳{Number(item.price).toFixed(2)}
+        </span>
       </div>
     </div>
   </div>
@@ -134,10 +145,14 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <h3 className="text-lg font-semibold text-stone-900">Review your order</h3>
-        <p className="text-sm text-stone-500">Confirm the quantity, payment method, and totals before placing your order.</p>
+        <p className="text-sm text-stone-500">
+          Confirm the quantity, payment method, and totals before placing your order.
+        </p>
       </div>
       <div className="flex flex-col items-end gap-2 text-right">
-        <Badge className="h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">Secure checkout</Badge>
+        <Badge className="h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
+          Secure checkout
+        </Badge>
       </div>
     </div>
 
@@ -174,15 +189,21 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
         <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
       </div>
       <div className="flex items-center justify-between text-sm text-stone-600">
-        <span>Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}</span>
-        <span className="font-medium text-stone-900">{freeDelivery ? 'Free' : formatCurrency(shippingCharge)}</span>
+        <span>
+          Delivery {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}
+        </span>
+        <span className="font-medium text-stone-900">
+          {freeDelivery ? 'Free' : formatCurrency(shippingCharge)}
+        </span>
       </div>
       <div className="flex items-center justify-between text-base font-semibold text-stone-900">
         <span>Total due</span>
         <span>{formatCurrency(total)}</span>
       </div>
       {freeDelivery ? (
-        <p className="text-xs font-semibold text-emerald-600">Congratulations! Free delivery is applied to this order.</p>
+        <p className="text-xs font-semibold text-emerald-600">
+          Congratulations! Free delivery is applied to this order.
+        </p>
       ) : (
         <p className="text-xs text-stone-500">
           Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary delivery.
@@ -198,7 +219,9 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
         <p className="text-xs text-stone-500">Select a payment option to complete your order.</p>
       </div>
       <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 p-4 text-xs font-medium text-amber-900 shadow-sm shadow-amber-100">
-        Digital wallet payments have a flat delivery charge of {formatCurrency(settings.digitalPaymentDeliveryCharge)} when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+        Digital wallet payments have a flat delivery charge of{' '}
+        {formatCurrency(settings.digitalPaymentDeliveryCharge)} when the subtotal is below{' '}
+        {formatCurrency(settings.freeDeliveryThreshold)}.
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {PAYMENT_OPTIONS.map((option) => (
@@ -206,7 +229,9 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
             key={option.value}
             className={cn(
               'group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/85 p-4 text-center shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
-              paymentMethod === option.value ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80' : '',
+              paymentMethod === option.value
+                ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80'
+                : '',
             )}
           >
             <input
@@ -242,7 +267,9 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
                     <li key={`digital-instruction-${index}`}>{instruction}</li>
                   ))}
                   <li>
-                    Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for digital wallet payments when the subtotal is below {formatCurrency(settings.freeDeliveryThreshold)}.
+                    Delivery charge is {formatCurrency(settings.digitalPaymentDeliveryCharge)} for
+                    digital wallet payments when the subtotal is below{' '}
+                    {formatCurrency(settings.freeDeliveryThreshold)}.
                   </li>
                 </ul>
               </AlertDescription>
@@ -290,7 +317,10 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
 
     <div className="mt-5 flex items-start gap-3 rounded-3xl border border-amber-100 bg-white/90 px-4 py-3 text-sm text-stone-600">
       <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
-      <p>Your information is protected with secure checkout. We’ll only use it to complete your order and coordinate the delivery.</p>
+      <p>
+        Your information is protected with secure checkout. We’ll only use it to complete your order
+        and coordinate the delivery.
+      </p>
     </div>
 
     <Button
@@ -307,7 +337,9 @@ const NeedHelpCard: React.FC = () => (
   <div className="rounded-3xl border border-amber-100/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-6 text-sm text-stone-700 shadow-lg shadow-amber-200/50">
     <h3 className="text-base font-semibold text-stone-900">Need help?</h3>
     <p className="mt-2 leading-relaxed">
-      Give us a call or send us a message if you have any questions about this product or your order. Our friendly team is ready to talk over the phone or chat on your favourite messaging app.
+      Give us a call or send us a message if you have any questions about this product or your
+      order. Our friendly team is ready to talk over the phone or chat on your favourite messaging
+      app.
     </p>
     <div className="mt-4 flex flex-col gap-2 text-sm font-semibold text-amber-700">
       <a
@@ -355,9 +387,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     initialDeliveryZone === 'inside_dhaka' ? 'Dhaka' : user?.address?.city || '',
   )
   const [address_state, setAddressState] = useState<string>(user?.address?.state || '')
-  const [address_postalCode, setAddressPostalCode] = useState<string>(user?.address?.postalCode || '')
+  const [address_postalCode, setAddressPostalCode] = useState<string>(
+    user?.address?.postalCode || '',
+  )
   const [address_country, setAddressCountry] = useState<string>(user?.address?.country || '')
-  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(initialDeliveryZone)
+  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
+    initialDeliveryZone,
+  )
   const settings = deliverySettings || DEFAULT_DELIVERY_SETTINGS
   const subtotal = Number(item.price) * quantity
   const freeDelivery = subtotal >= settings.freeDeliveryThreshold
@@ -422,9 +458,11 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
 
   useEffect(() => {
     if (deliveryZone === 'inside_dhaka') {
-      setAddressCity((prev) => (prev.trim().toLowerCase() === 'dhaka' ? prev : 'Dhaka'))
+      setAddressCity('Dhaka')
+    } else if (deliveryZone === 'outside_dhaka' && address_city === 'Dhaka') {
+      setAddressCity('')
     }
-  }, [deliveryZone])
+  }, [deliveryZone, address_city])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -463,10 +501,12 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           },
         ],
         customerNumber,
-        deliveryZone,
+        deliveryZone, // This was missing - add the deliveryZone to the payload
         paymentMethod,
         paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
-        paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
+        paymentTransactionId: requiresDigitalPaymentDetails
+          ? paymentTransactionId.trim()
+          : undefined,
       }
 
       if (sanitizedEmail) {
@@ -527,8 +567,12 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
               shippingCharge: (data as any)?.doc?.shippingCharge ?? shippingCharge,
               totalAmount: (data as any)?.doc?.totalAmount ?? total,
               paymentMethod,
-              paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
-              paymentTransactionId: requiresDigitalPaymentDetails ? paymentTransactionId.trim() : undefined,
+              paymentSenderNumber: requiresDigitalPaymentDetails
+                ? sanitizedSenderNumber
+                : undefined,
+              paymentTransactionId: requiresDigitalPaymentDetails
+                ? paymentTransactionId.trim()
+                : undefined,
               deliveryZone: (data as any)?.doc?.deliveryZone ?? deliveryZone,
               freeDeliveryApplied: (data as any)?.doc?.freeDeliveryApplied ?? freeDelivery,
             }),
@@ -565,7 +609,8 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             <div className="rounded-3xl border border-amber-100 bg-amber-50/70 p-5 text-sm text-amber-800 shadow-sm shadow-amber-200/40">
               <p className="font-semibold">Guest checkout</p>
               <p className="mt-1 leading-relaxed">
-                You can order this item without creating an account. Provide your contact and delivery details below or{' '}
+                You can order this item without creating an account. Provide your contact and
+                delivery details below or{' '}
                 <a href="/login" className="font-semibold underline">
                   sign in
                 </a>{' '}
@@ -574,7 +619,10 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             </div>
           ) : null}
 
-          <SectionCard title="Contact information" description="We’ll use this to share order updates and delivery details.">
+          <SectionCard
+            title="Contact information"
+            description="We’ll use this to share order updates and delivery details."
+          >
             <div className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="customerNumber" className={labelClasses}>
@@ -688,7 +736,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     )}
                   />
                   {isInsideDhaka ? (
-                    <p className="text-xs text-stone-500">City is fixed to Dhaka for inside Dhaka delivery.</p>
+                    <p className="text-xs text-stone-500">
+                      City is fixed to Dhaka for inside Dhaka delivery.
+                    </p>
                   ) : null}
                 </div>
                 <div className="space-y-2">
@@ -737,13 +787,16 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             <div className="space-y-3">
               <p className="text-sm font-semibold text-stone-700">Delivery area</p>
               <p className="text-sm text-stone-500">
-                Choose whether this address is inside or outside Dhaka to calculate delivery charges accurately.
+                Choose whether this address is inside or outside Dhaka to calculate delivery charges
+                accurately.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label
                   className={cn(
                     'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/85 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
-                    deliveryZone === 'inside_dhaka' ? 'border-amber-400 ring-2 ring-amber-200/70' : 'border-stone-200',
+                    deliveryZone === 'inside_dhaka'
+                      ? 'border-amber-400 ring-2 ring-amber-200/70'
+                      : 'border-stone-200',
                   )}
                 >
                   <input
@@ -767,7 +820,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                 <label
                   className={cn(
                     'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/85 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
-                    deliveryZone === 'outside_dhaka' ? 'border-amber-400 ring-2 ring-amber-200/70' : 'border-stone-200',
+                    deliveryZone === 'outside_dhaka'
+                      ? 'border-amber-400 ring-2 ring-amber-200/70'
+                      : 'border-stone-200',
                   )}
                 >
                   <input
@@ -782,7 +837,9 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     <Truck className="h-5 w-5" aria-hidden />
                   </span>
                   <span className="space-y-1">
-                    <span className="block text-sm font-semibold text-stone-900">Outside Dhaka</span>
+                    <span className="block text-sm font-semibold text-stone-900">
+                      Outside Dhaka
+                    </span>
                     <span className="block text-xs text-stone-500">
                       Delivery charge {formatCurrency(settings.outsideDhakaCharge)}
                     </span>
@@ -790,10 +847,13 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                 </label>
               </div>
               {freeDelivery ? (
-                <p className="text-xs font-semibold text-emerald-600">Free delivery applied for this order.</p>
+                <p className="text-xs font-semibold text-emerald-600">
+                  Free delivery applied for this order.
+                </p>
               ) : (
                 <p className="text-xs text-stone-500">
-                  Free delivery applies automatically when your subtotal reaches {formatCurrency(settings.freeDeliveryThreshold)}.
+                  Free delivery applies automatically when your subtotal reaches{' '}
+                  {formatCurrency(settings.freeDeliveryThreshold)}.
                 </p>
               )}
             </div>

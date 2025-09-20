@@ -7,10 +7,42 @@ import { SiteHeader } from '@/components/site-header'
 import { ProgramRegistrationForm } from '@/components/program-registration-form'
 import Image from 'next/image'
 
-export const metadata: Metadata = {
-  title: 'Special Program for School Students | Online Bazar',
-  description:
-    'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
+// Updated metadata with proper Open Graph tags
+export async function generateMetadata(): Promise<Metadata> {
+  const payload = await getPayload({ config: configPromise })
+  const serverURL = payload.config.serverURL || 'https://online-bazar.top'
+
+  return {
+    title: 'Special Program for School Students | Online Bazar',
+    description:
+      'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
+    openGraph: {
+      title: 'Special Program for School Students | Online Bazar',
+      description:
+        'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
+      url: `${serverURL}/program`,
+      siteName: 'Online Bazar',
+      images: [
+        {
+          url: `${serverURL}/sunbeam.png`,
+          width: 1200,
+          height: 630,
+          alt: 'Sunbeam School Program',
+        },
+      ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Special Program for School Students | Online Bazar',
+      description:
+        'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
+      images: [`${serverURL}/sunbeam.png`],
+    },
+    other: {
+      'fb:app_id': process.env.FACEBOOK_APP_ID || 'your-facebook-app-id',
+    },
+  }
 }
 
 export default async function ProgramPage() {
@@ -83,7 +115,7 @@ export default async function ProgramPage() {
             </ul>
 
             <p className="mb-8 relative z-10">
-              স্কুলের চার দেয়ালের বাইরে নতুন কিছু অভিজ্ঞতা অর্জন করতে এবং একটি अবিস্মরণীয় দিন
+              স্কুলের চার দেয়ালের বাইরে নতুন কিছু অভিজ্ঞতা অর্জন করতে এবং একটি अবिस्मरণীয় দিন
               কাটাতে চাইলে আর দেরি কেন? আজই নিচের ফর্মটি পূরণ করে আমাদের সাথে যোগ দাও &quot;জ্ঞানের
               উৎসবে&quot;।
             </p>

@@ -42,6 +42,9 @@ export const metadata: Metadata = {
       'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
     images: ['/og-image.png'],
   },
+  other: {
+    'fb:app_id': process.env.FACEBOOK_APP_ID || 'your-facebook-app-id',
+  },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {

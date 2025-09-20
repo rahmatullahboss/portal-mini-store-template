@@ -3,7 +3,8 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { extractClientIdFromCookieHeader, sendGaEvent } from '@/lib/server/ga'
 import { DEFAULT_DELIVERY_SETTINGS, normalizeDeliverySettings } from '@/lib/delivery-settings'
-const DEFAULT_CURRENCY = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || process.env.DEFAULT_CURRENCY || 'BDT'
+const DEFAULT_CURRENCY =
+  process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || process.env.DEFAULT_CURRENCY || 'BDT'
 const resolveDeliveryZone = (value?: unknown): 'inside_dhaka' | 'outside_dhaka' | undefined => {
   if (typeof value !== 'string') return undefined
   const normalized = value.toLowerCase().replace(/[\\s-]+/g, '_')
@@ -89,7 +90,9 @@ export async function POST(request: NextRequest) {
     const requiredAddressFields = ['line1', 'city', 'postalCode', 'country']
     const hasAddress =
       shippingAddress &&
-      requiredAddressFields.every((f) => typeof shippingAddress[f] === 'string' && shippingAddress[f].trim().length > 0)
+      requiredAddressFields.every(
+        (f) => typeof shippingAddress[f] === 'string' && shippingAddress[f].trim().length > 0,
+      )
 
     if (!hasAddress) {
       return NextResponse.json(
@@ -104,7 +107,9 @@ export async function POST(request: NextRequest) {
           (fullUser as any)?.lastName || (user as any).lastName || ''
         }`.trim()
       : customerName
-    const computedCustomerEmail = user ? (fullUser as any)?.email || (user as any).email : customerEmail
+    const computedCustomerEmail = user
+      ? (fullUser as any)?.email || (user as any).email
+      : customerEmail
     if (!computedCustomerName || !computedCustomerEmail) {
       return NextResponse.json({ error: 'Customer name and email are required' }, { status: 400 })
     }
@@ -128,7 +133,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
     }
     // Validate items exist and collect details for analytics
-    const itemDetails: Array<{ id: number; name: string; price: number; quantity: number; category?: string }> = []
+    const itemDetails: Array<{
+      id: number
+      name: string
+      price: number
+      quantity: number
+      category?: string
+    }> = []
     for (const line of normalizedItems) {
       const itemDoc = await payload.findByID({
         collection: 'items',
@@ -140,7 +151,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `Item ${line.item} is not available` }, { status: 400 })
       }
 
-      const price = typeof (itemDoc as any)?.price === 'number' ? (itemDoc as any).price : Number((itemDoc as any)?.price || 0)
+      const price =
+        typeof (itemDoc as any)?.price === 'number'
+          ? (itemDoc as any).price
+          : Number((itemDoc as any)?.price || 0)
       const category = (() => {
         const cat = (itemDoc as any)?.category
         if (!cat) return undefined
@@ -158,7 +172,6 @@ export async function POST(request: NextRequest) {
         category,
       })
     }
-
 
     const subtotal = itemDetails.reduce((sum, item) => sum + item.price * item.quantity, 0)
     if (!Number.isFinite(subtotal) || subtotal <= 0) {
@@ -183,18 +196,23 @@ export async function POST(request: NextRequest) {
       if (city.length > 0) return 'outside_dhaka' as const
       return undefined
     })()
-    const deliveryZone = requestDeliveryZone || userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
+    // Use the request delivery zone first, then fall back to user's zone, then inferred zone, and finally default to inside_dhaka
+    const deliveryZone =
+      requestDeliveryZone || userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
 
     // Detect device
     const ua = request.headers.get('user-agent') || ''
     const uaLower = ua.toLowerCase()
-    const deviceType = uaLower.includes('mobile') || uaLower.includes('iphone') || uaLower.includes('android')
-      ? 'mobile'
-      : uaLower.includes('ipad') || uaLower.includes('tablet')
-        ? 'tablet'
-        : uaLower.includes('windows') || uaLower.includes('macintosh') || uaLower.includes('linux')
-          ? 'desktop'
-          : 'other'
+    const deviceType =
+      uaLower.includes('mobile') || uaLower.includes('iphone') || uaLower.includes('android')
+        ? 'mobile'
+        : uaLower.includes('ipad') || uaLower.includes('tablet')
+          ? 'tablet'
+          : uaLower.includes('windows') ||
+              uaLower.includes('macintosh') ||
+              uaLower.includes('linux')
+            ? 'desktop'
+            : 'other'
 
     // Create the order
     const parsePaymentMethod = (value: unknown): 'cod' | 'bkash' | 'nagad' | undefined => {
@@ -207,11 +225,15 @@ export async function POST(request: NextRequest) {
     }
 
     const paymentMethod = parsePaymentMethod(paymentMethodInput) || 'cod'
-    const paymentSenderNumber = typeof paymentSenderNumberInput === 'string' ? paymentSenderNumberInput.trim() : ''
+    const paymentSenderNumber =
+      typeof paymentSenderNumberInput === 'string' ? paymentSenderNumberInput.trim() : ''
     const paymentTransactionId =
       typeof paymentTransactionIdInput === 'string' ? paymentTransactionIdInput.trim() : ''
 
-    if ((paymentMethod === 'bkash' || paymentMethod === 'nagad') && (!paymentSenderNumber || !paymentTransactionId)) {
+    if (
+      (paymentMethod === 'bkash' || paymentMethod === 'nagad') &&
+      (!paymentSenderNumber || !paymentTransactionId)
+    ) {
       return NextResponse.json(
         { error: 'Sender number and transaction ID are required for digital wallet payments.' },
         { status: 400 },
@@ -297,10 +319,7 @@ export async function POST(request: NextRequest) {
           collection: 'abandoned-carts',
           limit: 1,
           where: {
-            and: [
-              { sessionId: { equals: String(sid) } },
-              { status: { not_equals: 'recovered' } },
-            ],
+            and: [{ sessionId: { equals: String(sid) } }, { status: { not_equals: 'recovered' } }],
           },
         })
         if (carts?.docs?.[0]) {
@@ -358,5 +377,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
   }
 }
-
-
