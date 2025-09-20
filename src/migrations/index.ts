@@ -24,6 +24,7 @@ import * as migration_20250920_add_posts_collection from './20250920_add_posts_c
 import * as migration_20250920_create_posts_table from './20250920_create_posts_table'
 import * as migration_20250920_add_program_participants from './20250920_add_program_participants'
 import * as migration_20250920_update_locked_documents_rels from './20250920_update_locked_documents_rels'
+import * as migration_20250920_fix_program_participants_rel from './20250920_fix_program_participants_rel'
 
 export const migrations = [
   {
@@ -155,5 +156,10 @@ export const migrations = [
     up: migration_20250920_update_locked_documents_rels.up,
     down: migration_20250920_update_locked_documents_rels.down,
     name: '20250920_update_locked_documents_rels',
+  },
+  {
+    up: migration_20250920_fix_program_participants_rel.up,
+    down: migration_20250920_fix_program_participants_rel.down,
+    name: '20250920_fix_program_participants_rel',
   },
 ]
