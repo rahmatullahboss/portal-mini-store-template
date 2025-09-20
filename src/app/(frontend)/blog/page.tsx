@@ -6,6 +6,7 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { Post } from '@/payload-types'
 import { SiteHeader } from '@/components/site-header'
+import { BlogImage } from '@/components/blog-image'
 
 export const metadata: Metadata = {
   title: 'Blog | Online Bazar',
@@ -122,14 +123,10 @@ export default async function BlogPage() {
                 <div className="relative z-10 h-full flex flex-col">
                   {post.featuredImage && (
                     <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
-                      <img
+                      <BlogImage
                         src={getImageUrl(post.featuredImage)}
                         alt={post.title || 'Blog post image'}
                         className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.src = '/placeholder-image.svg'
-                        }}
                       />
                       {/* Image Overlay */}
                       <div className="absolute inset-0 hidden md:block md:bg-gradient-to-t md:from-gray-900/30 md:via-transparent md:to-transparent md:opacity-0 md:group-hover:opacity-100 md:transition-opacity md:duration-500"></div>

@@ -7,6 +7,7 @@ import { getPayload } from 'payload'
 import { Post } from '@/payload-types'
 import RichText from '@/components/RichText'
 import { SiteHeader } from '@/components/site-header'
+import { BlogImage } from '@/components/blog-image'
 
 export const dynamic = 'force-dynamic'
 
@@ -100,14 +101,10 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           {post.featuredImage && (
             <div className="relative w-full h-96 rounded-lg overflow-hidden mb-8">
-              <img
+              <BlogImage
                 src={getImageUrl(post.featuredImage)}
                 alt={post.title || 'Blog post image'}
                 className="w-full h-full object-cover rounded-lg"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.src = '/placeholder-image.svg'
-                }}
               />
             </div>
           )}
