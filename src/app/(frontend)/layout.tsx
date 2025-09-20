@@ -4,7 +4,6 @@ import type { Metadata } from 'next'
 import { CartProvider } from '@/lib/cart-context'
 import { SiteFooter } from '@/components/site-footer'
 import { FloatingContactButtons } from '@/components/floating-contact-buttons'
-import { SplashCursor } from '@/components/ui/splash-cursor'
 import '../globals.css'
 import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
 
@@ -100,7 +99,6 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       </head>
       <body>
         <CartProvider>
-          <SplashCursor />
           <main>{children}</main>
           <SiteFooter />
           <FloatingContactButtons />
