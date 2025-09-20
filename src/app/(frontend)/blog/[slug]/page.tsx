@@ -2,6 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { headers as getHeaders } from 'next/headers.js'
+import type { Metadata } from 'next'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { Post } from '@/payload-types'
@@ -10,6 +11,95 @@ import { SiteHeader } from '@/components/site-header'
 import { BlogImage } from '@/components/blog-image'
 
 export const dynamic = 'force-dynamic'
+
+// Function to get image URL
+const getImageUrl = (image: any, serverURL: string): string => {
+  if (!image) return '/og-image.png'
+
+  // If it's already a string URL
+  if (typeof image === 'string') {
+    return image.startsWith('http') ? image : `${serverURL || ''}${image}`
+  }
+
+  // If it's an object with a URL property
+  if (typeof image === 'object' && image.url) {
+    return image.url.startsWith('http') ? image.url : `${serverURL || ''}${image.url}`
+  }
+
+  return '/og-image.png'
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const resolvedParams = await params
+  const { slug } = resolvedParams
+
+  const payload = await getPayload({ config: configPromise })
+
+  const posts = await payload.find({
+    collection: 'posts',
+    where: {
+      slug: {
+        equals: slug,
+      },
+      status: {
+        equals: 'published',
+      },
+    },
+    limit: 1,
+    depth: 1,
+  })
+
+  if (!posts.docs.length) {
+    return {
+      title: 'Blog Post Not Found',
+      description: 'The requested blog post could not be found.',
+    }
+  }
+
+  const post: Post = posts.docs[0]
+  const serverURL = payload.config.serverURL || 'http://localhost:3000'
+
+  // Get the featured image URL or fallback to og-image.png
+  const imageUrl = post.featuredImage ? getImageUrl(post.featuredImage, serverURL) : '/og-image.png'
+
+  return {
+    title: post.title,
+    description:
+      post.excerpt || (post.content ? 'Read more about this topic' : 'Online Bazar blog post'),
+    openGraph: {
+      title: post.title,
+      description:
+        post.excerpt || (post.content ? 'Read more about this topic' : 'Online Bazar blog post'),
+      url: `${serverURL}/blog/${slug}`,
+      siteName: 'Online Bazar',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.title || 'Blog post image',
+        },
+      ],
+      type: 'article',
+      publishedTime: post.publishedDate,
+      authors:
+        post.author && typeof post.author !== 'number'
+          ? [`${post.author.firstName} ${post.author.lastName}`]
+          : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description:
+        post.excerpt || (post.content ? 'Read more about this topic' : 'Online Bazar blog post'),
+      images: [imageUrl],
+    },
+  }
+}
 
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params
@@ -44,7 +134,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   // Function to get image URL
   const getImageUrl = (image: any): string => {
-    if (!image) return '/placeholder-image.svg'
+    if (!image) return '/og-image.png'
 
     // If it's already a string URL
     if (typeof image === 'string') {
@@ -58,7 +148,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         : `${payload.config.serverURL || ''}${image.url}`
     }
 
-    return '/placeholder-image.svg'
+    return '/og-image.png'
   }
 
   return (
@@ -76,31 +166,34 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-8 pb-20">
         <article className="max-w-3xl mx-auto">
-          <Link
-            href="/blog"
-            className="inline-flex items-center text-amber-600 hover:text-amber-700 mb-6"
-          >
-            ← Back to Blog
-          </Link>
+          {/* Increased padding for the post header */}
+          <div className="py-8 px-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mb-8">
+            <Link
+              href="/blog"
+              className="inline-flex items-center text-amber-600 hover:text-amber-700 mb-6"
+            >
+              ← Back to Blog
+            </Link>
 
-          <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+            <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
 
-          <div className="flex flex-wrap items-center text-gray-600 mb-6 gap-4">
-            <span>{post.publishedDate && new Date(post.publishedDate).toLocaleDateString()}</span>
-            {post.author && typeof post.author !== 'number' && (
-              <span>
-                By {post.author.firstName} {post.author.lastName}
-              </span>
-            )}
-            {post.category && typeof post.category !== 'number' && (
-              <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-sm">
-                {post.category.name}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center text-gray-600 mb-6 gap-4">
+              <span>{post.publishedDate && new Date(post.publishedDate).toLocaleDateString()}</span>
+              {post.author && typeof post.author !== 'number' && (
+                <span>
+                  By {post.author.firstName} {post.author.lastName}
+                </span>
+              )}
+              {post.category && typeof post.category !== 'number' && (
+                <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-sm">
+                  {post.category.name}
+                </span>
+              )}
+            </div>
           </div>
 
           {post.featuredImage && (
-            <div className="relative w-full h-96 rounded-lg overflow-hidden mb-8">
+            <div className="relative w-full h-96 rounded-lg overflow-hidden mb-8 shadow-lg">
               <BlogImage
                 src={getImageUrl(post.featuredImage)}
                 alt={post.title || 'Blog post image'}
@@ -110,13 +203,13 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           )}
 
           {post.content && (
-            <div className="prose max-w-none mb-8">
+            <div className="prose max-w-none mb-8 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
               <RichText content={post.content} />
             </div>
           )}
 
           {post.excerpt && (
-            <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-100">
+            <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-100 shadow-sm">
               <h3 className="font-semibold mb-2 text-amber-800">Summary:</h3>
               <p className="text-gray-700">{post.excerpt}</p>
             </div>

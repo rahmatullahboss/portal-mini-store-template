@@ -417,8 +417,8 @@ export interface ProgramParticipant {
    * 11-digit phone number
    */
   phone: string;
-  createdAt: string;
   updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -713,8 +713,8 @@ export interface PostsSelect<T extends boolean = true> {
 export interface ProgramParticipantsSelect<T extends boolean = true> {
   name?: T;
   phone?: T;
-  createdAt?: T;
   updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

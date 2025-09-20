@@ -5,16 +5,18 @@ import { CartProvider } from '@/lib/cart-context'
 import { SiteFooter } from '@/components/site-footer'
 import { FloatingContactButtons } from '@/components/floating-contact-buttons'
 import '../globals.css'
-import {
-  CartSidebar,
-  Analytics,
-  SpeedInsights,
-  Toaster,
-} from '@/components/lazy-client-components'
+import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
 
 export const metadata: Metadata = {
   description: 'Online Bazar - a mini store template powered by Payload.',
-  title: 'Online Bazar',
+  title: {
+    default: 'Online Bazar',
+    template: '%s | Online Bazar',
+  },
+  icons: {
+    icon: '/favicon-round.png',
+    shortcut: '/favicon-32x32.png',
+  },
   openGraph: {
     title: 'Online Bazar',
     description: 'Online Bazar - a mini store template powered by Payload.',
@@ -29,6 +31,12 @@ export const metadata: Metadata = {
       },
     ],
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Online Bazar',
+    description: 'Online Bazar - a mini store template powered by Payload.',
+    images: ['/og-image.png'],
   },
 }
 
@@ -64,7 +72,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         {/* Google Analytics (gtag.js) */}
         {measurementId ? (
           <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}></script>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+            ></script>
             <script
               dangerouslySetInnerHTML={{
                 __html: `

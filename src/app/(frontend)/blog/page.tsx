@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { headers as getHeaders } from 'next/headers.js'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
@@ -11,6 +11,27 @@ import { BlogImage } from '@/components/blog-image'
 export const metadata: Metadata = {
   title: 'Blog | Online Bazar',
   description: 'Latest news and updates from Online Bazar',
+  openGraph: {
+    title: 'Blog | Online Bazar',
+    description: 'Latest news and updates from Online Bazar',
+    url: `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'}/blog`,
+    siteName: 'Online Bazar',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Online Bazar Blog',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Blog | Online Bazar',
+    description: 'Latest news and updates from Online Bazar',
+    images: ['/og-image.png'],
+  },
 }
 
 export default async function BlogPage() {
@@ -60,7 +81,7 @@ export default async function BlogPage() {
 
   // Function to get image URL
   const getImageUrl = (image: any): string => {
-    if (!image) return '/placeholder-image.svg'
+    if (!image) return '/og-image.png'
 
     // If it's already a string URL
     if (typeof image === 'string') {
@@ -74,7 +95,7 @@ export default async function BlogPage() {
         : `${payload.config.serverURL || ''}${image.url}`
     }
 
-    return '/placeholder-image.svg'
+    return '/og-image.png'
   }
 
   return (
@@ -91,7 +112,8 @@ export default async function BlogPage() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-8 pb-32">
-        <div className="text-center space-y-4 mb-12">
+        {/* Increased padding for the heading box while keeping font size the same */}
+        <div className="text-center space-y-4 mb-12 py-12 px-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold brand-text">Blog</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Latest news and updates from Online Bazar
