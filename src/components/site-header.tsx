@@ -46,15 +46,15 @@ export function SiteHeader({
 
             {/* Navigation and User Actions */}
             <div className="flex items-center gap-4">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/blog">Blog</Link>
-              </Button>
               {user ? (
                 <>
                   <div className="hidden sm:flex items-center gap-4">
                     <span className="text-sm text-gray-600">
                       Welcome, {user.firstName || user.email}
                     </span>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/blog">Blog</Link>
+                    </Button>
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/profile">Profile</Link>
                     </Button>
