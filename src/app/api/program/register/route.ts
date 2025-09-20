@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Check if participant already exists
     const existingParticipants = await payload.find({
-      collection: 'program-participants' as const,
+      collection: 'program-participants',
       where: {
         phone: {
           equals: phone,
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Create new participant
     const newParticipant = await payload.create({
-      collection: 'program-participants' as const,
+      collection: 'program-participants',
       data: {
         name,
         phone,

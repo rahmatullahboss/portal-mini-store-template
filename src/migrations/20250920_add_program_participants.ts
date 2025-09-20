@@ -11,7 +11,8 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
   );
   
   CREATE INDEX IF NOT EXISTS "program_participants_created_at_idx" ON "program_participants" USING btree ("created_at");
-  CREATE INDEX IF NOT EXISTS "program_participants_updated_at_idx" ON "program_participants" USING btree ("updated_at");`)
+  CREATE INDEX IF NOT EXISTS "program_participants_updated_at_idx" ON "program_participants" USING btree ("updated_at");
+  CREATE INDEX IF NOT EXISTS "program_participants_phone_idx" ON "program_participants" USING btree ("phone");`)
 }
 
 export async function down({ payload, req }: MigrateDownArgs): Promise<void> {

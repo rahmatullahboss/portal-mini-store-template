@@ -30,15 +30,7 @@ export const ProgramParticipants: CollectionConfig = {
         description: '11-digit phone number',
       },
     },
-    {
-      name: 'createdAt',
-      type: 'date',
-      required: true,
-      admin: {
-        readOnly: true,
-      },
-      defaultValue: () => new Date().toISOString(),
-    },
+    // Note: createdAt and updatedAt fields are automatically added by Payload CMS
   ],
 }
 
