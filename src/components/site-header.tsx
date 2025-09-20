@@ -55,6 +55,10 @@ export function SiteHeader({
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/program">Program</Link>
                     </Button>
+                    {/* Updated Products button for logged-in users to point to the new products page */}
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/products">Products</Link>
+                    </Button>
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/blog">Blog</Link>
                     </Button>
@@ -81,6 +85,10 @@ export function SiteHeader({
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
                           <Link href="/program">Program</Link>
+                        </DropdownMenuItem>
+                        {/* Updated Products link for mobile menu (logged-in users) */}
+                        <DropdownMenuItem asChild>
+                          <Link href="/products">Products</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
@@ -113,6 +121,10 @@ export function SiteHeader({
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/program">Program</Link>
                     </Button>
+                    {/* Updated Products button for guest users to point to the new products page */}
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/products">Products</Link>
+                    </Button>
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/blog">Blog</Link>
                     </Button>
@@ -134,6 +146,10 @@ export function SiteHeader({
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
                           <Link href="/program">Program</Link>
+                        </DropdownMenuItem>
+                        {/* Updated Products link for mobile menu (guest users) */}
+                        <DropdownMenuItem asChild>
+                          <Link href="/products">Products</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>

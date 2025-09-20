@@ -14,8 +14,96 @@ import { ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import ReviewSection from './ReviewSection'
 import { ReviewStars } from '@/components/review-stars'
 import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
+import type { Metadata } from 'next'
 
 export const revalidate = 3600
+
+// Function to get image URL for Open Graph
+const getImageUrl = (item: any, serverURL: string): string => {
+  // If item has an uploaded image
+  if (item.image && typeof item.image === 'object' && item.image.url) {
+    // If it's already an absolute URL, return as is
+    if (item.image.url.startsWith('http')) {
+      return item.image.url
+    }
+    // Otherwise, prepend server URL
+    return `${serverURL || ''}${item.image.url}`
+  }
+
+  // If item has an imageUrl field
+  if (item.imageUrl) {
+    // If it's already an absolute URL, return as is
+    if (item.imageUrl.startsWith('http')) {
+      return item.imageUrl
+    }
+    // Otherwise, prepend server URL
+    return `${serverURL || ''}${item.imageUrl}`
+  }
+
+  // Fallback to default og-image
+  return '/og-image.png'
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const resolvedParams = await params
+  const { id } = resolvedParams
+
+  const payloadConfig = await config
+  const payload = await getPayload({ config: payloadConfig })
+
+  try {
+    const item = await payload.findByID({
+      collection: 'items',
+      id,
+      depth: 1,
+    })
+
+    if (!item) {
+      return {
+        title: 'Product Not Found',
+        description: 'The requested product could not be found.',
+      }
+    }
+
+    const serverURL = payload.config.serverURL || 'http://localhost:3000'
+    const imageUrl = getImageUrl(item, serverURL)
+
+    return {
+      title: item.name,
+      description: item.shortDescription || item.description,
+      openGraph: {
+        title: item.name,
+        description: item.shortDescription || item.description,
+        url: `${serverURL}/item/${id}`,
+        siteName: 'Online Bazar',
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: item.name,
+          },
+        ],
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: item.name,
+        description: item.shortDescription || item.description,
+        images: [imageUrl],
+      },
+    }
+  } catch (error) {
+    return {
+      title: 'Product',
+      description: 'View our premium products.',
+    }
+  }
+}
 
 async function getItem(id: string, payload: any) {
   const item = await payload.findByID({
@@ -32,7 +120,8 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
-  const deliveryZone = (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
+  const deliveryZone =
+    (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   const item = await getItem(id, payload)
 
@@ -58,10 +147,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   const reviewsRes = await payload.find({
     collection: 'reviews',
     where: {
-      and: [
-        { item: { equals: id } },
-        { approved: { equals: true } },
-      ],
+      and: [{ item: { equals: id } }, { approved: { equals: true } }],
     },
     depth: 2,
     limit: 50,
@@ -69,7 +155,9 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   })
   const reviews = reviewsRes?.docs || []
   const ratingAvg = reviews.length
-    ? Math.round((reviews.reduce((a: number, r: any) => a + Number(r.rating || 0), 0) / reviews.length) * 10) / 10
+    ? Math.round(
+        (reviews.reduce((a: number, r: any) => a + Number(r.rating || 0), 0) / reviews.length) * 10,
+      ) / 10
     : 0
 
   // Check if current user can review (completed order contains this item)
@@ -142,8 +230,16 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 <div className="group relative overflow-hidden rounded-[2.75rem] border border-white/60 bg-white shadow-xl shadow-amber-100/80">
                   <div className="relative aspect-square">
                     <Image
-                      src={item.image && typeof item.image === 'object' ? item.image.url : item.imageUrl}
-                      alt={(item.image && typeof item.image === 'object' ? item.image.alt : undefined) || item.name}
+                      src={
+                        item.image && typeof item.image === 'object'
+                          ? item.image.url
+                          : item.imageUrl
+                      }
+                      alt={
+                        (item.image && typeof item.image === 'object'
+                          ? item.image.alt
+                          : undefined) || item.name
+                      }
                       fill
                       className="object-cover transition duration-700 ease-out group-hover:scale-105 group-hover:saturate-125"
                     />
@@ -153,8 +249,12 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
               )}
 
               <div className="grid gap-4 rounded-[2rem] border border-white/60 bg-white/70 p-6 backdrop-blur">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-500">Highlights</p>
-                <p className="text-lg leading-relaxed text-gray-600 whitespace-pre-line">{shortDescription}</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-500">
+                  Highlights
+                </p>
+                <p className="text-lg leading-relaxed text-gray-600 whitespace-pre-line">
+                  {shortDescription}
+                </p>
                 <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                   <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
                     ⭐ Rated {ratingAvg || '0.0'} / 5
@@ -170,8 +270,13 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
               <div className="sticky top-28 space-y-6">
                 <div className="rounded-[2.75rem] border border-white/60 bg-white/80 p-8 shadow-2xl shadow-amber-100/70 backdrop-blur">
                   <div className="flex items-start justify-between gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{item.name}</h1>
-                    <Badge variant="secondary" className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-600">
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                      {item.name}
+                    </h1>
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-600"
+                    >
                       In store
                     </Badge>
                   </div>
@@ -187,8 +292,12 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
                   <div className="mt-6 flex items-end justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-amber-500">Starting from</p>
-                      <p className="text-4xl font-bold text-gray-900 sm:text-5xl">Tk {item.price.toFixed(2)}</p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-amber-500">
+                        Starting from
+                      </p>
+                      <p className="text-4xl font-bold text-gray-900 sm:text-5xl">
+                        Tk {item.price.toFixed(2)}
+                      </p>
                     </div>
                     <span className="rounded-full bg-gradient-to-r from-amber-400 to-rose-400 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow-lg">
                       Best Deal
@@ -197,7 +306,11 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
                   <div className="mt-8 grid gap-3 sm:grid-cols-2">
                     <AddToCartButton item={item as any} />
-                    <OrderNowButton item={item as any} isLoggedIn={!!user} deliveryZone={deliveryZone} />
+                    <OrderNowButton
+                      item={item as any}
+                      isLoggedIn={!!user}
+                      deliveryZone={deliveryZone}
+                    />
                   </div>
 
                   <div className="mt-6 grid gap-4">
@@ -219,10 +332,12 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div className="rounded-[2rem] border border-white/60 bg-white/70 p-6 text-sm text-gray-600 backdrop-blur">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-500">Need help?</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-500">
+                    Need help?
+                  </p>
                   <p className="mt-2 leading-relaxed">
-                    Chat with our concierge team for personalised recommendations, delivery schedules, or bulk order
-                    support. We are online 9am – 11pm daily.
+                    Chat with our concierge team for personalised recommendations, delivery
+                    schedules, or bulk order support. We are online 9am – 11pm daily.
                   </p>
                 </div>
               </div>
@@ -245,7 +360,10 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                   Reviews
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="description" className="mt-8 text-lg leading-relaxed text-gray-600">
+              <TabsContent
+                value="description"
+                className="mt-8 text-lg leading-relaxed text-gray-600"
+              >
                 <div className="prose max-w-none whitespace-pre-line">{item.description}</div>
               </TabsContent>
               <TabsContent value="reviews" className="mt-8">
