@@ -48,8 +48,8 @@ export default async function ProgramPage() {
           </h1>
 
           <div className="group prose max-w-none mb-8 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl relative">
-            {/* Animated glow effect */}
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-rose-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+            {/* Animated glow effect with reduced opacity from /20 to /10 to match other elements */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
 
             <h2 className="text-2xl font-bold mb-6 relative z-10">Description</h2>
             <p className="mb-6 relative z-10">প্রিয় ক্যালিক্স ও সানবীম স্কুলের বন্ধুরা,</p>

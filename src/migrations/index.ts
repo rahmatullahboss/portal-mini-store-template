@@ -26,6 +26,7 @@ import * as migration_20250920_add_program_participants from './20250920_add_pro
 import * as migration_20250920_update_locked_documents_rels from './20250920_update_locked_documents_rels'
 import * as migration_20250920_fix_program_participants_rel from './20250920_fix_program_participants_rel'
 import * as migration_20250920_fix_item_category_constraint from './20250920_fix_item_category_constraint'
+import * as migration_20250920_fix_abandoned_carts_items_constraint from './20250920_fix_abandoned_carts_items_constraint'
 
 export const migrations = [
   {
@@ -167,5 +168,10 @@ export const migrations = [
     up: migration_20250920_fix_item_category_constraint.up,
     down: migration_20250920_fix_item_category_constraint.down,
     name: '20250920_fix_item_category_constraint',
+  },
+  {
+    up: migration_20250920_fix_abandoned_carts_items_constraint.up,
+    down: migration_20250920_fix_abandoned_carts_items_constraint.down,
+    name: '20250920_fix_abandoned_carts_items_constraint',
   },
 ]
