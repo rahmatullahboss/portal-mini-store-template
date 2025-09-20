@@ -221,10 +221,15 @@ export async function POST(request: NextRequest) {
 
     // Use the request delivery zone first, then fall back to user's zone, then inferred zone, and finally default to inside_dhaka
     // Fix: Prioritize request delivery zone over user delivery zone
-    const deliveryZone =
-      requestDeliveryZone !== undefined
-        ? requestDeliveryZone
-        : userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
+    // Previous code had an issue where it would check for !== undefined which could fail for falsy values
+    let deliveryZone: 'inside_dhaka' | 'outside_dhaka' = 'inside_dhaka'
+    if (requestDeliveryZone) {
+      deliveryZone = requestDeliveryZone
+    } else if (userDeliveryZone) {
+      deliveryZone = userDeliveryZone
+    } else if (inferredZoneFromAddress) {
+      deliveryZone = inferredZoneFromAddress
+    }
 
     // Debugging: Log the final delivery zone
     console.log('Final delivery zone:', deliveryZone)
