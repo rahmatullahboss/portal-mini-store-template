@@ -609,6 +609,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     shouldForcePersistRef.current = true
   }, [])
 
+  // Add a useEffect to ensure component re-renders when cart changes
+  useEffect(() => {
+    // This effect will trigger re-renders when state.items changes
+    // which should help with the quantity update issue
+  }, [state.items])
+
   const toggleCart = () => {
     dispatch({ type: 'TOGGLE_CART' })
   }

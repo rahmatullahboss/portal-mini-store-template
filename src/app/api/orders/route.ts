@@ -197,8 +197,11 @@ export async function POST(request: NextRequest) {
       return undefined
     })()
     // Use the request delivery zone first, then fall back to user's zone, then inferred zone, and finally default to inside_dhaka
+    // Fix: Prioritize request delivery zone over user delivery zone
     const deliveryZone =
-      requestDeliveryZone || userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
+      requestDeliveryZone !== undefined
+        ? requestDeliveryZone
+        : userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
 
     // Detect device
     const ua = request.headers.get('user-agent') || ''
