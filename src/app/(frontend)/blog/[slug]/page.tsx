@@ -164,20 +164,26 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         <SiteHeader variant="full" user={user} />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 pt-8 pb-20">
+      <div className="relative z-10 container mx-auto px-4 py-8 pt-4 pb-20">
         <article className="max-w-3xl mx-auto">
-          {/* Increased padding for the post header by 8px */}
-          <div className="py-12 px-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mb-8">
+          {/* Reduced padding for post header and increased padding for brand text */}
+          <div className="group py-12 px-6 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 mb-8 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl hover:-translate-y-1 relative">
+            {/* Animated glow effect */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-rose-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+
             <Link
               href="/blog"
-              className="inline-flex items-center text-amber-600 hover:text-amber-700 mb-6"
+              className="inline-flex items-center text-amber-600 hover:text-amber-700 mb-8 relative z-10 group"
             >
-              ← Back to Blog
+              <span className="transform group-hover:-translate-x-1 transition-transform duration-300">
+                ←
+              </span>
+              <span className="ml-2">Back to Blog</span>
             </Link>
 
-            <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+            <h1 className="text-4xl font-bold mb-6 relative z-10 py-4 px-6"> {post.title}</h1>
 
-            <div className="flex flex-wrap items-center text-gray-600 mb-6 gap-4">
+            <div className="flex flex-wrap items-center text-gray-600 mb-8 gap-4 relative z-10">
               <span>{post.publishedDate && new Date(post.publishedDate).toLocaleDateString()}</span>
               {post.author && typeof post.author !== 'number' && (
                 <span>
@@ -185,11 +191,14 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 </span>
               )}
               {post.category && typeof post.category !== 'number' && (
-                <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-sm">
+                <span className="bg-amber-100 text-amber-800 px-3 py-2 rounded text-sm">
                   {post.category.name}
                 </span>
               )}
             </div>
+
+            {/* Interactive underline effect */}
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </div>
 
           {post.featuredImage && (
@@ -203,24 +212,35 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           )}
 
           {post.content && (
-            <div className="prose max-w-none mb-8 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
-              <RichText content={post.content} />
+            <div className="group prose max-w-none mb-8 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl relative">
+              {/* Animated glow effect */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-rose-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+
+              <div className="relative z-10">
+                <RichText content={post.content} />
+              </div>
             </div>
           )}
 
           {post.excerpt && (
-            <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-100 shadow-sm">
-              <h3 className="font-semibold mb-2 text-amber-800">Summary:</h3>
-              <p className="text-gray-700">{post.excerpt}</p>
+            <div className="group mt-6 p-4 bg-amber-50/50 backdrop-blur-sm rounded-2xl border border-amber-100/50 shadow-sm transition-all duration-500 hover:bg-amber-50/70 hover:shadow-md relative">
+              {/* Animated glow effect */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400/10 to-amber-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-lg"></div>
+
+              <h3 className="font-semibold mb-2 text-amber-800 relative z-10">Summary:</h3>
+              <p className="text-gray-700 relative z-10">{post.excerpt}</p>
             </div>
           )}
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <Link
               href="/blog"
-              className="inline-flex items-center text-amber-600 hover:text-amber-700"
+              className="group inline-flex items-center text-amber-600 hover:text-amber-700"
             >
-              ← Back to Blog
+              <span className="transform group-hover:-translate-x-1 transition-transform duration-300">
+                ←
+              </span>
+              <span className="ml-2">Back to Blog</span>
             </Link>
           </div>
         </article>
