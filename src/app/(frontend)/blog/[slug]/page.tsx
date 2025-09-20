@@ -74,7 +74,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         <SiteHeader variant="full" user={user} />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 pt-20 pb-20">
+      <div className="relative z-10 container mx-auto px-4 py-8 pt-12 pb-20">
         <article className="max-w-3xl mx-auto">
           <Link
             href="/blog"

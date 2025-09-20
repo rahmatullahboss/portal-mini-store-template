@@ -104,6 +104,9 @@ export function SiteHeader({
                 <>
                   <div className="hidden sm:flex items-center gap-2">
                     <Button asChild variant="ghost" size="sm">
+                      <Link href="/blog">Blog</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
                       <Link href="/login">Sign In</Link>
                     </Button>
                     <Button asChild size="sm">
@@ -119,6 +122,10 @@ export function SiteHeader({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href="/blog">Blog</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link href="/login">Sign In</Link>
                         </DropdownMenuItem>

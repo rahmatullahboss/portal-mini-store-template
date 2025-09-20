@@ -90,7 +90,7 @@ export default async function BlogPage() {
         <SiteHeader variant="full" user={user} />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 pt-20 pb-20">
+      <div className="relative z-10 container mx-auto px-4 py-8 pt-12 pb-32">
         <div className="text-center space-y-4 mb-12">
           <h1 className="text-5xl font-bold brand-text">Blog</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
