@@ -76,6 +76,7 @@ export interface Config {
     'abandoned-carts': AbandonedCart;
     'delivery-settings': DeliverySetting;
     posts: Post;
+    'program-participants': ProgramParticipant;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -91,6 +92,7 @@ export interface Config {
     'abandoned-carts': AbandonedCartsSelect<false> | AbandonedCartsSelect<true>;
     'delivery-settings': DeliverySettingsSelect<false> | DeliverySettingsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    'program-participants': ProgramParticipantsSelect<false> | ProgramParticipantsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -406,6 +408,20 @@ export interface Post {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "program-participants".
+ */
+export interface ProgramParticipant {
+  id: number;
+  name: string;
+  /**
+   * 11-digit phone number
+   */
+  phone: string;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -446,6 +462,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'posts';
         value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'program-participants';
+        value: number | ProgramParticipant;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -685,6 +705,16 @@ export interface PostsSelect<T extends boolean = true> {
   status?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "program-participants_select".
+ */
+export interface ProgramParticipantsSelect<T extends boolean = true> {
+  name?: T;
+  phone?: T;
+  createdAt?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

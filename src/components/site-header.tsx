@@ -53,6 +53,9 @@ export function SiteHeader({
                       Welcome, {user.firstName || user.email}
                     </span>
                     <Button asChild variant="ghost" size="sm">
+                      <Link href="/program">Program</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
                       <Link href="/blog">Blog</Link>
                     </Button>
                     <Button asChild variant="ghost" size="sm">
@@ -76,6 +79,10 @@ export function SiteHeader({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href="/program">Program</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link href="/blog">Blog</Link>
                         </DropdownMenuItem>
@@ -104,6 +111,9 @@ export function SiteHeader({
                 <>
                   <div className="hidden sm:flex items-center gap-2">
                     <Button asChild variant="ghost" size="sm">
+                      <Link href="/program">Program</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
                       <Link href="/blog">Blog</Link>
                     </Button>
                     <Button asChild variant="ghost" size="sm">
@@ -122,6 +132,10 @@ export function SiteHeader({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href="/program">Program</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link href="/blog">Blog</Link>
                         </DropdownMenuItem>
