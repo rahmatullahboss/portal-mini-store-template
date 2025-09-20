@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: '/favicon-round.png',
-    shortcut: '/favicon-32x32.png',
+    shortcut: '/favicon-round.png',
+    apple: '/favicon-round.png',
   },
   openGraph: {
     title: 'Online Bazar',

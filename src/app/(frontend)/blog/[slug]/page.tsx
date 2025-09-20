@@ -166,8 +166,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-8 pb-20">
         <article className="max-w-3xl mx-auto">
-          {/* Increased padding for the post header */}
-          <div className="py-8 px-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mb-8">
+          {/* Increased padding for the post header by 8px */}
+          <div className="py-12 px-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mb-8">
             <Link
               href="/blog"
               className="inline-flex items-center text-amber-600 hover:text-amber-700 mb-6"

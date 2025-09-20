@@ -113,7 +113,7 @@ export default async function BlogPage() {
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-8 pb-32">
         {/* Increased padding for the heading box while keeping font size the same */}
-        <div className="text-center space-y-4 mb-12 py-12 px-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg max-w-4xl mx-auto">
+        <div className="text-center space-y-4 mb-12 py-16 px-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold brand-text">Blog</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Latest news and updates from Online Bazar

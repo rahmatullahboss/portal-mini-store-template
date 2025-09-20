@@ -33,7 +33,7 @@ export default async function ProgramPage() {
         <SiteHeader variant="full" user={user} />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 pt-12 pb-20">
+      <div className="relative z-10 container mx-auto px-4 py-8 pt-20 pb-20">
         <article className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-6 text-center brand-text">
             ক্যালিক্স ও সানবীম স্কুলের শিক্ষার্থীদের জন্য এক বিশেষ আয়োজন
