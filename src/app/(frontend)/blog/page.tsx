@@ -6,7 +6,6 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { Post } from '@/payload-types'
 import { SiteHeader } from '@/components/site-header'
-import { ImageWithFallback } from '@/components/image-with-fallback'
 
 export const metadata: Metadata = {
   title: 'Blog | Online Bazar',
@@ -29,6 +28,7 @@ export default async function BlogPage() {
       },
     },
     sort: '-publishedDate',
+    depth: 1, // Fetch related data like featuredImage
   })
 
   // Function to render rich text content as plain text for excerpt
@@ -55,6 +55,25 @@ export default async function BlogPage() {
     }
 
     return ''
+  }
+
+  // Function to get image URL
+  const getImageUrl = (image: any): string => {
+    if (!image) return '/placeholder-image.svg'
+
+    // If it's already a string URL
+    if (typeof image === 'string') {
+      return image.startsWith('http') ? image : `${payload.config.serverURL || ''}${image}`
+    }
+
+    // If it's an object with a URL property
+    if (typeof image === 'object' && image.url) {
+      return image.url.startsWith('http')
+        ? image.url
+        : `${payload.config.serverURL || ''}${image.url}`
+    }
+
+    return '/placeholder-image.svg'
   }
 
   return (
@@ -101,20 +120,21 @@ export default async function BlogPage() {
                 <div className="absolute inset-0 hidden motion-safe:md:block motion-safe:md:-translate-x-full motion-safe:md:group-hover:translate-x-full motion-safe:md:transition-transform motion-safe:md:duration-1000 md:bg-gradient-to-r md:from-transparent md:via-white/20 md:to-transparent md:skew-x-12"></div>
 
                 <div className="relative z-10 h-full flex flex-col">
-                  {post.featuredImage &&
-                    typeof post.featuredImage !== 'number' &&
-                    post.featuredImage.url && (
-                      <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
-                        <div
-                          className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110 bg-cover bg-center"
-                          style={{
-                            backgroundImage: `url(${payload.config.serverURL ? `${payload.config.serverURL}${post.featuredImage.url}` : post.featuredImage.url})`,
-                          }}
-                        />
-                        {/* Image Overlay */}
-                        <div className="absolute inset-0 hidden md:block md:bg-gradient-to-t md:from-gray-900/30 md:via-transparent md:to-transparent md:opacity-0 md:group-hover:opacity-100 md:transition-opacity md:duration-500"></div>
-                      </div>
-                    )}
+                  {post.featuredImage && (
+                    <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
+                      <img
+                        src={getImageUrl(post.featuredImage)}
+                        alt={post.title || 'Blog post image'}
+                        className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = '/placeholder-image.svg'
+                        }}
+                      />
+                      {/* Image Overlay */}
+                      <div className="absolute inset-0 hidden md:block md:bg-gradient-to-t md:from-gray-900/30 md:via-transparent md:to-transparent md:opacity-0 md:group-hover:opacity-100 md:transition-opacity md:duration-500"></div>
+                    </div>
+                  )}
 
                   <div className="p-6 flex flex-col flex-grow">
                     <h2 className="text-xl font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight mb-2">

@@ -7,6 +7,11 @@ interface RichTextProps {
 const RichText: React.FC<RichTextProps> = ({ content }) => {
   if (!content) return null
 
+  // Debug: Log content structure in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('RichText content:', JSON.stringify(content, null, 2))
+  }
+
   return (
     <div className="prose max-w-none">
       {Array.isArray(content) &&
@@ -96,7 +101,11 @@ const RichText: React.FC<RichTextProps> = ({ content }) => {
                 // Handle upload nodes if needed
                 return null
               default:
-                return <p key={index}>{renderChildren(node.children || node.text || '')}</p>
+                // Handle unknown node types by rendering their text content
+                if (node.text) {
+                  return <p key={index}>{renderChildren([node])}</p>
+                }
+                return <p key={index}>{renderChildren(node.children || '')}</p>
             }
           }
 
@@ -135,7 +144,11 @@ const renderChildren = (children: any) => {
               </code>
             )
           }
-          return child.text || ''
+          // Handle plain text objects
+          if (child.text) {
+            return child.text
+          }
+          return ''
         }
 
         return child

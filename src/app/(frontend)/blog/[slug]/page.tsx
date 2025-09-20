@@ -41,6 +41,25 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   const post: Post = posts.docs[0]
 
+  // Function to get image URL
+  const getImageUrl = (image: any): string => {
+    if (!image) return '/placeholder-image.svg'
+
+    // If it's already a string URL
+    if (typeof image === 'string') {
+      return image.startsWith('http') ? image : `${payload.config.serverURL || ''}${image}`
+    }
+
+    // If it's an object with a URL property
+    if (typeof image === 'object' && image.url) {
+      return image.url.startsWith('http')
+        ? image.url
+        : `${payload.config.serverURL || ''}${image.url}`
+    }
+
+    return '/placeholder-image.svg'
+  }
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100">
       {/* Animated Background Elements */}
@@ -79,21 +98,22 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             )}
           </div>
 
-          {post.featuredImage &&
-            typeof post.featuredImage !== 'number' &&
-            post.featuredImage.url && (
-              <div className="relative w-full h-96 rounded-lg overflow-hidden mb-8">
-                <div
-                  className="w-full h-full object-cover rounded-lg bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url(${payload.config.serverURL ? `${payload.config.serverURL}${post.featuredImage.url}` : post.featuredImage.url})`,
-                  }}
-                />
-              </div>
-            )}
+          {post.featuredImage && (
+            <div className="relative w-full h-96 rounded-lg overflow-hidden mb-8">
+              <img
+                src={getImageUrl(post.featuredImage)}
+                alt={post.title || 'Blog post image'}
+                className="w-full h-full object-cover rounded-lg"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = '/placeholder-image.svg'
+                }}
+              />
+            </div>
+          )}
 
           {post.content && (
-            <div className="prose max-w-none">
+            <div className="prose max-w-none mb-8">
               <RichText content={post.content} />
             </div>
           )}
