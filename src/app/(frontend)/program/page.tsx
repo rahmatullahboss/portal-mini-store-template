@@ -5,6 +5,7 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { SiteHeader } from '@/components/site-header'
 import { ProgramRegistrationForm } from '@/components/program-registration-form'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Special Program for School Students | Online Bazar',
@@ -46,6 +47,18 @@ export default async function ProgramPage() {
             {/* Interactive underline effect with reduced opacity from default to /80 */}
             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-80 transition-opacity duration-500"></div>
           </h1>
+
+          {/* Sunbeam image below the heading */}
+          <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden mb-8 shadow-xl">
+            <Image
+              src="/sunbeam.png"
+              alt="Sunbeam School Program"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover"
+              priority
+            />
+          </div>
 
           <div className="group prose max-w-none mb-8 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl relative">
             {/* Animated glow effect with reduced opacity from /20 to /10 to match other elements */}
