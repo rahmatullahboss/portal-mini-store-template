@@ -113,39 +113,39 @@ export default async function BlogPage() {
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-4 pb-32">
         {/* Reduced padding for heading box and increased padding for brand text with reduced hover opacity */}
-        <div className="group text-center space-y-6 mb-12 py-12 px-6 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 max-w-4xl mx-auto transition-all duration-500 hover:bg-white/40 hover:shadow-3xl hover:-translate-y-1 relative">
+        <div className="group text-center space-y-6 mb-12 py-8 px-4 bg-white/30 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 max-w-3xl mx-auto transition-all duration-500 hover:bg-white/40 hover:shadow-2xl hover:-translate-y-1 relative">
           {/* Animated glow effect with reduced opacity from /20 to /10 */}
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
 
           {/* Interactive floating elements with reduced opacity from default to /80 */}
-          <div className="absolute -top-4 -left-4 w-8 h-8 bg-amber-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:translate-x-2 group-hover:-translate-y-2"></div>
-          <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-blue-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:-translate-x-2 group-hover:translate-y-2"></div>
+          <div className="absolute -top-3 -left-3 w-6 h-6 bg-amber-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:translate-x-2 group-hover:-translate-y-2"></div>
+          <div className="absolute -bottom-3 -right-3 w-4 h-4 bg-blue-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:-translate-x-2 group-hover:translate-y-2"></div>
 
-          <h1 className="text-5xl font-bold brand-text relative z-10 py-6 px-8">Blog</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto relative z-10">
+          <h1 className="text-4xl font-bold brand-text relative z-10 py-4 px-6">Blog</h1>
+          <p className="text-lg text-gray-600 max-w-xl mx-auto relative z-10">
             Latest news and updates from Online Bazar
           </p>
 
           {/* Interactive underline effect with reduced opacity from default to /80 */}
-          <div className="w-24 h-1 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+          <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
         </div>
 
         {posts.docs.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-16">
             <div className="space-y-4">
-              <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full mx-auto flex items-center justify-center">
-                <span className="text-3xl">📰</span>
+              <div className="w-20 h-20 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full mx-auto flex items-center justify-center">
+                <span className="text-2xl">📰</span>
               </div>
-              <p className="text-gray-600 text-xl">No blog posts available yet</p>
+              <p className="text-gray-600 text-lg">No blog posts available yet</p>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {posts.docs.map((post: Post) => (
               <Link
                 key={post.id}
                 href={`/blog/${post.slug}`}
-                className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl gap-0 p-0 block"
+                className="group relative overflow-hidden rounded-2xl border border-gray-200/60 bg-white shadow-lg transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl gap-0 p-0 block"
               >
                 {/* Enhanced Card Glow Effect */}
                 <div className="absolute inset-0 hidden md:block md:bg-gradient-to-br md:from-amber-100/30 md:via-rose-100/20 md:to-blue-100/30 md:opacity-0 md:group-hover:opacity-100 md:transition-all md:duration-700"></div>
@@ -155,7 +155,7 @@ export default async function BlogPage() {
 
                 <div className="relative z-10 h-full flex flex-col">
                   {post.featuredImage && (
-                    <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl">
                       <BlogImage
                         src={getImageUrl(post.featuredImage)}
                         alt={post.title || 'Blog post image'}
@@ -166,27 +166,27 @@ export default async function BlogPage() {
                     </div>
                   )}
 
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h2 className="text-xl font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight mb-2">
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h2 className="text-lg font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight mb-2">
                       {post.title}
                     </h2>
 
-                    <div className="flex items-center text-gray-600 text-sm mb-3">
+                    <div className="flex items-center text-gray-600 text-xs mb-2">
                       <span>
                         {post.publishedDate && new Date(post.publishedDate).toLocaleDateString()}
                       </span>
                     </div>
 
                     {post.excerpt ? (
-                      <p className="text-gray-700 mb-4 flex-grow">{post.excerpt}</p>
+                      <p className="text-gray-700 text-sm mb-3 flex-grow">{post.excerpt}</p>
                     ) : post.content ? (
-                      <p className="text-gray-700 mb-4 flex-grow">
-                        {renderPlainText(post.content).substring(0, 150)}...
+                      <p className="text-gray-700 text-sm mb-3 flex-grow">
+                        {renderPlainText(post.content).substring(0, 100)}...
                       </p>
                     ) : null}
 
                     <div className="mt-auto">
-                      <span className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">
+                      <span className="inline-flex items-center text-amber-600 hover:text-amber-700 text-sm font-medium">
                         Read more →
                       </span>
                     </div>
