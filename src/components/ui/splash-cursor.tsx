@@ -37,7 +37,7 @@ function SplashCursor({
       this.color = [0, 0, 0]
     }
 
-    let config = {
+    const config = {
       SIM_RESOLUTION,
       DYE_RESOLUTION,
       CAPTURE_RESOLUTION,
@@ -55,7 +55,7 @@ function SplashCursor({
       TRANSPARENT,
     }
 
-    let pointers = [new pointerPrototype()]
+    const pointers = [new pointerPrototype()]
 
     const { gl, ext } = getWebGLContext(canvas)
     if (!ext.supportLinearFiltering) {
