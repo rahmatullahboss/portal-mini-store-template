@@ -9,7 +9,7 @@ import { ProgramRegistrationForm } from '@/components/program-registration-form'
 export const metadata: Metadata = {
   title: 'Special Program for School Students | Online Bazar',
   description:
-    'A special program for Calix and Sunbeam school students with educational activities and competitions.',
+    'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
 }
 
 export default async function ProgramPage() {
@@ -35,16 +35,16 @@ export default async function ProgramPage() {
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-12 pb-20">
         <article className="max-w-3xl mx-auto">
-          {/* Reduced padding for heading and increased padding for brand text */}
-          <h1 className="group text-4xl font-bold mb-8 text-center brand-text py-4 px-6 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl hover:-translate-y-1 relative">
-            {/* Animated glow effect */}
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-rose-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
-            {/* Interactive floating elements */}
-            <div className="absolute -top-3 -left-3 w-6 h-6 bg-amber-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 transform group-hover:translate-x-1 group-hover:-translate-y-1"></div>
-            <div className="absolute -bottom-3 -right-3 w-4 h-4 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 transform group-hover:-translate-x-1 group-hover:translate-y-1"></div>
+          {/* Increased padding for heading box from py-4 px-6 to py-8 px-8 */}
+          <h1 className="group text-4xl font-bold mb-8 text-center brand-text py-8 px-8 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl hover:-translate-y-1 relative">
+            {/* Animated glow effect with reduced opacity from /20 to /10 */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+            {/* Interactive floating elements with reduced opacity from default to /80 */}
+            <div className="absolute -top-3 -left-3 w-6 h-6 bg-amber-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:translate-x-1 group-hover:-translate-y-1"></div>
+            <div className="absolute -bottom-3 -right-3 w-4 h-4 bg-blue-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:-translate-x-1 group-hover:translate-y-1"></div>
             ক্যালিক্স ও সানবীম স্কুলের শিক্ষার্থীদের জন্য এক বিশেষ আয়োজন
-            {/* Interactive underline effect */}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            {/* Interactive underline effect with reduced opacity from default to /80 */}
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-80 transition-opacity duration-500"></div>
           </h1>
 
           <div className="group prose max-w-none mb-8 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl relative">

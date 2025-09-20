@@ -166,10 +166,10 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-4 pb-20">
         <article className="max-w-3xl mx-auto">
-          {/* Reduced padding for post header and increased padding for brand text */}
+          {/* Reduced padding for post header and increased padding for brand text with reduced hover opacity */}
           <div className="group py-12 px-6 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 mb-8 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl hover:-translate-y-1 relative">
-            {/* Animated glow effect */}
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-rose-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+            {/* Animated glow effect with reduced opacity from /20 to /10 */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
 
             <Link
               href="/blog"
@@ -197,8 +197,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               )}
             </div>
 
-            {/* Interactive underline effect */}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            {/* Interactive underline effect with reduced opacity from default to /80 */}
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-80 transition-opacity duration-500"></div>
           </div>
 
           {post.featuredImage && (
@@ -213,8 +213,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           {post.content && (
             <div className="group prose max-w-none mb-8 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 transition-all duration-500 hover:bg-white/40 hover:shadow-3xl relative">
-              {/* Animated glow effect */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-rose-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+              {/* Animated glow effect with reduced opacity from /20 to /10 */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
 
               <div className="relative z-10">
                 <RichText content={post.content} />
@@ -224,8 +224,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
           {post.excerpt && (
             <div className="group mt-6 p-4 bg-amber-50/50 backdrop-blur-sm rounded-2xl border border-amber-100/50 shadow-sm transition-all duration-500 hover:bg-amber-50/70 hover:shadow-md relative">
-              {/* Animated glow effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400/10 to-amber-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-lg"></div>
+              {/* Animated glow effect with reduced opacity from /10 to /5 */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400/5 to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-lg"></div>
 
               <h3 className="font-semibold mb-2 text-amber-800 relative z-10">Summary:</h3>
               <p className="text-gray-700 relative z-10">{post.excerpt}</p>

@@ -5,7 +5,8 @@ import { ContactEmailLink } from '@/components/contact-email-link'
 
 export const metadata = {
   title: 'Privacy Policy — Online Bazar',
-  description: 'How Online Bazar collects, uses, and protects your information.',
+  description:
+    'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
 }
 
 // Static generation for improved performance on this mostly immutable page
@@ -27,8 +28,8 @@ export default function PrivacyPage() {
         <p className="text-sm text-gray-500">Last updated: {updated}</p>
 
         <p>
-          At Online Bazar, we respect your privacy. This policy explains what information we collect,
-          how we use it, and the choices you have.
+          At Online Bazar, we respect your privacy. This policy explains what information we
+          collect, how we use it, and the choices you have.
         </p>
 
         <h2>Information We Collect</h2>
@@ -75,17 +76,19 @@ export default function PrivacyPage() {
 
         <h2>Contact Us</h2>
         <p>
-          Email:{' '}
-          <ContactEmailLink className="hover:text-emerald-600" />{' '}
+          Email: <ContactEmailLink className="hover:text-emerald-600" />{' '}
           <noscript>
             <span className="text-gray-600">rahmatullahzisan [at] gmail [dot] com</span>
           </noscript>
           <br />
-          Phone: <a href="tel:01739416661">01739-416661</a><br />
-          Facebook: <a href="https://www.facebook.com/onlinebazarbarguna" target="_blank" rel="noreferrer">@onlinebazarbarguna</a>
+          Phone: <a href="tel:01739416661">01739-416661</a>
+          <br />
+          Facebook:{' '}
+          <a href="https://www.facebook.com/onlinebazarbarguna" target="_blank" rel="noreferrer">
+            @onlinebazarbarguna
+          </a>
         </p>
       </div>
     </div>
   )
 }
-

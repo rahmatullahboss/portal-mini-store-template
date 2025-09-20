@@ -112,21 +112,21 @@ export default async function BlogPage() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-4 pb-32">
-        {/* Reduced padding for heading box and increased padding for brand text */}
+        {/* Reduced padding for heading box and increased padding for brand text with reduced hover opacity */}
         <div className="group text-center space-y-6 mb-12 py-12 px-6 bg-white/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 max-w-4xl mx-auto transition-all duration-500 hover:bg-white/40 hover:shadow-3xl hover:-translate-y-1 relative">
-          {/* Animated glow effect */}
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-rose-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+          {/* Animated glow effect with reduced opacity from /20 to /10 */}
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
 
-          {/* Interactive floating elements */}
-          <div className="absolute -top-4 -left-4 w-8 h-8 bg-amber-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 transform group-hover:translate-x-2 group-hover:-translate-y-2"></div>
-          <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 transform group-hover:-translate-x-2 group-hover:translate-y-2"></div>
+          {/* Interactive floating elements with reduced opacity from default to /80 */}
+          <div className="absolute -top-4 -left-4 w-8 h-8 bg-amber-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:translate-x-2 group-hover:-translate-y-2"></div>
+          <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-blue-400 rounded-full opacity-0 group-hover:opacity-80 transition-all duration-700 transform group-hover:-translate-x-2 group-hover:translate-y-2"></div>
 
           <h1 className="text-5xl font-bold brand-text relative z-10 py-6 px-8">Blog</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto relative z-10">
             Latest news and updates from Online Bazar
           </p>
 
-          {/* Interactive underline effect */}
+          {/* Interactive underline effect with reduced opacity from default to /80 */}
           <div className="w-24 h-1 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
         </div>
 

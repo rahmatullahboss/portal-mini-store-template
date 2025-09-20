@@ -8,7 +8,8 @@ import '../globals.css'
 import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
 
 export const metadata: Metadata = {
-  description: 'Online Bazar - a mini store template powered by Payload.',
+  description:
+    'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
   title: {
     default: 'Online Bazar',
     template: '%s | Online Bazar',
@@ -20,7 +21,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Online Bazar',
-    description: 'Online Bazar - a mini store template powered by Payload.',
+    description:
+      'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
     url: process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000',
     siteName: 'Online Bazar',
     images: [
@@ -36,7 +38,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Online Bazar',
-    description: 'Online Bazar - a mini store template powered by Payload.',
+    description:
+      'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
     images: ['/og-image.png'],
   },
 }
