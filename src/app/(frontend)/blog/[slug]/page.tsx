@@ -7,6 +7,7 @@ import { getPayload } from 'payload'
 import { Post } from '@/payload-types'
 import RichText from '@/components/RichText'
 import { SiteHeader } from '@/components/site-header'
+import { ImageWithFallback } from '@/components/image-with-fallback'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,7 +71,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           {post.featuredImage &&
             typeof post.featuredImage !== 'number' &&
             post.featuredImage.url && (
-              <img
+              <ImageWithFallback
                 src={
                   payload.config.serverURL
                     ? `${payload.config.serverURL}${post.featuredImage.url}`
@@ -78,10 +79,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 }
                 alt={post.title}
                 className="w-full h-auto rounded-lg mb-6"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.src = '/placeholder-image.svg' // Fallback image
-                }}
               />
             )}
 

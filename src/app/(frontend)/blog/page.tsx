@@ -6,6 +6,7 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { Post } from '@/payload-types'
 import { SiteHeader } from '@/components/site-header'
+import { ImageWithFallback } from '@/components/image-with-fallback'
 
 export const metadata: Metadata = {
   title: 'Blog | Online Bazar',
@@ -70,7 +71,7 @@ export default async function BlogPage() {
               {post.featuredImage &&
                 typeof post.featuredImage !== 'number' &&
                 post.featuredImage.url && (
-                  <img
+                  <ImageWithFallback
                     src={
                       payload.config.serverURL
                         ? `${payload.config.serverURL}${post.featuredImage.url}`
@@ -78,10 +79,6 @@ export default async function BlogPage() {
                     }
                     alt={post.title}
                     className="w-full h-48 object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = '/placeholder-image.svg' // Fallback image
-                    }}
                   />
                 )}
               <div className="p-4">
