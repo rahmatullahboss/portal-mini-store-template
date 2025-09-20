@@ -20,19 +20,19 @@ const RichText: React.FC<RichTextProps> = ({ content }) => {
         return renderNode(node, index)
       })
     }
-    
+
     // If content is an array (old structure)
     if (Array.isArray(contentData)) {
       return contentData.map((node, index) => {
         return renderNode(node, index)
       })
     }
-    
+
     // If content is a string
     if (typeof contentData === 'string') {
       return <p>{contentData}</p>
     }
-    
+
     return null
   }
 
@@ -46,21 +46,45 @@ const RichText: React.FC<RichTextProps> = ({ content }) => {
         case 'heading':
           const headingLevel = node?.tag ? parseInt(node.tag.replace('h', '')) : 1
           const headingTag = `h${headingLevel}`
-          const headingClasses = `${headingLevel === 1 ? 'text-3xl font-bold mt-6 mb-4' : 
-                                headingLevel === 2 ? 'text-2xl font-bold mt-5 mb-3' :
-                                headingLevel === 3 ? 'text-xl font-bold mt-4 mb-2' :
-                                headingLevel === 4 ? 'text-lg font-bold mt-3 mb-2' :
-                                headingLevel === 5 ? 'text-base font-bold mt-3 mb-1' :
-                                'text-sm font-bold mt-3 mb-1'}`
-          return React.createElement(headingTag, { key: index, className: headingClasses }, renderChildren(node.children))
+          const headingClasses = `${
+            headingLevel === 1
+              ? 'text-3xl font-bold mt-6 mb-4'
+              : headingLevel === 2
+                ? 'text-2xl font-bold mt-5 mb-3'
+                : headingLevel === 3
+                  ? 'text-xl font-bold mt-4 mb-2'
+                  : headingLevel === 4
+                    ? 'text-lg font-bold mt-3 mb-2'
+                    : headingLevel === 5
+                      ? 'text-base font-bold mt-3 mb-1'
+                      : 'text-sm font-bold mt-3 mb-1'
+          }`
+          return React.createElement(
+            headingTag,
+            { key: index, className: headingClasses },
+            renderChildren(node.children),
+          )
         case 'paragraph':
-          return React.createElement('p', { key: index, className: 'mb-4' }, renderChildren(node.children))
+          return React.createElement(
+            'p',
+            { key: index, className: 'mb-4' },
+            renderChildren(node.children),
+          )
         case 'list':
           const listTag = node?.listType === 'number' ? 'ol' : 'ul'
-          const listClasses = node?.listType === 'number' ? 'list-decimal pl-5 mb-4' : 'list-disc pl-5 mb-4'
-          return React.createElement(listTag, { key: index, className: listClasses }, renderChildren(node.children))
+          const listClasses =
+            node?.listType === 'number' ? 'list-decimal pl-5 mb-4' : 'list-disc pl-5 mb-4'
+          return React.createElement(
+            listTag,
+            { key: index, className: listClasses },
+            renderChildren(node.children),
+          )
         case 'listitem':
-          return React.createElement('li', { key: index, className: 'mb-1' }, renderChildren(node.children))
+          return React.createElement(
+            'li',
+            { key: index, className: 'mb-1' },
+            renderChildren(node.children),
+          )
         case 'link':
           return React.createElement(
             'a',
@@ -69,9 +93,9 @@ const RichText: React.FC<RichTextProps> = ({ content }) => {
               href: node.fields?.url || node.url,
               target: node.fields?.newTab || node.newTab ? '_blank' : '_self',
               rel: 'noopener noreferrer',
-              className: 'text-blue-600 hover:text-blue-800 underline'
+              className: 'text-blue-600 hover:text-blue-800 underline',
             },
-            renderChildren(node.children)
+            renderChildren(node.children),
           )
         case 'relationship':
           // Handle relationship nodes if needed
@@ -117,7 +141,11 @@ const RichText: React.FC<RichTextProps> = ({ content }) => {
               return React.createElement('s', { key: index }, child.text)
             }
             if (child.code) {
-              return React.createElement('code', { key: index, className: 'bg-gray-100 px-1 py-0.5 rounded' }, child.text)
+              return React.createElement(
+                'code',
+                { key: index, className: 'bg-gray-100 px-1 py-0.5 rounded' },
+                child.text,
+              )
             }
             // Handle plain text objects
             if (child.text) {

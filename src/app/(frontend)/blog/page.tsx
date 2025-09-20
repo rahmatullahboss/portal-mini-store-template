@@ -90,7 +90,7 @@ export default async function BlogPage() {
         <SiteHeader variant="full" user={user} />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 pt-32">
+      <div className="relative z-10 container mx-auto px-4 py-8 pt-32 pb-20">
         <div className="text-center space-y-4 mb-12">
           <h1 className="text-5xl font-bold brand-text">Blog</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -108,11 +108,12 @@ export default async function BlogPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {posts.docs.map((post: Post) => (
-              <div
+              <Link
                 key={post.id}
-                className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl gap-0 p-0"
+                href={`/blog/${post.slug}`}
+                className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl gap-0 p-0 block"
               >
                 {/* Enhanced Card Glow Effect */}
                 <div className="absolute inset-0 hidden md:block md:bg-gradient-to-br md:from-amber-100/30 md:via-rose-100/20 md:to-blue-100/30 md:opacity-0 md:group-hover:opacity-100 md:transition-all md:duration-700"></div>
@@ -135,7 +136,7 @@ export default async function BlogPage() {
 
                   <div className="p-6 flex flex-col flex-grow">
                     <h2 className="text-xl font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight mb-2">
-                      <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+                      {post.title}
                     </h2>
 
                     <div className="flex items-center text-gray-600 text-sm mb-3">
@@ -153,16 +154,13 @@ export default async function BlogPage() {
                     ) : null}
 
                     <div className="mt-auto">
-                      <Link
-                        href={`/blog/${post.slug}`}
-                        className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium"
-                      >
+                      <span className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">
                         Read more →
-                      </Link>
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
