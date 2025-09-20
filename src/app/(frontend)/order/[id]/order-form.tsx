@@ -381,8 +381,12 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
   const [email, setEmail] = useState<string>(user?.email || '')
   const [address_line1, setAddressLine1] = useState<string>(user?.address?.line1 || '')
   const [address_line2, setAddressLine2] = useState<string>(user?.address?.line2 || '')
+  // Fix: Ensure we properly handle the user's delivery zone
+  const userDeliveryZone = user?.deliveryZone
   const initialDeliveryZone: 'inside_dhaka' | 'outside_dhaka' =
-    user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
+    userDeliveryZone === 'outside_dhaka' || userDeliveryZone === 'outside'
+      ? 'outside_dhaka'
+      : 'inside_dhaka'
   const [address_city, setAddressCity] = useState<string>(
     initialDeliveryZone === 'inside_dhaka' ? 'Dhaka' : user?.address?.city || '',
   )
@@ -469,6 +473,10 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
     setIsSubmitting(true)
     setError('')
 
+    // Debugging: Log the current delivery zone
+    console.log('Current delivery zone:', deliveryZone)
+    console.log('User delivery zone:', user?.deliveryZone)
+
     if (requiresDigitalPaymentDetails) {
       const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
       if (!sanitizedSenderNumber) {
@@ -501,13 +509,16 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
           },
         ],
         customerNumber,
-        deliveryZone, // This was missing - add the deliveryZone to the payload
+        deliveryZone, // This should be the selected delivery zone
         paymentMethod,
         paymentSenderNumber: requiresDigitalPaymentDetails ? sanitizedSenderNumber : undefined,
         paymentTransactionId: requiresDigitalPaymentDetails
           ? paymentTransactionId.trim()
           : undefined,
       }
+
+      // Debugging: Log the payload being sent
+      console.log('Payload being sent to API:', payload)
 
       if (sanitizedEmail) {
         payload.customerEmail = sanitizedEmail

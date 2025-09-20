@@ -6,11 +6,26 @@ import { DEFAULT_DELIVERY_SETTINGS, normalizeDeliverySettings } from '@/lib/deli
 const DEFAULT_CURRENCY =
   process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || process.env.DEFAULT_CURRENCY || 'BDT'
 const resolveDeliveryZone = (value?: unknown): 'inside_dhaka' | 'outside_dhaka' | undefined => {
-  if (typeof value !== 'string') return undefined
+  console.log('Resolving delivery zone for value:', value)
+  if (typeof value !== 'string') {
+    console.log('Value is not a string, returning undefined')
+    return undefined
+  }
   const normalized = value.toLowerCase().replace(/[\\s-]+/g, '_')
-  if (normalized.includes('outside')) return 'outside_dhaka'
-  if (normalized.includes('inside')) return 'inside_dhaka'
-  if (normalized.includes('dhaka')) return 'inside_dhaka'
+  console.log('Normalized value:', normalized)
+  if (normalized.includes('outside')) {
+    console.log('Returning outside_dhaka')
+    return 'outside_dhaka'
+  }
+  if (normalized.includes('inside')) {
+    console.log('Returning inside_dhaka')
+    return 'inside_dhaka'
+  }
+  if (normalized.includes('dhaka')) {
+    console.log('Returning inside_dhaka (contains dhaka)')
+    return 'inside_dhaka'
+  }
+  console.log('No match found, returning undefined')
   return undefined
 }
 
@@ -47,6 +62,9 @@ export async function POST(request: NextRequest) {
     } catch {
       body = {}
     }
+
+    // Debugging: Log the received body
+    console.log('Received body:', body)
 
     const {
       items,
@@ -196,12 +214,20 @@ export async function POST(request: NextRequest) {
       if (city.length > 0) return 'outside_dhaka' as const
       return undefined
     })()
+    // Debugging: Log the delivery zone resolution
+    console.log('Request delivery zone:', requestDeliveryZone)
+    console.log('User delivery zone:', userDeliveryZone)
+    console.log('Inferred zone from address:', inferredZoneFromAddress)
+
     // Use the request delivery zone first, then fall back to user's zone, then inferred zone, and finally default to inside_dhaka
     // Fix: Prioritize request delivery zone over user delivery zone
     const deliveryZone =
       requestDeliveryZone !== undefined
         ? requestDeliveryZone
         : userDeliveryZone || inferredZoneFromAddress || 'inside_dhaka'
+
+    // Debugging: Log the final delivery zone
+    console.log('Final delivery zone:', deliveryZone)
 
     // Detect device
     const ua = request.headers.get('user-agent') || ''
