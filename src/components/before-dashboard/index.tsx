@@ -110,6 +110,29 @@ export default function BeforeDashboard() {
     }
   }, [range])
 
+  // Function to download program participants list
+  const downloadParticipants = async () => {
+    try {
+      const response = await fetch('/api/admin/program-participants/export')
+      if (!response.ok) {
+        throw new Error('Failed to download participants list')
+      }
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'program-participants.csv'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading participants:', error)
+      alert('Failed to download participants list')
+    }
+  }
+
   const sparkData = useMemo(() => metrics?.salesSeries?.map((s) => s.value) || [], [metrics])
 
   const container: React.CSSProperties = { display: 'grid', gap: 16 }
@@ -136,14 +159,30 @@ export default function BeforeDashboard() {
       <div style={container} suppressHydrationWarning>
         <div style={headerRow}>
           <h2 style={{ margin: 0 }}>Store Overview</h2>
-          <select
-            value={range}
-            onChange={(e) => setRange(e.target.value as any)}
-            style={{ padding: '6px 8px', borderRadius: 6 }}
-          >
-            <option value="this-month">This Month</option>
-            <option value="all-time">All Time</option>
-          </select>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              onClick={downloadParticipants}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: '#2563eb',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 14,
+              }}
+            >
+              Download Participants
+            </button>
+            <select
+              value={range}
+              onChange={(e) => setRange(e.target.value as any)}
+              style={{ padding: '6px 8px', borderRadius: 6 }}
+            >
+              <option value="this-month">This Month</option>
+              <option value="all-time">All Time</option>
+            </select>
+          </div>
         </div>
 
         {!mounted || loading ? (
@@ -274,6 +313,30 @@ export default function BeforeDashboard() {
                   <div style={smallText}>Total Orders</div>
                   <div style={{ ...bigText }}>{metrics.totals.totalOrders}</div>
                 </div>
+              </div>
+            </div>
+
+            {/* Program Participants Section */}
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ margin: 0 }}>Program Participants</h3>
+                <button
+                  onClick={downloadParticipants}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    background: '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                  }}
+                >
+                  Download CSV
+                </button>
+              </div>
+              <div style={{ ...smallText, fontStyle: 'italic' }}>
+                Download the complete list of program participants
               </div>
             </div>
 

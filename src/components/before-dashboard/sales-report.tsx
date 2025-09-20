@@ -11,7 +11,7 @@ type SalesData = {
 export default function SalesReport() {
   const [loading, setLoading] = useState(true)
   const [salesData, setSalesData] = useState<SalesData[]>([])
-  const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d')
+  const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('7d') // Changed default to '7d'
 
   // Format BDT currency
   const formatBDT = (n: number) =>
